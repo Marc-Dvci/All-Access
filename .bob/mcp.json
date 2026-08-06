@@ -1,0 +1,41 @@
+{
+  "$comment": [
+    "Development-time MCP servers for IBM Bob on this project.",
+    "No secrets. Credentials come from the environment at session start; this file",
+    "is committed and must stay safe to commit. Least privilege throughout: the",
+    "schema-registry server is pointed at a development registry, never production."
+  ],
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+      "alwaysAllow": ["read_file", "list_directory", "search_files"],
+      "disabled": false
+    },
+    "git": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-git", "--repository", "."],
+      "alwaysAllow": ["git_status", "git_diff", "git_log"],
+      "disabled": false
+    },
+    "schema-registry-dev": {
+      "$comment": "Development Confluent Schema Registry. Read and compatibility checks only.",
+      "command": "python",
+      "args": ["-m", "tools.mcp_schema_registry"],
+      "env": {
+        "PP_SCHEMA_REGISTRY_URL": "${env:PP_SCHEMA_REGISTRY_DEV_URL}",
+        "PP_SCHEMA_REGISTRY_KEY": "${env:PP_SCHEMA_REGISTRY_DEV_KEY}",
+        "PP_SCHEMA_REGISTRY_SECRET": "${env:PP_SCHEMA_REGISTRY_DEV_SECRET}"
+      },
+      "alwaysAllow": ["list_subjects", "get_schema", "check_compatibility"],
+      "disabled": false
+    },
+    "test-results": {
+      "$comment": "Reads the committed benchmark and test artifacts so Bob can cite real numbers.",
+      "command": "python",
+      "args": ["-m", "tools.mcp_test_results"],
+      "alwaysAllow": ["latest_benchmark", "latest_test_run", "coverage_summary"],
+      "disabled": false
+    }
+  }
+}

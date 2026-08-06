@@ -1,0 +1,187 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: "1"
+  # Every job runs the offline reasoning plane and the in-process bus. CI has no
+  # credentials, and a pipeline that needs them is a pipeline that goes red for
+  # reasons unrelated to the code.
+  PP_REASONING_MODE: offline
+  PP_EVENT_BACKBONE: local
+
+jobs:
+  quality:
+    name: tests, lint, accessibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Lint
+        run: ruff check src bench tools tests
+
+      - name: Tests
+        run: pytest -q
+
+      - name: Accessibility audit
+        # 62 static WCAG 2.2 AA checks over the web client. Non-zero on any
+        # failure; the artifact is committed so a regression shows as a diff.
+        run: |
+          python tools/a11y_audit.py
+          python tools/a11y_audit.py --json docs/accessibility_audit.json
+          git diff --exit-code docs/accessibility_audit.json \
+            || (echo "::error::accessibility audit output changed; commit the artifact" && exit 1)
+
+      - name: Software bill of materials is current
+        # Compares a freshly generated SBOM against the committed one, ignoring
+        # the timestamp. A dependency change without a regenerated SBOM fails.
+        run: python tools/generate_sbom.py --check
+
+  closed-loop:
+    name: hero closed loop and benchmark smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Hero closed loop
+        # Eleven assertions across the whole lifecycle: baseline certification,
+        # feasible and rejected plans, conflict sets, independent revalidation,
+        # command completion, verification blocking on a real missing
+        # acceptance, access preservation, hash chain and replay. Exit code is
+        # the assertion result.
+        run: python -m productionpulse.cli hero
+
+      - name: Benchmark smoke
+        # 48 scenarios, roughly twenty seconds. The full 1,000-scenario run is
+        # not in CI: it is the committed evidence in bench/results/, regenerated
+        # deliberately rather than on every push, because a headline number that
+        # moves without anyone deciding it should is not evidence.
+        run: python -m bench.run_benchmark --smoke
+
+      - name: Committed benchmark artifacts are readable and consistent
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          summary = json.loads(pathlib.Path("bench/results/summary.json").read_text())
+          rows = [
+              json.loads(line)
+              for line in pathlib.Path("bench/results/scenarios.jsonl").read_text().splitlines()
+              if line.strip()
+          ]
+          full = [r for r in rows if r["config"] == "full"]
+          assert len(full) == summary["corpus"]["scenarios"], (
+              f"{len(full)} rows for {summary['corpus']['scenarios']} scenarios"
+          )
+          # The headline claim, recomputed from the raw rows rather than read
+          # from the summary that asserts it.
+          violations = sum(r["hard_violations_published"] for r in full)
+          assert violations == 0, f"{violations} hard-constraint violations in published plans"
+          assert summary["planning_quality"]["hard_constraint_violation_rate"] == 0.0
+          print(f"{len(full)} scenarios, {violations} hard violations, artifacts consistent")
+          PY
+
+  deployment:
+    name: deployment paths
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Agent Engine manifest
+        # Validates the deployment descriptor and the read-only tool boundary
+        # without a cloud project. This is what stops the deployment path from
+        # rotting between deploys.
+        run: python tools/deploy_agent_engine.py --dry-run
+
+      - name: Bob MCP servers answer the protocol
+        # .bob/mcp.json points at these two by module path. A committed config
+        # naming a module that does not start is a broken promise to anyone who
+        # opens the project in Bob.
+        run: |
+          for module in tools.mcp_schema_registry tools.mcp_test_results; do
+            printf '%s\n%s\n' \
+              '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' \
+              '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
+              | python -m "$module" | python -c "
+          import json, sys
+          responses = [json.loads(line) for line in sys.stdin]
+          assert responses[0]['result']['serverInfo']['name'], 'no serverInfo'
+          tools = responses[1]['result']['tools']
+          assert tools, 'no tools advertised'
+          print('$module ok:', ', '.join(t['name'] for t in tools))
+          "
+          done
+
+      - name: Build the container image
+        run: docker build -t productionpulse:ci .
+
+      - name: The image serves the application
+        run: |
+          docker run -d --name pp -p 8080:8080 productionpulse:ci
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/healthz > /dev/null; then break; fi
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:8080/healthz
+          curl -fsS http://127.0.0.1:8080/api/about
+          # The control board is the first thing a judge opens.
+          curl -fsS http://127.0.0.1:8080/api/control-board > /dev/null
+          docker logs pp
+          docker rm -f pp
+
+  infrastructure:
+    name: terraform
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.5"
+
+      - name: Format
+        run: terraform -chdir=infra/terraform fmt -check -recursive
+
+      - name: Validate
+        # `init -backend=false` so validation needs no state bucket and no
+        # credentials.
+        run: |
+          terraform -chdir=infra/terraform init -backend=false
+          terraform -chdir=infra/terraform validate

@@ -1,0 +1,27 @@
+# Excluded from IBM Bob's context.
+#
+# Not because it is secret -- there are no secrets in this repository -- but
+# because feeding a model 18k lines of generated artifacts and virtual
+# environments produces worse answers than feeding it the source.
+
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+var/
+node_modules/
+dist/
+build/
+*.egg-info/
+
+# Generated artifacts. Bob should read the code that produces these, not the
+# output, except when explicitly asked to review a benchmark result.
+bench/results/*.json
+sbom.json
+docs/accessibility_audit.json
+
+# Environment
+.env
+.env.*
+!.env.example

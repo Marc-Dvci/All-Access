@@ -1,0 +1,40 @@
+# Environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+dist/
+build/
+node_modules/
+
+# Runtime state: SQLite stores, generated approval signing keys, benchmark
+# worker databases. Safe to delete; regenerated on next run.
+var/
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*-key.json
+service-account*.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# NOT ignored, deliberately
+# ------------------------
+# bench/results/          the committed benchmark evidence. Every number in the
+#                         README and in docs/BENCHMARK.md is read from these
+#                         files, including scenarios.jsonl at one row per
+#                         scenario, so any figure can be recomputed rather than
+#                         taken on trust. A repository that documents results it
+#                         does not carry is asking to be believed.
+# sbom.json               the bill of materials for the environment the
+#                         benchmark was run in.
+# docs/accessibility_audit.json   the 62-check audit artifact.

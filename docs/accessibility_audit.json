@@ -1,0 +1,513 @@
+{
+  "generated_at": "2026-08-04T07:09:07+00:00",
+  "target": "WCAG 2.2 Level AA",
+  "scope": "src/productionpulse/web/ \u2014 static source audit, no browser",
+  "not_covered": [
+    "Anything requiring a rendered layout or computed style",
+    "Screen-reader announcement order and quality",
+    "Focus order under a real assistive technology",
+    "Contrast of any colour set outside styles.css",
+    "1.4.10 Reflow verified visually at 320 CSS pixels"
+  ],
+  "total": 62,
+  "passed": 62,
+  "failed": 0,
+  "checks": [
+    {
+      "check_id": "A-001",
+      "criterion": "3.1.1 Language of Page",
+      "level": "A",
+      "description": "The document declares a language",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-002",
+      "criterion": "2.4.2 Page Titled",
+      "level": "A",
+      "description": "The document has a non-empty, descriptive title",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-003",
+      "criterion": "1.3.1 Info and Relationships",
+      "level": "A",
+      "description": "Exactly one h1 per view panel, and no heading levels skipped",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-004",
+      "criterion": "2.4.1 Bypass Blocks",
+      "level": "A",
+      "description": "A skip link targets the main landmark",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-005",
+      "criterion": "1.3.1 Info and Relationships",
+      "level": "A",
+      "description": "The page uses header, nav, main and footer landmarks",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-006",
+      "criterion": "1.3.1 Info and Relationships",
+      "level": "A",
+      "description": "The navigation landmark is labelled",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-007",
+      "criterion": "1.4.10 Reflow",
+      "level": "AA",
+      "description": "A single-column breakpoint exists at or below 320 px equivalent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-008",
+      "criterion": "1.4.4 Resize Text",
+      "level": "AA",
+      "description": "Font sizes are relative, so browser text scaling applies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-009",
+      "criterion": "1.4.12 Text Spacing",
+      "level": "AA",
+      "description": "Line height is at least 1.5 for body text",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-010",
+      "criterion": "2.4.7 Focus Visible",
+      "level": "AA",
+      "description": "A visible focus indicator is defined and never removed",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-011",
+      "criterion": "2.4.11 Focus Not Obscured",
+      "level": "AA",
+      "description": "The sticky navigation does not overlay the content column",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-012",
+      "criterion": "2.5.8 Target Size (Minimum)",
+      "level": "AA",
+      "description": "Interactive controls declare a minimum target of 24 px or more",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-013",
+      "criterion": "2.1.1 Keyboard",
+      "level": "A",
+      "description": "The tab list implements arrow, Home and End key navigation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-014",
+      "criterion": "4.1.2 Name, Role, Value",
+      "level": "A",
+      "description": "Only the selected tab is in the page tab sequence",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-015",
+      "criterion": "4.1.2 Name, Role, Value",
+      "level": "A",
+      "description": "Every tab declares aria-selected and aria-controls",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-016",
+      "criterion": "4.1.2 Name, Role, Value",
+      "level": "A",
+      "description": "Every tab panel is labelled by its tab",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-017",
+      "criterion": "4.1.3 Status Messages",
+      "level": "AA",
+      "description": "Exactly one polite live region announces status changes",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-018",
+      "criterion": "3.2.2 On Input",
+      "level": "A",
+      "description": "Running a disruption requires an explicit activation, not a change event",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-019",
+      "criterion": "1.4.13 Content on Hover or Focus",
+      "level": "AA",
+      "description": "No hover-only content: there are no tooltip or popover behaviours",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-020",
+      "criterion": "3.3.2 Labels or Instructions",
+      "level": "A",
+      "description": "Every form control in the markup has an associated label",
+      "passed": true,
+      "detail": "unlabelled: []"
+    },
+    {
+      "check_id": "A-021",
+      "criterion": "3.3.2 Labels or Instructions",
+      "level": "A",
+      "description": "Every dynamically created control is labelled at creation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-022",
+      "criterion": "4.1.2 Name, Role, Value",
+      "level": "A",
+      "description": "The text-size control exposes its pressed state",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-023",
+      "criterion": "1.3.1 Info and Relationships",
+      "level": "A",
+      "description": "Every generated table has a caption and scoped column headers",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-024",
+      "criterion": "2.1.1 Keyboard",
+      "level": "A",
+      "description": "Horizontally scrolling table regions are focusable and labelled",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-025",
+      "criterion": "1.4.1 Use of Colour",
+      "level": "A",
+      "description": "Status is carried by text, not colour alone",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-026",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "The selected row is marked structurally as well as by colour",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-027",
+      "criterion": "4.1.1 Parsing",
+      "level": "A",
+      "description": "No content is inserted as markup; every value goes through textContent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-028",
+      "criterion": "2.3.3 Animation from Interactions",
+      "level": "AAA",
+      "description": "Reduced-motion preference is honoured",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-029",
+      "criterion": "1.4.8 Visual Presentation",
+      "level": "AAA",
+      "description": "Body text is constrained to a readable measure",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "A-030",
+      "criterion": "3.1.2 Language of Parts",
+      "level": "AA",
+      "description": "Crew messages declare the language they are written in",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check_id": "C-L-ink-on-surface",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "body text on a card (light)",
+      "passed": true,
+      "detail": "17.77:1 against a 4.5:1 minimum (#16181c on #ffffff)"
+    },
+    {
+      "check_id": "C-L-ink-on-bg",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "body text on the page background (light)",
+      "passed": true,
+      "detail": "16.16:1 against a 4.5:1 minimum (#16181c on #f5f4f1)"
+    },
+    {
+      "check_id": "C-L-ink-muted-on-surface",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "secondary text on a card (light)",
+      "passed": true,
+      "detail": "8.24:1 against a 4.5:1 minimum (#4a4f57 on #ffffff)"
+    },
+    {
+      "check_id": "C-L-ink-muted-on-surface-2",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "secondary text on the table header (light)",
+      "passed": true,
+      "detail": "6.97:1 against a 4.5:1 minimum (#4a4f57 on #edecE8)"
+    },
+    {
+      "check_id": "C-L-ink-on-surface-2",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "text on the table header (light)",
+      "passed": true,
+      "detail": "15.03:1 against a 4.5:1 minimum (#16181c on #edecE8)"
+    },
+    {
+      "check_id": "C-L-accent-ink-on-accent",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "text on a primary button and the selected tab (light)",
+      "passed": true,
+      "detail": "9.58:1 against a 4.5:1 minimum (#ffffff on #12496b)"
+    },
+    {
+      "check_id": "C-L-ok-on-ok-bg",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "the \u201cready\u201d status chip (light)",
+      "passed": true,
+      "detail": "6.78:1 against a 4.5:1 minimum (#1c5c34 on #e2f0e6)"
+    },
+    {
+      "check_id": "C-L-warn-on-warn-bg",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "the \u201cawaiting\u201d status chip (light)",
+      "passed": true,
+      "detail": "6.52:1 against a 4.5:1 minimum (#7a4a00 on #fbeed6)"
+    },
+    {
+      "check_id": "C-L-bad-on-bad-bg",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "the \u201cblocked\u201d status chip (light)",
+      "passed": true,
+      "detail": "6.56:1 against a 4.5:1 minimum (#a01523 on #fbe3e5)"
+    },
+    {
+      "check_id": "C-L-quiet-on-quiet-bg",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "the \u201cabstained\u201d status chip (light)",
+      "passed": true,
+      "detail": "7.09:1 against a 4.5:1 minimum (#4a4f57 on #eceef0)"
+    },
+    {
+      "check_id": "C-L-line-strong-on-surface",
+      "criterion": "1.4.11 Non-text Contrast",
+      "level": "AA",
+      "description": "a form control boundary (light)",
+      "passed": true,
+      "detail": "3.25:1 against a 3.0:1 minimum (#8b8f96 on #ffffff)"
+    },
+    {
+      "check_id": "C-L-focus-on-surface",
+      "criterion": "1.4.11 Non-text Contrast",
+      "level": "AA",
+      "description": "the focus indicator, outer ring on a card (light)",
+      "passed": true,
+      "detail": "6.51:1 against a 3.0:1 minimum (#a63a00 on #ffffff)"
+    },
+    {
+      "check_id": "C-L-focus-on-bg",
+      "criterion": "1.4.11 Non-text Contrast",
+      "level": "AA",
+      "description": "the focus indicator, outer ring on the page (light)",
+      "passed": true,
+      "detail": "5.92:1 against a 3.0:1 minimum (#a63a00 on #f5f4f1)"
+    },
+    {
+      "check_id": "C-L-focus-inner-on-accent",
+      "criterion": "1.4.11 Non-text Contrast",
+      "level": "AA",
+      "description": "the focus indicator, inner ring on a selected tab (light)",
+      "passed": true,
+      "detail": "9.58:1 against a 3.0:1 minimum (#ffffff on #12496b)"
+    },
+    {
+      "check_id": "C-L-accent-on-surface",
+      "criterion": "1.4.11 Non-text Contrast",
+      "level": "AA",
+      "description": "an accent boundary (light)",
+      "passed": true,
+      "detail": "9.58:1 against a 3.0:1 minimum (#12496b on #ffffff)"
+    },
+    {
+      "check_id": "I-L-line-on-surface",
+      "criterion": "1.4.11 Non-text Contrast",
+      "level": "informational",
+      "description": "a decorative card or table rule (light) \u2014 measured, not enforced; see INFORMATIONAL_PAIRS",
+      "passed": true,
+      "detail": "1.73:1 (#c3c5c9 on #ffffff)"
+    },
+    {
+      "check_id": "C-D-ink-on-surface",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "body text on a card (dark)",
+      "passed": true,
+      "detail": "14.87:1 against a 4.5:1 minimum (#f2f3f5 on #1c1f25)"
+    },
+    {
+      "check_id": "C-D-ink-on-bg",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "body text on the page background (dark)",
+      "passed": true,
+      "detail": "16.31:1 against a 4.5:1 minimum (#f2f3f5 on #14161a)"
+    },
+    {
+      "check_id": "C-D-ink-muted-on-surface",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "secondary text on a card (dark)",
+      "passed": true,
+      "detail": "8.85:1 against a 4.5:1 minimum (#b9bec7 on #1c1f25)"
+    },
+    {
+      "check_id": "C-D-ink-muted-on-surface-2",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "secondary text on the table header (dark)",
+      "passed": true,
+      "detail": "7.92:1 against a 4.5:1 minimum (#b9bec7 on #242830)"
+    },
+    {
+      "check_id": "C-D-ink-on-surface-2",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "text on the table header (dark)",
+      "passed": true,
+      "detail": "13.31:1 against a 4.5:1 minimum (#f2f3f5 on #242830)"
+    },
+    {
+      "check_id": "C-D-accent-ink-on-accent",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "text on a primary button and the selected tab (dark)",
+      "passed": true,
+      "detail": "9.73:1 against a 4.5:1 minimum (#10161c on #8fc4e8)"
+    },
+    {
+      "check_id": "C-D-ok-on-ok-bg",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "the \u201cready\u201d status chip (dark)",
+      "passed": true,
+      "detail": "7.92:1 against a 4.5:1 minimum (#7fd39b on #16301f)"
+    },
+    {
+      "check_id": "C-D-warn-on-warn-bg",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "the \u201cawaiting\u201d status chip (dark)",
+      "passed": true,
+      "detail": "8.37:1 against a 4.5:1 minimum (#ecbe6d on #33280f)"
+    },
+    {
+      "check_id": "C-D-bad-on-bad-bg",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "the \u201cblocked\u201d status chip (dark)",
+      "passed": true,
+      "detail": "7.10:1 against a 4.5:1 minimum (#f2909a on #37171b)"
+    },
+    {
+      "check_id": "C-D-quiet-on-quiet-bg",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "the \u201cabstained\u201d status chip (dark)",
+      "passed": true,
+      "detail": "7.72:1 against a 4.5:1 minimum (#b9bec7 on #262a31)"
+    },
+    {
+      "check_id": "C-D-line-strong-on-surface",
+      "criterion": "1.4.11 Non-text Contrast",
+      "level": "AA",
+      "description": "a form control boundary (dark)",
+      "passed": true,
+      "detail": "3.98:1 against a 3.0:1 minimum (#767d88 on #1c1f25)"
+    },
+    {
+      "check_id": "C-D-focus-on-surface",
+      "criterion": "1.4.11 Non-text Contrast",
+      "level": "AA",
+      "description": "the focus indicator, outer ring on a card (dark)",
+      "passed": true,
+      "detail": "9.16:1 against a 3.0:1 minimum (#ffb066 on #1c1f25)"
+    },
+    {
+      "check_id": "C-D-focus-on-bg",
+      "criterion": "1.4.11 Non-text Contrast",
+      "level": "AA",
+      "description": "the focus indicator, outer ring on the page (dark)",
+      "passed": true,
+      "detail": "10.05:1 against a 3.0:1 minimum (#ffb066 on #14161a)"
+    },
+    {
+      "check_id": "C-D-focus-inner-on-accent",
+      "criterion": "1.4.11 Non-text Contrast",
+      "level": "AA",
+      "description": "the focus indicator, inner ring on a selected tab (dark)",
+      "passed": true,
+      "detail": "9.73:1 against a 3.0:1 minimum (#10161c on #8fc4e8)"
+    },
+    {
+      "check_id": "C-D-accent-on-surface",
+      "criterion": "1.4.11 Non-text Contrast",
+      "level": "AA",
+      "description": "an accent boundary (dark)",
+      "passed": true,
+      "detail": "8.83:1 against a 3.0:1 minimum (#8fc4e8 on #1c1f25)"
+    },
+    {
+      "check_id": "I-D-line-on-surface",
+      "criterion": "1.4.11 Non-text Contrast",
+      "level": "informational",
+      "description": "a decorative card or table rule (dark) \u2014 measured, not enforced; see INFORMATIONAL_PAIRS",
+      "passed": true,
+      "detail": "1.86:1 (#454a54 on #1c1f25)"
+    }
+  ]
+}

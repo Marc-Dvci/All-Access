@@ -1,0 +1,858 @@
+{
+  "ablations": {
+    "no_reconciliation": {
+      "agent_quality": {
+        "abstention_rate": 0.1739,
+        "blocking_finding_without_evidence_rate": 0.0,
+        "fabricated_constraint_rate": 0.0,
+        "findings": 3680,
+        "missing_required_assessment_rate": 0.0,
+        "scenarios_assessed": 200
+      },
+      "corpus": {
+        "completed": 200,
+        "error_examples": [],
+        "errors": 0,
+        "families": {
+          "access_communication": 25,
+          "cast_crew": 50,
+          "continuity": 25,
+          "equipment": 25,
+          "location": 25,
+          "operational_systems": 25,
+          "weather": 25
+        },
+        "final_states": {
+          "abandoned": 80,
+          "closed": 108,
+          "verifying": 12
+        },
+        "no_feasible_plan_rate": 0.4,
+        "scenarios": 200
+      },
+      "execution_quality": {
+        "acknowledgment_completeness": 0.991,
+        "assertion_pass_rate": 0.9858,
+        "command_completion_rate": 1.0,
+        "command_rejection_rate": 0.0,
+        "commands_issued": 874,
+        "false_closure_denominator": 120,
+        "false_closure_rate_without_verification": 0.1,
+        "verification_ready_rate": 0.9
+      },
+      "impact_analysis": {
+        "access_requirements_reached": {
+          "false_negatives": 0,
+          "false_positives": 1013,
+          "labelled_scenarios": 34,
+          "precision": 0.0352,
+          "recall": 1.0,
+          "true_positives": 37
+        },
+        "affected_departments": {
+          "false_negatives": 0,
+          "false_positives": 1870,
+          "labelled_scenarios": 175,
+          "precision": 0.1766,
+          "recall": 1.0,
+          "true_positives": 401
+        },
+        "constraint_identification": {
+          "false_negatives": 0,
+          "false_positives": 0,
+          "labelled_scenarios": 101,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positives": 108
+        },
+        "disrupted_scenes": {
+          "false_negatives": 0,
+          "false_positives": 748,
+          "labelled_scenarios": 100,
+          "precision": 0.1451,
+          "recall": 1.0,
+          "true_positives": 127
+        },
+        "max_blast_depth": 6,
+        "mean_blast_nodes": 117.977
+      },
+      "inclusion_and_privacy": {
+        "access_preservation_rate": 1.0,
+        "approved_arrangements_in_selected_plans": 720,
+        "personal_events_to_unauthorised_audience": 0,
+        "prohibited_field_occurrences": 0
+      },
+      "latency": {
+        "mean_end_to_end_ms": 741.835,
+        "mean_solve_ms": 484.182,
+        "p95_end_to_end_ms": 1228.75,
+        "p95_solve_ms": 821.51
+      },
+      "planning_quality": {
+        "hard_constraint_violation_rate": 0.0,
+        "mean_distinct_strategies": 2.617,
+        "mean_options_offered": 2.617,
+        "multiple_strategy_rate": 0.6833,
+        "non_minimal_conflict_rate": 0.0,
+        "published_feasible_plans": 314,
+        "rejected_plans": 536,
+        "rejected_without_conflict_set_rate": 0.0,
+        "unvalidated_proof_rate": 0.0
+      },
+      "platform_quality": {
+        "dead_letters": 5,
+        "declared_but_not_injected": [
+          "command_rejection",
+          "connector_failure",
+          "out_of_order_event"
+        ],
+        "duplicates_suppressed": 3,
+        "events": 10371,
+        "fault_handling_by_kind": {
+          "duplicate_event": {
+            "applicable": 3,
+            "handled": 3
+          },
+          "late_event": {
+            "applicable": 4,
+            "handled": 4
+          },
+          "missing_acknowledgment": {
+            "applicable": 5,
+            "handled": 0
+          },
+          "partial_update": {
+            "applicable": 7,
+            "handled": 7
+          },
+          "schema_incompatibility": {
+            "applicable": 2,
+            "handled": 2
+          }
+        },
+        "fault_handling_rate": 0.7619,
+        "fault_scenarios": 37,
+        "faults_applicable": 21,
+        "faults_injected": 30,
+        "hash_chain_intact_rate": 1.0,
+        "inbox_duplicates_suppressed": 0,
+        "injectable_faults": [
+          "duplicate_event",
+          "late_event",
+          "missing_acknowledgment",
+          "partial_update",
+          "schema_incompatibility"
+        ],
+        "mean_events_per_disruption": 51.855,
+        "mean_lineage_nodes": 51.835,
+        "replay_identical_rate": 1.0
+      },
+      "robustness": {
+        "mean_expected_delay_minutes": 70.639,
+        "mean_on_time_probability": 0.0,
+        "p95_worst_credible_delay_minutes": 137.33,
+        "plans_simulated": 120
+      }
+    },
+    "no_robustness": {
+      "agent_quality": {
+        "abstention_rate": 0.2065,
+        "blocking_finding_without_evidence_rate": 0.0,
+        "fabricated_constraint_rate": 0.0,
+        "findings": 3680,
+        "missing_required_assessment_rate": 0.0,
+        "scenarios_assessed": 200
+      },
+      "corpus": {
+        "completed": 200,
+        "error_examples": [],
+        "errors": 0,
+        "families": {
+          "access_communication": 25,
+          "cast_crew": 50,
+          "continuity": 25,
+          "equipment": 25,
+          "location": 25,
+          "operational_systems": 25,
+          "weather": 25
+        },
+        "final_states": {
+          "abandoned": 80,
+          "closed": 113,
+          "verifying": 7
+        },
+        "no_feasible_plan_rate": 0.4,
+        "scenarios": 200
+      },
+      "execution_quality": {
+        "acknowledgment_completeness": 0.991,
+        "assertion_pass_rate": 0.9896,
+        "command_completion_rate": 1.0,
+        "command_rejection_rate": 0.0,
+        "commands_issued": 874,
+        "false_closure_denominator": 120,
+        "false_closure_rate_without_verification": 0.1,
+        "verification_ready_rate": 0.9417
+      },
+      "impact_analysis": {
+        "access_requirements_reached": {
+          "false_negatives": 0,
+          "false_positives": 1013,
+          "labelled_scenarios": 34,
+          "precision": 0.0352,
+          "recall": 1.0,
+          "true_positives": 37
+        },
+        "affected_departments": {
+          "false_negatives": 0,
+          "false_positives": 1870,
+          "labelled_scenarios": 175,
+          "precision": 0.1766,
+          "recall": 1.0,
+          "true_positives": 401
+        },
+        "constraint_identification": {
+          "false_negatives": 0,
+          "false_positives": 0,
+          "labelled_scenarios": 101,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positives": 108
+        },
+        "disrupted_scenes": {
+          "false_negatives": 0,
+          "false_positives": 748,
+          "labelled_scenarios": 100,
+          "precision": 0.1451,
+          "recall": 1.0,
+          "true_positives": 127
+        },
+        "max_blast_depth": 6,
+        "mean_blast_nodes": 117.977
+      },
+      "inclusion_and_privacy": {
+        "access_preservation_rate": 1.0,
+        "approved_arrangements_in_selected_plans": 720,
+        "personal_events_to_unauthorised_audience": 0,
+        "prohibited_field_occurrences": 0
+      },
+      "latency": {
+        "mean_end_to_end_ms": 608.002,
+        "mean_solve_ms": 489.939,
+        "p95_end_to_end_ms": 1047.9,
+        "p95_solve_ms": 810.02
+      },
+      "planning_quality": {
+        "hard_constraint_violation_rate": 0.0,
+        "mean_distinct_strategies": 2.617,
+        "mean_options_offered": 2.617,
+        "multiple_strategy_rate": 0.6833,
+        "non_minimal_conflict_rate": 0.0,
+        "published_feasible_plans": 314,
+        "rejected_plans": 536,
+        "rejected_without_conflict_set_rate": 0.0,
+        "unvalidated_proof_rate": 0.0
+      },
+      "platform_quality": {
+        "dead_letters": 5,
+        "declared_but_not_injected": [
+          "command_rejection",
+          "connector_failure",
+          "out_of_order_event"
+        ],
+        "duplicates_suppressed": 3,
+        "events": 10067,
+        "fault_handling_by_kind": {
+          "duplicate_event": {
+            "applicable": 3,
+            "handled": 3
+          },
+          "late_event": {
+            "applicable": 4,
+            "handled": 4
+          },
+          "missing_acknowledgment": {
+            "applicable": 5,
+            "handled": 5
+          },
+          "partial_update": {
+            "applicable": 7,
+            "handled": 7
+          },
+          "schema_incompatibility": {
+            "applicable": 2,
+            "handled": 2
+          }
+        },
+        "fault_handling_rate": 1.0,
+        "fault_scenarios": 37,
+        "faults_applicable": 21,
+        "faults_injected": 30,
+        "hash_chain_intact_rate": 1.0,
+        "inbox_duplicates_suppressed": 0,
+        "injectable_faults": [
+          "duplicate_event",
+          "late_event",
+          "missing_acknowledgment",
+          "partial_update",
+          "schema_incompatibility"
+        ],
+        "mean_events_per_disruption": 50.335,
+        "mean_lineage_nodes": 50.315,
+        "replay_identical_rate": 1.0
+      },
+      "robustness": {
+        "mean_expected_delay_minutes": null,
+        "mean_on_time_probability": null,
+        "p95_worst_credible_delay_minutes": null,
+        "plans_simulated": 0
+      }
+    },
+    "no_twin": {
+      "agent_quality": {
+        "abstention_rate": 0.2283,
+        "blocking_finding_without_evidence_rate": 0.0,
+        "fabricated_constraint_rate": 0.0,
+        "findings": 3680,
+        "missing_required_assessment_rate": 0.0,
+        "scenarios_assessed": 200
+      },
+      "corpus": {
+        "completed": 200,
+        "error_examples": [],
+        "errors": 0,
+        "families": {
+          "access_communication": 25,
+          "cast_crew": 50,
+          "continuity": 25,
+          "equipment": 25,
+          "location": 25,
+          "operational_systems": 25,
+          "weather": 25
+        },
+        "final_states": {
+          "abandoned": 80,
+          "closed": 113,
+          "verifying": 7
+        },
+        "no_feasible_plan_rate": 0.4,
+        "scenarios": 200
+      },
+      "execution_quality": {
+        "acknowledgment_completeness": 0.991,
+        "assertion_pass_rate": 0.9896,
+        "command_completion_rate": 1.0,
+        "command_rejection_rate": 0.0,
+        "commands_issued": 874,
+        "false_closure_denominator": 120,
+        "false_closure_rate_without_verification": 0.1,
+        "verification_ready_rate": 0.9417
+      },
+      "impact_analysis": {
+        "access_requirements_reached": {
+          "false_negatives": 37,
+          "false_positives": 0,
+          "labelled_scenarios": 34,
+          "precision": null,
+          "recall": 0.0,
+          "true_positives": 0
+        },
+        "affected_departments": {
+          "false_negatives": 401,
+          "false_positives": 0,
+          "labelled_scenarios": 175,
+          "precision": null,
+          "recall": 0.0,
+          "true_positives": 0
+        },
+        "constraint_identification": {
+          "false_negatives": 0,
+          "false_positives": 0,
+          "labelled_scenarios": 101,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positives": 108
+        },
+        "disrupted_scenes": {
+          "false_negatives": 127,
+          "false_positives": 0,
+          "labelled_scenarios": 100,
+          "precision": null,
+          "recall": 0.0,
+          "true_positives": 0
+        },
+        "max_blast_depth": 0,
+        "mean_blast_nodes": null
+      },
+      "inclusion_and_privacy": {
+        "access_preservation_rate": 1.0,
+        "approved_arrangements_in_selected_plans": 720,
+        "personal_events_to_unauthorised_audience": 0,
+        "prohibited_field_occurrences": 0
+      },
+      "latency": {
+        "mean_end_to_end_ms": 687.983,
+        "mean_solve_ms": 454.384,
+        "p95_end_to_end_ms": 1133.6,
+        "p95_solve_ms": 684.76
+      },
+      "planning_quality": {
+        "hard_constraint_violation_rate": 0.0,
+        "mean_distinct_strategies": 2.617,
+        "mean_options_offered": 2.617,
+        "multiple_strategy_rate": 0.6833,
+        "non_minimal_conflict_rate": 0.0,
+        "published_feasible_plans": 314,
+        "rejected_plans": 536,
+        "rejected_without_conflict_set_rate": 0.0,
+        "unvalidated_proof_rate": 0.0
+      },
+      "platform_quality": {
+        "dead_letters": 5,
+        "declared_but_not_injected": [
+          "command_rejection",
+          "connector_failure",
+          "out_of_order_event"
+        ],
+        "duplicates_suppressed": 3,
+        "events": 10381,
+        "fault_handling_by_kind": {
+          "duplicate_event": {
+            "applicable": 3,
+            "handled": 3
+          },
+          "late_event": {
+            "applicable": 4,
+            "handled": 4
+          },
+          "missing_acknowledgment": {
+            "applicable": 5,
+            "handled": 5
+          },
+          "partial_update": {
+            "applicable": 7,
+            "handled": 7
+          },
+          "schema_incompatibility": {
+            "applicable": 2,
+            "handled": 2
+          }
+        },
+        "fault_handling_rate": 1.0,
+        "fault_scenarios": 37,
+        "faults_applicable": 21,
+        "faults_injected": 30,
+        "hash_chain_intact_rate": 1.0,
+        "inbox_duplicates_suppressed": 0,
+        "injectable_faults": [
+          "duplicate_event",
+          "late_event",
+          "missing_acknowledgment",
+          "partial_update",
+          "schema_incompatibility"
+        ],
+        "mean_events_per_disruption": 51.905,
+        "mean_lineage_nodes": 51.885,
+        "replay_identical_rate": 1.0
+      },
+      "robustness": {
+        "mean_expected_delay_minutes": 70.639,
+        "mean_on_time_probability": 0.0,
+        "p95_worst_credible_delay_minutes": 137.33,
+        "plans_simulated": 120
+      }
+    },
+    "no_validation": {
+      "agent_quality": {
+        "abstention_rate": 0.1005,
+        "blocking_finding_without_evidence_rate": 0.0,
+        "fabricated_constraint_rate": 0.0,
+        "findings": 3980,
+        "missing_required_assessment_rate": 0.0,
+        "scenarios_assessed": 200
+      },
+      "corpus": {
+        "completed": 200,
+        "error_examples": [],
+        "errors": 0,
+        "families": {
+          "access_communication": 25,
+          "cast_crew": 50,
+          "continuity": 25,
+          "equipment": 25,
+          "location": 25,
+          "operational_systems": 25,
+          "weather": 25
+        },
+        "final_states": {
+          "closed": 149,
+          "verifying": 51
+        },
+        "no_feasible_plan_rate": 0.0,
+        "scenarios": 200
+      },
+      "execution_quality": {
+        "acknowledgment_completeness": 0.996,
+        "assertion_pass_rate": 0.9736,
+        "command_completion_rate": 1.0,
+        "command_rejection_rate": 0.0,
+        "commands_issued": 1400,
+        "false_closure_denominator": 200,
+        "false_closure_rate_without_verification": 0.255,
+        "verification_ready_rate": 0.745
+      },
+      "impact_analysis": {
+        "access_requirements_reached": {
+          "false_negatives": 0,
+          "false_positives": 1013,
+          "labelled_scenarios": 34,
+          "precision": 0.0352,
+          "recall": 1.0,
+          "true_positives": 37
+        },
+        "affected_departments": {
+          "false_negatives": 0,
+          "false_positives": 1870,
+          "labelled_scenarios": 175,
+          "precision": 0.1766,
+          "recall": 1.0,
+          "true_positives": 401
+        },
+        "constraint_identification": {
+          "false_negatives": 0,
+          "false_positives": 0,
+          "labelled_scenarios": 101,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positives": 108
+        },
+        "disrupted_scenes": {
+          "false_negatives": 0,
+          "false_positives": 748,
+          "labelled_scenarios": 100,
+          "precision": 0.1451,
+          "recall": 1.0,
+          "true_positives": 127
+        },
+        "max_blast_depth": 6,
+        "mean_blast_nodes": 117.977
+      },
+      "inclusion_and_privacy": {
+        "access_preservation_rate": 0.78,
+        "approved_arrangements_in_selected_plans": 1200,
+        "personal_events_to_unauthorised_audience": 0,
+        "prohibited_field_occurrences": 0
+      },
+      "latency": {
+        "mean_end_to_end_ms": 874.724,
+        "mean_solve_ms": 321.187,
+        "p95_end_to_end_ms": 1252.2,
+        "p95_solve_ms": 487.0
+      },
+      "planning_quality": {
+        "hard_constraint_violation_rate": 2.4118,
+        "mean_distinct_strategies": 4.25,
+        "mean_options_offered": 4.25,
+        "multiple_strategy_rate": 1.0,
+        "non_minimal_conflict_rate": null,
+        "published_feasible_plans": 850,
+        "rejected_plans": 0,
+        "rejected_without_conflict_set_rate": null,
+        "unvalidated_proof_rate": 0.0
+      },
+      "platform_quality": {
+        "dead_letters": 5,
+        "declared_but_not_injected": [
+          "command_rejection",
+          "connector_failure",
+          "out_of_order_event"
+        ],
+        "duplicates_suppressed": 3,
+        "events": 13526,
+        "fault_handling_by_kind": {
+          "duplicate_event": {
+            "applicable": 3,
+            "handled": 3
+          },
+          "late_event": {
+            "applicable": 4,
+            "handled": 4
+          },
+          "partial_update": {
+            "applicable": 7,
+            "handled": 7
+          },
+          "schema_incompatibility": {
+            "applicable": 2,
+            "handled": 2
+          }
+        },
+        "fault_handling_rate": 1.0,
+        "fault_scenarios": 37,
+        "faults_applicable": 16,
+        "faults_injected": 30,
+        "hash_chain_intact_rate": 1.0,
+        "inbox_duplicates_suppressed": 0,
+        "injectable_faults": [
+          "duplicate_event",
+          "late_event",
+          "missing_acknowledgment",
+          "partial_update",
+          "schema_incompatibility"
+        ],
+        "mean_events_per_disruption": 67.63,
+        "mean_lineage_nodes": 67.61,
+        "replay_identical_rate": 1.0
+      },
+      "robustness": {
+        "mean_expected_delay_minutes": 69.571,
+        "mean_on_time_probability": 0.0,
+        "p95_worst_credible_delay_minutes": 116.21,
+        "plans_simulated": 200
+      }
+    }
+  },
+  "baseline": {
+    "agent_quality": {
+      "abstention_rate": 0.1739,
+      "blocking_finding_without_evidence_rate": 0.0,
+      "fabricated_constraint_rate": 0.0,
+      "findings": 3680,
+      "missing_required_assessment_rate": 0.0,
+      "scenarios_assessed": 200
+    },
+    "corpus": {
+      "completed": 200,
+      "error_examples": [],
+      "errors": 0,
+      "families": {
+        "access_communication": 25,
+        "cast_crew": 50,
+        "continuity": 25,
+        "equipment": 25,
+        "location": 25,
+        "operational_systems": 25,
+        "weather": 25
+      },
+      "final_states": {
+        "abandoned": 80,
+        "closed": 113,
+        "verifying": 7
+      },
+      "no_feasible_plan_rate": 0.4,
+      "scenarios": 200
+    },
+    "execution_quality": {
+      "acknowledgment_completeness": 0.991,
+      "assertion_pass_rate": 0.9896,
+      "command_completion_rate": 1.0,
+      "command_rejection_rate": 0.0,
+      "commands_issued": 874,
+      "false_closure_denominator": 120,
+      "false_closure_rate_without_verification": 0.1,
+      "verification_ready_rate": 0.9417
+    },
+    "impact_analysis": {
+      "access_requirements_reached": {
+        "false_negatives": 0,
+        "false_positives": 1013,
+        "labelled_scenarios": 34,
+        "precision": 0.0352,
+        "recall": 1.0,
+        "true_positives": 37
+      },
+      "affected_departments": {
+        "false_negatives": 0,
+        "false_positives": 1870,
+        "labelled_scenarios": 175,
+        "precision": 0.1766,
+        "recall": 1.0,
+        "true_positives": 401
+      },
+      "constraint_identification": {
+        "false_negatives": 0,
+        "false_positives": 0,
+        "labelled_scenarios": 101,
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positives": 108
+      },
+      "disrupted_scenes": {
+        "false_negatives": 0,
+        "false_positives": 748,
+        "labelled_scenarios": 100,
+        "precision": 0.1451,
+        "recall": 1.0,
+        "true_positives": 127
+      },
+      "max_blast_depth": 6,
+      "mean_blast_nodes": 117.977
+    },
+    "inclusion_and_privacy": {
+      "access_preservation_rate": 1.0,
+      "approved_arrangements_in_selected_plans": 720,
+      "personal_events_to_unauthorised_audience": 0,
+      "prohibited_field_occurrences": 0
+    },
+    "latency": {
+      "mean_end_to_end_ms": 700.554,
+      "mean_solve_ms": 456.235,
+      "p95_end_to_end_ms": 1166.42,
+      "p95_solve_ms": 699.75
+    },
+    "planning_quality": {
+      "hard_constraint_violation_rate": 0.0,
+      "mean_distinct_strategies": 2.617,
+      "mean_options_offered": 2.617,
+      "multiple_strategy_rate": 0.6833,
+      "non_minimal_conflict_rate": 0.0,
+      "published_feasible_plans": 314,
+      "rejected_plans": 536,
+      "rejected_without_conflict_set_rate": 0.0,
+      "unvalidated_proof_rate": 0.0
+    },
+    "platform_quality": {
+      "dead_letters": 5,
+      "declared_but_not_injected": [
+        "command_rejection",
+        "connector_failure",
+        "out_of_order_event"
+      ],
+      "duplicates_suppressed": 3,
+      "events": 10381,
+      "fault_handling_by_kind": {
+        "duplicate_event": {
+          "applicable": 3,
+          "handled": 3
+        },
+        "late_event": {
+          "applicable": 4,
+          "handled": 4
+        },
+        "missing_acknowledgment": {
+          "applicable": 5,
+          "handled": 5
+        },
+        "partial_update": {
+          "applicable": 7,
+          "handled": 7
+        },
+        "schema_incompatibility": {
+          "applicable": 2,
+          "handled": 2
+        }
+      },
+      "fault_handling_rate": 1.0,
+      "fault_scenarios": 37,
+      "faults_applicable": 21,
+      "faults_injected": 30,
+      "hash_chain_intact_rate": 1.0,
+      "inbox_duplicates_suppressed": 0,
+      "injectable_faults": [
+        "duplicate_event",
+        "late_event",
+        "missing_acknowledgment",
+        "partial_update",
+        "schema_incompatibility"
+      ],
+      "mean_events_per_disruption": 51.905,
+      "mean_lineage_nodes": 51.885,
+      "replay_identical_rate": 1.0
+    },
+    "robustness": {
+      "mean_expected_delay_minutes": 70.639,
+      "mean_on_time_probability": 0.0,
+      "p95_worst_credible_delay_minutes": 137.33,
+      "plans_simulated": 120
+    }
+  },
+  "environment": {
+    "command": "python -m bench.run_benchmark --count 200 --seed 20260314 --workers 6",
+    "generated_at": "2026-08-06T13:59:21+00:00",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10",
+    "reasoning_plane": "offline",
+    "scenarios": 200,
+    "seed": 20260314,
+    "workers": 6
+  },
+  "note": "Every configuration ran over the same corpus of 200 scenarios with the same seed.",
+  "table": [
+    {
+      "access_preservation_rate": 1.0,
+      "access_preservation_rate_delta": 0.0,
+      "configuration": "no_twin",
+      "constraint_recall": 1.0,
+      "department_recall": 0.0,
+      "false_closure_rate_without_verification": 0.1,
+      "false_closure_rate_without_verification_delta": 0.0,
+      "hard_constraint_violation_rate": 0.0,
+      "hard_constraint_violation_rate_delta": 0.0,
+      "mean_end_to_end_ms": 687.983,
+      "mean_end_to_end_ms_delta": -12.571,
+      "mean_options_offered": 2.617,
+      "mean_options_offered_delta": 0.0,
+      "unvalidated_proof_rate": 0.0,
+      "unvalidated_proof_rate_delta": 0.0,
+      "verification_ready_rate": 0.9417,
+      "verification_ready_rate_delta": 0.0
+    },
+    {
+      "access_preservation_rate": 1.0,
+      "access_preservation_rate_delta": 0.0,
+      "configuration": "no_robustness",
+      "constraint_recall": 1.0,
+      "department_recall": 1.0,
+      "false_closure_rate_without_verification": 0.1,
+      "false_closure_rate_without_verification_delta": 0.0,
+      "hard_constraint_violation_rate": 0.0,
+      "hard_constraint_violation_rate_delta": 0.0,
+      "mean_end_to_end_ms": 608.002,
+      "mean_end_to_end_ms_delta": -92.552,
+      "mean_options_offered": 2.617,
+      "mean_options_offered_delta": 0.0,
+      "unvalidated_proof_rate": 0.0,
+      "unvalidated_proof_rate_delta": 0.0,
+      "verification_ready_rate": 0.9417,
+      "verification_ready_rate_delta": 0.0
+    },
+    {
+      "access_preservation_rate": 1.0,
+      "access_preservation_rate_delta": 0.0,
+      "configuration": "no_reconciliation",
+      "constraint_recall": 1.0,
+      "department_recall": 1.0,
+      "false_closure_rate_without_verification": 0.1,
+      "false_closure_rate_without_verification_delta": 0.0,
+      "hard_constraint_violation_rate": 0.0,
+      "hard_constraint_violation_rate_delta": 0.0,
+      "mean_end_to_end_ms": 741.835,
+      "mean_end_to_end_ms_delta": 41.281,
+      "mean_options_offered": 2.617,
+      "mean_options_offered_delta": 0.0,
+      "unvalidated_proof_rate": 0.0,
+      "unvalidated_proof_rate_delta": 0.0,
+      "verification_ready_rate": 0.9,
+      "verification_ready_rate_delta": -0.0417
+    },
+    {
+      "access_preservation_rate": 0.78,
+      "access_preservation_rate_delta": -0.22,
+      "configuration": "no_validation",
+      "constraint_recall": 1.0,
+      "department_recall": 1.0,
+      "false_closure_rate_without_verification": 0.255,
+      "false_closure_rate_without_verification_delta": 0.155,
+      "hard_constraint_violation_rate": 2.4118,
+      "hard_constraint_violation_rate_delta": 2.4118,
+      "mean_end_to_end_ms": 874.724,
+      "mean_end_to_end_ms_delta": 174.17,
+      "mean_options_offered": 4.25,
+      "mean_options_offered_delta": 1.633,
+      "unvalidated_proof_rate": 0.0,
+      "unvalidated_proof_rate_delta": 0.0,
+      "verification_ready_rate": 0.745,
+      "verification_ready_rate_delta": -0.1967
+    }
+  ]
+}

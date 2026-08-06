@@ -1,0 +1,21 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.git/
+.github/
+var/
+tests/
+bench/*.py
+infra/
+bob-evidence/
+.env
+.env.*
+*.pem
+*-key.json
+
+# bench/results/ is NOT excluded: the image serves those figures from
+# /api/about and the benchmark view.
