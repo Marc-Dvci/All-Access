@@ -38,3 +38,4 @@ Thumbs.db
 # sbom.json               the bill of materials for the environment the
 #                         benchmark was run in.
 # docs/accessibility_audit.json   the 62-check audit artifact.
+bench/results/smoke/

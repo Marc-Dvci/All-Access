@@ -141,11 +141,22 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--ablation-count", type=int, default=200,
                         help="corpus size for the ablation runs")
     parser.add_argument("--smoke", action="store_true",
-                        help="48 scenarios, no ablations; for CI")
-    parser.add_argument("--out", type=Path, default=RESULTS)
+                        help="48 scenarios, no ablations; for CI. Writes to "
+                             "bench/results/smoke/ so it cannot overwrite the "
+                             "committed 1,000-scenario evidence")
+    parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
 
     count = 48 if args.smoke else args.count
+    # A smoke run is a liveness check, not evidence. It used to write over
+    # `bench/results/`, which meant that anyone following docs/JUDGE.md ran
+    # `--smoke` at minute 7 and then read a "1,000-scenario" summary at minute 8
+    # that their own smoke run had just replaced with 48 rows. The committed
+    # artifacts are the source of truth for every documented figure and a
+    # command that is described as taking twenty seconds must not be able to
+    # destroy them. `--out` still overrides, explicitly.
+    if args.out is None:
+        args.out = RESULTS / "smoke" if args.smoke else RESULTS
     args.out.mkdir(parents=True, exist_ok=True)
 
     baseline_summary: dict | None = None
