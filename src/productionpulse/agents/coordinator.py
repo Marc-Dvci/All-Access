@@ -446,6 +446,7 @@ class ProductionCoordinator:
                          "comparing intended and observed state", outcome, started)
         self._transition(disruption, DisruptionState.VERIFYING,
                          "checking critical assertions", outcome, started)
+        self._emit_department_readiness(disruption_id, selected.plan_id, cause)
         report = verification.reconcile(
             selected, self.systems, disruption.results, acknowledgments,
         )
@@ -465,6 +466,7 @@ class ProductionCoordinator:
             if resolved:
                 self._transition(disruption, DisruptionState.EXECUTING,
                                  f"resolving: {resolved}", outcome, started)
+                self._emit_department_readiness(disruption_id, selected.plan_id, cause)
                 self._transition(disruption, DisruptionState.RECONCILING,
                                  "re-reconciling after resolution", outcome, started)
                 self._transition(disruption, DisruptionState.VERIFYING,
@@ -629,6 +631,52 @@ class ProductionCoordinator:
             producer="verification_agent", disruption_id=disruption_id,
             plan_id=plan_id, causation_id=cause,
         )
+
+    def _emit_department_readiness(self, disruption_id: str, plan_id: str,
+                                   cause: str) -> None:
+        """Publish each department's acceptance state as observed on the system.
+
+        The read model in `stream/views.py` is a fold over the event log and
+        nothing else, so a department that accepted its task in the adapter but
+        never said so on the stream is invisible to every view built from it.
+        That is exactly what happened: the control board showed one row named
+        after the *target system* with zero tasks, and — because the readiness
+        rule was re-derived at the API rather than taken from the read model —
+        rendered it "ready" while the Verification Agent was simultaneously
+        blocking the day on props. A board that contradicts verification is
+        worse than a board with no readiness column.
+
+        This reads the observed state of the department-tasks system and emits
+        one `READINESS_CHANGED` per department. No new data contract: the
+        `production.state-change-value` subject already carries `department` and
+        `state`, and `READINESS_CHANGED` was already bound to it.
+        """
+        departments = self.systems.get(TargetSystem.DEPARTMENT_TASKS)
+        if departments is None or not hasattr(departments, "tasks"):
+            return
+        issued: dict[str, int] = {}
+        accepted: dict[str, int] = {}
+        for task in departments.tasks.values():
+            issued[task.department] = issued.get(task.department, 0) + 1
+            if task.accepted:
+                accepted[task.department] = accepted.get(task.department, 0) + 1
+        for department in sorted(issued):
+            done = accepted.get(department, 0)
+            self._emit(
+                EventType.READINESS_CHANGED,
+                {
+                    "department": department,
+                    "state": "accepted" if done >= issued[department]
+                             else "awaiting_acceptance",
+                    "plan_id": plan_id,
+                    "attributes": {
+                        "tasks_issued": issued[department],
+                        "tasks_accepted": done,
+                    },
+                },
+                producer="department_tasks", authority=Authority.VERIFIED,
+                disruption_id=disruption_id, plan_id=plan_id, causation_id=cause,
+            )
 
     def _resolve_blocking(self, report: VerificationReport) -> str:
         """Resolve what can legitimately be resolved: an outstanding acceptance.

@@ -22,7 +22,8 @@
 (function () {
   "use strict";
 
-  var state = { view: "board", loaded: {}, crewPerson: null, spatialLocation: null };
+  var state = { view: "board", loaded: {}, crewPerson: null, spatialLocation: null,
+                notice: null };
 
   // -- tiny DOM helpers ---------------------------------------------------
 
@@ -72,6 +73,17 @@
     var d = new Date(iso);
     return d.toLocaleString(undefined, {
       day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
+    });
+  }
+
+  // Time of day only, for the end of a window whose date the start already
+  // gave. Slicing the last five characters off a formatted datetime does not
+  // do this — under a 12-hour locale "Mar 14, 11:50 AM" ends "50 AM", which is
+  // what the scene table shipped before a browser rendered it.
+  function timeOnly(iso) {
+    if (!iso) return "—";
+    return new Date(iso).toLocaleTimeString(undefined, {
+      hour: "2-digit", minute: "2-digit"
     });
   }
 
@@ -163,7 +175,7 @@
         ["Scene", "Slugline", "Location", "Crew call", "Shoot", "Ext."],
         d.next_scenes.map(function (s) {
           return [s.scene_id, s.slugline, s.location, clock(s.crew_call),
-                  clock(s.start) + " – " + clock(s.end).slice(-5),
+                  clock(s.start) + " – " + timeOnly(s.end),
                   s.exterior ? "exterior" : "interior"];
         })
       ));
@@ -723,14 +735,28 @@
       root.appendChild(el("h2", { text: "Event log" }));
       root.appendChild(table(
         "Every event, in sequence",
-        ["#", "Type", "Producer", "Authority", "Class", "Effective", "Summary"],
+        ["#", "Type", "Producer", "Authority", "Class", "Emitted", "Effective", "Summary"],
         d.timeline.map(function (e) {
+          // Two clocks, deliberately. Most events take effect when they are
+          // emitted and carry no separate effective time; the ones that do are
+          // the bitemporal cases — a forecast issued now for 18:30, a fact
+          // backdated to when it actually became true.
           return [e.sequence, el("code", { text: e.event_type }), e.producer,
                   e.authority, e.classification.replace(/_/g, " "),
-                  clock(e.effective_time), e.summary];
+                  clock(e.event_time),
+                  e.effective_time ? clock(e.effective_time)
+                                   : el("span", { class: "quiet-cell", text: "as emitted" }),
+                  e.summary];
         }),
-        ["num", null, null, null, null, null, null]
+        ["num", null, null, null, null, null, null, null]
       ));
+      root.appendChild(el("p", { class: "evidence",
+        text: "Emitted is when the event was published; Effective is when the fact " +
+              "it records became true. They differ only where the production " +
+              "records make them differ — a forecast issued at 17:12 for an 18:30 " +
+              "arrival, an availability change backdated to when it happened. " +
+              "The twin stores both, which is what lets replay reconstruct what " +
+              "was known at a moment rather than only what is known now." }));
     });
   };
 
@@ -799,7 +825,18 @@
     renderers[name](root).then(function () {
       state.loaded[name] = true;
       root.className = "";
-      announce(document.getElementById("tab-" + name).textContent + " loaded.");
+      // A pending notice outranks "view loaded". Running a new disruption
+      // announces its outcome and then reloads the view, and the reload's
+      // announcement used to overwrite the result inside the same second —
+      // so a screen-reader user heard "Control board loaded" and never heard
+      // how many plans were feasible. Found by driving the real page; see
+      // tools/ui_smoke.py.
+      if (state.notice) {
+        announce(state.notice);
+        state.notice = null;
+      } else {
+        announce(document.getElementById("tab-" + name).textContent + " loaded.");
+      }
     }).catch(function (err) {
       root.className = "";
       clear(root);
@@ -850,8 +887,10 @@
       }).then(function (r) { return r.json(); }).then(function (d) {
         state.loaded = {};
         state.crewPerson = null;
-        announce(d.title + " — " + d.feasible_plans + " feasible plan(s), " +
-                 d.rejected_plans + " rejected, " + d.events + " events.");
+        state.spatialLocation = null;
+        state.notice = d.title + " — " + d.feasible_plans + " feasible plan(s), " +
+                       d.rejected_plans + " rejected, " + d.events + " events.";
+        announce(state.notice);
         show(state.view);
       }).catch(function (err) {
         announce("Could not run that disruption: " + err.message);

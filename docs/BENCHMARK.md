@@ -277,6 +277,37 @@ The reliability table has all 189 plans in the 0.00–0.25 bucket and the other
 four empty, which is the same degeneracy seen from the other side. A calibration
 curve with one populated bucket is not a calibration curve.
 
+### 6.4 Three defects found by rendering the interface for the first time
+
+None of these was reachable from the API tests, which passed throughout, and
+none from the static accessibility audit, which reads markup. They were found by
+`tools/ui_smoke.py` opening the pages in Chromium.
+
+9. **The control board contradicted the Verification Agent.** Department
+   readiness in the read model was derived by splitting a command result's
+   human-readable detail string on `":"`, which produced a single row named
+   `department_tasks` — the target system, not a department — with no counts. The
+   API then re-derived readiness as `tasks_issued == tasks_accepted`, which is
+   true at `0 == 0`, so the board showed a green "ready" chip in the same run
+   where verification refused to close the day because props had not accepted.
+   Readiness is now folded from `READINESS_CHANGED` events keyed by department,
+   using the existing `production.state-change-value` contract — no new data
+   contract — and the API takes the verdict from `DepartmentReadiness.ready`
+   rather than re-deriving a second rule. Four tests cover it, including one that
+   runs with `auto_resolve_blocking=False` so it exercises the state where the
+   board and verification can actually disagree.
+
+10. **The decision replay's effective-time column was empty for 62 of 63
+    events.** `effective_time` is set only where it differs from emission — which
+    is the point of storing both — and the view rendered it alone. The endpoint
+    now returns `event_time` as well and the view shows both clocks, so the
+    bitemporal claim is visible instead of being a column of em-dashes.
+
+11. **Scene end times rendered as "50 AM".** The scene table built its shoot
+    window as `clock(start) + " – " + clock(end).slice(-5)`. Under a 12-hour
+    locale the last five characters of `"Mar 14, 11:50 AM"` are `"50 AM"` — a
+    valid substring and never a time.
+
 ---
 
 ## 7. Where this is weak
@@ -345,11 +376,15 @@ network partition are properties of a cluster and are not measured here.
 `environment.reasoning_plane` in the summary records which plane produced these
 numbers.
 
-### 7.7 The web interface has never been rendered
+### 7.7 The interface is rendered and checked, but not by a human
 
-All 15 API endpoints return 200 with substantive payloads and the client passes
-62 static accessibility checks, but no browser has drawn it. See
-`ACCESSIBILITY.md` §3.
+`tools/ui_smoke.py` drives all thirteen views in Chromium on every CI run and
+fails on any console error, uncaught exception or failed request. That closed a
+real gap — see §6.4 — but it is a machine reading the DOM, not a person using
+the product. It cannot tell you that a table is unreadable at 200% zoom, that a
+colour pairing is uncomfortable, or that the impact map's 118 rows are more than
+anyone wants to scroll. `ACCESSIBILITY.md` §3 lists what a static audit and an
+automated render both miss. **No screen-reader user has tested this.**
 
 ---
 

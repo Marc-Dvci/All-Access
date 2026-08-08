@@ -96,11 +96,19 @@ python -m venv .venv && .venv/Scripts/activate      # or source .venv/bin/activa
 pip install -e ".[dev]"
 
 python -m productionpulse.cli hero        # the closed loop, 11 assertions
-pytest -q                                 # 194 tests
+pytest -q                                 # 214 tests
 python -m bench.run_benchmark --smoke     # 48 scenarios, ~20 s
 python tools/a11y_audit.py                # 62 WCAG 2.2 AA checks
 
 uvicorn productionpulse.api:app --port 8765     # then open http://127.0.0.1:8765
+```
+
+Or drive the interface without opening it yourself — thirteen views in a real
+browser, failing on any console error, uncaught exception or failed request:
+
+```bash
+pip install -e ".[browser]" && playwright install chromium
+python tools/ui_smoke.py                  # screenshots land in docs/screenshots/
 ```
 
 `hero` runs a storm closing the night exterior, end to end, and asserts eleven
@@ -171,7 +179,8 @@ reaches it. The ablation table above is what that boundary is worth.
 |---|---|---|
 | **Confluent** | `src/productionpulse/stream/` — `ConfluentEventBus` and `ConfluentSchemaRegistry` register 23 subjects, validate every payload before append, enforce BACKWARD compatibility, dead-letter failures | `PP_EVENT_BACKBONE=confluent`; `GET /api/streams`; `docs/CONFLUENT.md` |
 | **Gemini / Vertex AI** | `agents/core.py::GeminiReasoner` — narration for 15 expert agents, with a system instruction that forbids feasibility judgements and an offline fallback that records the degradation rather than hiding it | `PP_REASONING_MODE=gemini`; `GET /api/about` reports the live plane |
-| **Google Cloud** | Cloud Run, Artifact Registry, Secret Manager, Vertex AI Agent Engine | `infra/terraform/`, `tools/deploy_agent_engine.py` |
+| **Google ADK** | `agents/adk_tools.py` — seven read-only function tools over the product's own read model, and the `google.adk.agents.Agent` that holds them. The agent is built from that list and nowhere else, and `--dry-run` refuses to deploy if the implemented surface and the approved allowlist ever differ | `pip install -e ".[cloud]"; pytest -q tests/test_adk_tools.py` |
+| **Google Cloud** | Cloud Run, Artifact Registry, Secret Manager, Vertex AI Agent Engine | `infra/terraform/`, `tools/deploy_agent_engine.py --dry-run` |
 | **IBM Bob** | 7 custom modes with scoped file permissions, committed rules, 2 working MCP servers | `.bob/`, `tools/mcp_*.py`, `bob-evidence/` |
 
 `GET /api/about` reports which reasoning plane and which event backbone are live,
@@ -199,6 +208,8 @@ plausible one.
 | | |
 |---|---|
 | [`docs/JUDGE.md`](docs/JUDGE.md) | Ten-minute offline evaluation path. Start here |
+| [`docs/DEVPOST.md`](docs/DEVPOST.md) | The submission narrative: gap, inclusion argument, numbers, learnings |
+| [`docs/screenshots/`](docs/screenshots/) | Every view, produced by `tools/ui_smoke.py` |
 | [`docs/BENCHMARK.md`](docs/BENCHMARK.md) | Method, results, ablations, and §7 "where this is weak" |
 | [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) | Three-minute shot list |
 | [`docs/CONFLUENT.md`](docs/CONFLUENT.md) | Contracts, governance, lineage, replay |
@@ -226,17 +237,40 @@ minimal set of constraints that cannot be satisfied together, each naming the
 document the rule came from and the person who owns it. "Infeasible" without
 provenance is an assertion, not an explanation.
 
+Screenshots of every view are in [`docs/screenshots/`](docs/screenshots/),
+produced by `tools/ui_smoke.py` rather than cropped by hand.
+
+### What rendering it actually found
+
+For most of this project's life all 15 endpoints returned 200 with substantive
+payloads, the client passed 62 static accessibility checks, and **no browser had
+drawn a single pixel.** Three defects were sitting in the two views a judge opens
+first, and no test in the suite could have seen any of them:
+
+- **The control board declared every department ready while verification was
+  blocking the day on props.** The read model folded one row keyed on the *target
+  system* name with zero counts, and the board re-derived readiness as
+  `issued == accepted`, which is true at `0 == 0`. A board contradicting the
+  system's own verification step is worse than a board with no readiness column.
+- **Every event in the decision replay showed an em-dash for its effective
+  time**, because `effective_time` is set only where it differs from emission and
+  the view never asked for `event_time`. The bitemporal claim was rendering as a
+  column of nothing.
+- **Scene end times read "50 AM"** — the last five characters of a formatted
+  datetime, which is a valid substring and never a time.
+
+Each is now fixed, covered by a test that fails without the fix, and `ui_smoke.py`
+runs in CI so the interface cannot silently stop rendering again.
+
 ---
 
 ## Honest status
 
 Stated here rather than left to be discovered.
 
-- **No browser has ever rendered the web interface.** All 15 API endpoints return
-  200 with substantive payloads and the client passes 62 static accessibility
-  checks, but no session working on this project has had browser tooling. Open it
-  before trusting it.
-- **No IBM Bob session has been run.** See above.
+- **No IBM Bob session has been run.** See above. This is the one open item that
+  is not a limitation but an unmet requirement, and it is stated first for that
+  reason.
 - **No run against Confluent Cloud or Vertex AI.** Every committed figure is from
   the in-process bus and the offline reasoning plane, and
   `bench/results/summary.json` records that.

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-04T07:09:07+00:00",
+  "generated_at": "2026-08-08T07:55:50+00:00",
   "target": "WCAG 2.2 Level AA",
   "scope": "src/productionpulse/web/ \u2014 static source audit, no browser",
   "not_covered": [

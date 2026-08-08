@@ -240,7 +240,14 @@ def control_board() -> dict[str, Any]:
                 "department": name,
                 "tasks": row.tasks_issued,
                 "accepted": row.tasks_accepted,
-                "ready": row.tasks_issued == row.tasks_accepted,
+                "rejected": row.tasks_rejected,
+                # `DepartmentReadiness.ready` and not a rule re-derived here.
+                # The re-derived version read `issued == accepted`, which is
+                # True for a department with no tasks at all, so the board
+                # reported "ready" for a row that had never been populated —
+                # while verification was blocking the day. One readiness rule,
+                # owned by the read model.
+                "ready": row.ready,
             }
             for name, row in sorted(views.departments.items())
         ],
@@ -638,6 +645,12 @@ def replay() -> dict[str, Any]:
                 "actor": e.envelope.actor,
                 "authority": e.envelope.authority.value,
                 "classification": e.envelope.classification.value,
+                # Both clocks. `event_time` is when the event was emitted and is
+                # always present; `effective_time` is when the fact it records
+                # became true in the world, and is set only where the two differ.
+                # The replay view shows both, because a column of nulls is what
+                # you get if you show only the second.
+                "event_time": _dt(e.envelope.event_time),
                 "effective_time": _dt(e.envelope.effective_time),
                 "causation_id": e.envelope.causation_id,
                 "plan_id": e.envelope.plan_id,

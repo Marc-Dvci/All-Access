@@ -35,7 +35,7 @@ Expect `11/11 assertions passed | 122 events` in under a second.
 ## Minute 3 — the tests
 
 ```bash
-pytest -q                        # 194 passed
+pytest -q                        # 214 passed
 ruff check src bench tools tests # clean
 python tools/a11y_audit.py       # 62/62
 ```
@@ -65,9 +65,21 @@ Open <http://127.0.0.1:8765>. Thirteen views. In priority order:
 5. **Decision replay.** Rebuilds state at any sequence number and asserts it
    matches live.
 
-**Please note:** no browser has ever rendered this interface. You may be the
-first person to see it. If something is broken, that is a genuine finding and it
-is disclosed in the README rather than hidden.
+If you would rather not open thirteen tabs by hand, this drives all of them in
+Chromium, fails on any console error or failed request, and leaves a screenshot
+of each in `docs/screenshots/`:
+
+```bash
+pip install -e ".[browser]" && playwright install chromium
+python tools/ui_smoke.py
+```
+
+**Please note:** the first time this interface was rendered it had three defects
+in these very views, including a control board that declared every department
+ready while verification was blocking the day. All fifteen endpoints were
+returning 200 the whole time. They are fixed, tested and described in
+`BENCHMARK.md` §6.4 — and they are the reason `ui_smoke.py` now runs in CI. No
+screen-reader user has tested this.
 
 ## Minute 7 — the benchmark
 

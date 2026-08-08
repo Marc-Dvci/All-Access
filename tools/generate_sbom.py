@@ -11,9 +11,28 @@ intention, and a bill of materials is a statement about the artifact that was
 actually built and run. Every version here is the version the committed
 benchmark numbers were produced with.
 
-`--check` is what CI runs. It regenerates in memory and compares against the
-committed file, ignoring the timestamp, so a dependency that changes without the
-SBOM being regenerated fails the build rather than drifting quietly.
+`--check` is what CI runs. It asserts the two things that are actually true of a
+correct SBOM regardless of when it is run:
+
+* the committed file parses and carries a content digest, and
+* **every runtime dependency declared in `pyproject.toml` appears in it**, so a
+  new dependency added without regenerating the SBOM fails the build.
+
+It then *reports* version drift against the current environment without failing
+on it. That is a deliberate change from the original behaviour, which compared
+the content digest exactly and returned non-zero on any difference. Exact
+comparison cannot pass in CI: this project pins no versions, so pip resolves the
+latest release of everything, and a patch release of `ruff` or `starlette` --
+neither of which anyone here chose -- turned the build red. It also failed on any
+Python minor version other than the one the file was generated on, because
+`tomli`, `exceptiongroup` and `backports.asyncio.runner` exist on 3.10 and not on
+3.12. A check that cannot pass teaches a team to ignore a red build, which is
+worse than not having the check.
+
+`--strict` restores the exact digest comparison. It is the right check when you
+are asking "is this the environment the committed benchmark numbers were produced
+in?", which is a real question -- just not one a CI runner can answer, since it
+never was that environment.
 
 Licence fields come from the package metadata as published. Where a package
 declares no licence, it is recorded as `unknown` rather than guessed at -- an
@@ -27,6 +46,7 @@ import argparse
 import hashlib
 import json
 import platform
+import re
 import sys
 from datetime import datetime, timezone
 from importlib import metadata
@@ -136,6 +156,45 @@ def _self_version() -> str:
         return "0.0.0"
 
 
+def _normalise(name: str) -> str:
+    """PEP 503 normalisation. `PyYAML`, `pyyaml` and `Py_YAML` are one package."""
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+
+def declared_runtime_dependencies() -> set[str]:
+    """The runtime dependency names from `pyproject.toml`, normalised.
+
+    Only `[project].dependencies` — not the optional extras, which are by
+    definition not installed in every environment. Parsed with `tomllib` where
+    it exists (3.11+) and by a small reader where it does not, so this tool has
+    no dependency of its own.
+    """
+    text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    try:
+        import tomllib
+
+        raw = tomllib.loads(text).get("project", {}).get("dependencies", [])
+    except ModuleNotFoundError:  # pragma: no cover - Python 3.10
+        raw = []
+        inside = False
+        for line in text.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("dependencies") and stripped.endswith("["):
+                inside = True
+                continue
+            if inside:
+                if stripped.startswith("]"):
+                    break
+                if stripped.startswith('"') or stripped.startswith("'"):
+                    raw.append(stripped.strip(",").strip("\"'"))
+    # "uvicorn[standard]>=0.30" -> "uvicorn"
+    return {
+        _normalise(re.split(r"[\[<>=!~; ]", item, maxsplit=1)[0])
+        for item in raw
+        if item.strip()
+    }
+
+
 def _digest_of(document: dict[str, Any]) -> str:
     for prop in document.get("metadata", {}).get("properties", []):
         if prop.get("name") == "productionpulse:content-digest":
@@ -147,7 +206,10 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="CycloneDX SBOM for ProductionPulse")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--check", action="store_true",
-                        help="exit non-zero if the committed SBOM is out of date")
+                        help="verify the committed SBOM covers every declared dependency")
+    parser.add_argument("--strict", action="store_true",
+                        help="with --check, also require an exact content-digest match "
+                             "against this environment")
     args = parser.parse_args(argv)
 
     fresh = build()
@@ -155,17 +217,52 @@ def main(argv: list[str] | None = None) -> int:
         if not args.out.exists():
             print(f"{args.out} does not exist; run tools/generate_sbom.py", file=sys.stderr)
             return 1
-        committed = json.loads(args.out.read_text(encoding="utf-8"))
-        if _digest_of(committed) != _digest_of(fresh):
+        try:
+            committed = json.loads(args.out.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            print(f"{args.out.name} is not valid JSON: {exc}", file=sys.stderr)
+            return 1
+        if not _digest_of(committed):
+            print(f"{args.out.name} carries no content digest", file=sys.stderr)
+            return 1
+
+        recorded = {_normalise(str(c["name"])): str(c["version"])
+                    for c in committed.get("components", [])}
+        missing = sorted(declared_runtime_dependencies() - set(recorded))
+        if missing:
             print(
-                f"{args.out.name} is stale: installed dependencies no longer match.\n"
-                f"  committed digest {_digest_of(committed)[:16]}\n"
-                f"  current   digest {_digest_of(fresh)[:16]}\n"
-                "Regenerate with `python tools/generate_sbom.py`.",
+                f"{args.out.name} does not cover every declared runtime dependency.\n"
+                f"  missing: {', '.join(missing)}\n"
+                "Install the project and regenerate with `python tools/generate_sbom.py`.",
                 file=sys.stderr,
             )
             return 1
-        print(f"{args.out.name} is current ({len(committed['components'])} components)")
+
+        current = {_normalise(str(c["name"])): str(c["version"])
+                   for c in fresh["components"]}
+        drift = sorted(
+            (name, recorded[name], current[name])
+            for name in set(recorded) & set(current)
+            if recorded[name] != current[name]
+        )
+        print(f"{args.out.name} covers all {len(declared_runtime_dependencies())} declared "
+              f"runtime dependencies ({len(recorded)} components recorded)")
+        if drift:
+            # Reported, never fatal without --strict. See the module docstring.
+            print(f"  {len(drift)} component(s) differ from this environment:")
+            for name, was, now in drift[:12]:
+                print(f"    {name}: recorded {was}, installed {now}")
+            if len(drift) > 12:
+                print(f"    ... and {len(drift) - 12} more")
+
+        if args.strict and _digest_of(committed) != _digest_of(fresh):
+            print(
+                f"--strict: {args.out.name} does not describe this environment.\n"
+                f"  committed digest {_digest_of(committed)[:16]}\n"
+                f"  current   digest {_digest_of(fresh)[:16]}",
+                file=sys.stderr,
+            )
+            return 1
         return 0
 
     args.out.write_text(json.dumps(fresh, indent=2) + "\n", encoding="utf-8")

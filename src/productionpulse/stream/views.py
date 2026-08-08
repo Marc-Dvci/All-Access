@@ -132,6 +132,24 @@ class MaterializedViews:
             )
         elif et == EventType.SCHEDULE_CHANGED:
             self.schedule[str(payload.get("scene_id"))] = dict(payload)
+        elif et == EventType.READINESS_CHANGED:
+            # Department readiness is a fold over what the department-tasks
+            # system reported, keyed by department. It used to be derived by
+            # splitting a human-readable result string on ":", which yielded a
+            # single row called "department_tasks" — the target system's name,
+            # not a department — with no counts at all. See the docstring on
+            # ProductionCoordinator._emit_department_readiness.
+            department = str(payload.get("department") or "").strip()
+            if department:
+                row = self.departments.setdefault(
+                    department, DepartmentReadiness(department)
+                )
+                row.department = department
+                attributes = payload.get("attributes") or {}
+                row.tasks_issued = int(attributes.get("tasks_issued", row.tasks_issued))
+                row.tasks_accepted = int(
+                    attributes.get("tasks_accepted", row.tasks_accepted)
+                )
 
         elif et in (
             EventType.SCHEDULE_FINDING, EventType.RESOURCE_FINDING, EventType.SAFETY_FINDING,
@@ -197,14 +215,6 @@ class MaterializedViews:
                 self.system_versions[str(payload.get("target"))] = int(
                     payload["system_version"]
                 )
-            if str(payload.get("target")) == "department_tasks":
-                dept = str(payload.get("detail", "")).split(":")[0]
-                row = self.departments.setdefault(dept, DepartmentReadiness(dept))
-                row.department = dept
-                if status == CommandStatus.ACCEPTED.value:
-                    row.tasks_accepted += 1
-                elif status == CommandStatus.REJECTED.value:
-                    row.tasks_rejected += 1
 
         elif et == EventType.NOTIFICATION_SENT:
             if view:

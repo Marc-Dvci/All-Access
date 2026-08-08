@@ -13,9 +13,12 @@ uvicorn productionpulse.api:app --port 8765
 Second terminal ready with `python -m productionpulse.cli hero`. Browser at
 1440×900, dark theme, zoom 110% so text is readable when the video is scaled.
 
-> **Before recording anything, open the interface and walk all thirteen tabs.**
-> No browser has ever rendered it. The API is verified; the rendering is not.
-> `ACCESSIBILITY.md` §5 has the checklist.
+> **Before recording anything, run `python tools/ui_smoke.py`.** It opens all
+> thirteen views in Chromium and fails on any console error, so a broken view is
+> found before the camera is rolling rather than during a take.
+> `docs/screenshots/` will hold a current image of every view — useful for
+> planning shots without scrubbing the recording. `ACCESSIBILITY.md` §5 has the
+> manual checklist for the things a machine cannot judge.
 
 ---
 

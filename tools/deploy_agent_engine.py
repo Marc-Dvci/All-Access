@@ -45,6 +45,12 @@ sys.path.insert(0, str(ROOT / "src"))
 #: verification stay in the deterministic plane, behind the approval matrix in
 #: `constraints.registry.APPROVAL_MATRIX`, where a signed human decision is
 #: required and recorded. See docs/THREAT_MODEL.md §4.
+#:
+#: This list is checked against the functions actually exported by
+#: `agents/adk_tools.py` on every dry run, in both directions. An allowlist that
+#: names tools the agent does not have is decoration; a tool the agent has that
+#: the allowlist does not name is the failure this whole boundary exists to
+#: prevent.
 _TOOL_ALLOWLIST: frozenset[str] = frozenset({
     "describe_disruption",
     "describe_impact",
@@ -74,6 +80,7 @@ DISPLAY_NAME = "productionpulse-reasoning"
 
 def agent_manifest(project: str, location: str, model: str) -> dict[str, Any]:
     """The deployment descriptor. Pure data, so `--dry-run` can check it."""
+    from productionpulse.agents.adk_tools import TOOL_NAMES
     from productionpulse.agents.core import GeminiReasoner
 
     return {
@@ -87,7 +94,11 @@ def agent_manifest(project: str, location: str, model: str) -> dict[str, Any]:
         "model": model,
         "system_instruction": GeminiReasoner.SYSTEM_INSTRUCTION,
         "generation_config": {"temperature": 0.2, "max_output_tokens": 300},
-        "tools": sorted(_TOOL_ALLOWLIST),
+        # What will actually be deployed, read from the implementation rather
+        # than restated from the allowlist. `validate()` compares the two; a
+        # manifest that copied the allowlist could never disagree with it, which
+        # is precisely the check worth having.
+        "tools": sorted(TOOL_NAMES),
         "requirements": [
             "google-cloud-aiplatform[agent_engines,adk]>=1.101.0",
             "google-adk>=1.0.0",
@@ -112,6 +123,8 @@ def agent_manifest(project: str, location: str, model: str) -> dict[str, Any]:
 
 def validate(manifest: dict[str, Any]) -> list[str]:
     """Everything that can be checked without a cloud project. Empty means valid."""
+    from productionpulse.agents import adk_tools
+
     problems: list[str] = []
 
     tools = set(manifest["tools"])
@@ -122,6 +135,30 @@ def validate(manifest: dict[str, Any]) -> list[str]:
             f"tool {banned!r} is on the denylist: the hosted plane may not change "
             "production state"
         )
+
+    # The allowlist and the implemented tool surface must be the same set. This
+    # catches the failure where a manifest advertises a careful read-only
+    # boundary while the agent is built with a different set of functions —
+    # or, as was true here before this check existed, with none at all.
+    implemented = set(adk_tools.TOOL_NAMES)
+    for missing in sorted(_TOOL_ALLOWLIST - implemented):
+        problems.append(
+            f"tool {missing!r} is allowlisted but not implemented in "
+            "agents/adk_tools.py"
+        )
+    for unlisted in sorted(implemented - _TOOL_ALLOWLIST):
+        problems.append(
+            f"tool {unlisted!r} is implemented in agents/adk_tools.py but not "
+            "allowlisted; the agent would be given a capability nobody approved"
+        )
+    for name in sorted(implemented):
+        tool = getattr(adk_tools, name)
+        # ADK builds the declaration Gemini sees from the docstring and the
+        # annotations. Either one missing produces a tool the model misuses.
+        if not (tool.__doc__ or "").strip():
+            problems.append(f"tool {name!r} has no docstring for ADK to declare")
+        if "return" not in getattr(tool, "__annotations__", {}):
+            problems.append(f"tool {name!r} has no return annotation")
     if not manifest["system_instruction"].strip():
         problems.append("system instruction is empty")
     if "never decide whether a plan is feasible" not in manifest["system_instruction"]:
@@ -159,16 +196,15 @@ def _init(project: str, location: str) -> None:  # pragma: no cover - needs clou
 
 
 def deploy(manifest: dict[str, Any]) -> str:  # pragma: no cover - needs cloud
-    from google.adk.agents import Agent  # type: ignore[import-not-found]
+    from productionpulse.agents.adk_tools import build_agent
 
     _init(manifest["project"], manifest["location"])
     agent_engines = _agent_engines()
 
-    agent = Agent(
-        name=manifest["display_name"].replace("-", "_"),
-        model=manifest["model"],
-        instruction=manifest["system_instruction"],
-        description=manifest["description"],
+    # The agent is built from `adk_tools.TOOLS`, which `validate()` has already
+    # checked against the allowlist. There is no second place tools are named.
+    agent = build_agent(
+        manifest["model"], name=manifest["display_name"].replace("-", "_")
     )
     remote = agent_engines.create(
         agent_engine=agent,

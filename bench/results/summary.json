@@ -1,147 +1,145 @@
 {
   "agent_quality": {
-    "abstention_rate": 0.1729,
+    "abstention_rate": 0.1773,
     "blocking_finding_without_evidence_rate": 0.0,
     "fabricated_constraint_rate": 0.0,
-    "findings": 18420,
+    "findings": 880,
     "missing_required_assessment_rate": 0.0,
-    "scenarios_assessed": 1000
+    "scenarios_assessed": 48
   },
   "corpus": {
-    "completed": 1000,
+    "completed": 48,
     "error_examples": [],
     "errors": 0,
     "families": {
-      "access_communication": 125,
-      "cast_crew": 250,
-      "continuity": 125,
-      "equipment": 125,
-      "location": 125,
-      "operational_systems": 125,
-      "weather": 125
+      "access_communication": 6,
+      "cast_crew": 12,
+      "continuity": 6,
+      "equipment": 6,
+      "location": 6,
+      "operational_systems": 6,
+      "weather": 6
     },
     "final_states": {
-      "abandoned": 395,
-      "closed": 557,
-      "verifying": 48
+      "abandoned": 20,
+      "closed": 27,
+      "verifying": 1
     },
-    "no_feasible_plan_rate": 0.395,
-    "scenarios": 1000
+    "no_feasible_plan_rate": 0.4167,
+    "scenarios": 48
   },
   "environment": {
-    "command": "python -m bench.run_benchmark --count 1000 --seed 20260314 --workers 6",
-    "generated_at": "2026-08-06T13:56:30+00:00",
-    "platform": "Windows-11-10.0.26200-SP0",
-    "python": "3.12.10",
+    "command": "python -m bench.run_benchmark --count 48 --seed 20260314 --workers 1",
+    "generated_at": "2026-08-08T08:00:50+00:00",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python": "3.10.7",
     "reasoning_plane": "offline",
-    "scenarios": 1000,
+    "scenarios": 48,
     "seed": 20260314,
-    "workers": 6
+    "workers": 1
   },
   "execution_quality": {
-    "acknowledgment_completeness": 0.9888,
-    "assertion_pass_rate": 0.9858,
+    "acknowledgment_completeness": 0.9942,
+    "assertion_pass_rate": 0.9936,
     "command_completion_rate": 1.0,
     "command_rejection_rate": 0.0,
-    "commands_issued": 4394,
-    "false_closure_denominator": 605,
-    "false_closure_rate_without_verification": 0.124,
-    "verification_ready_rate": 0.9207
+    "commands_issued": 206,
+    "false_closure_denominator": 28,
+    "false_closure_rate_without_verification": 0.0714,
+    "verification_ready_rate": 0.9643
   },
   "impact_analysis": {
     "access_requirements_reached": {
       "false_negatives": 0,
-      "false_positives": 5084,
-      "labelled_scenarios": 163,
-      "precision": 0.0316,
+      "false_positives": 240,
+      "labelled_scenarios": 9,
+      "precision": 0.0476,
       "recall": 1.0,
-      "true_positives": 166
+      "true_positives": 12
     },
     "affected_departments": {
       "false_negatives": 0,
-      "false_positives": 9344,
-      "labelled_scenarios": 875,
-      "precision": 0.1764,
+      "false_positives": 449,
+      "labelled_scenarios": 42,
+      "precision": 0.1777,
       "recall": 1.0,
-      "true_positives": 2001
+      "true_positives": 97
     },
     "constraint_identification": {
       "false_negatives": 0,
       "false_positives": 0,
-      "labelled_scenarios": 498,
+      "labelled_scenarios": 26,
       "precision": 1.0,
       "recall": 1.0,
-      "true_positives": 542
+      "true_positives": 28
     },
     "disrupted_scenes": {
       "false_negatives": 0,
-      "false_positives": 3755,
-      "labelled_scenarios": 500,
-      "precision": 0.1417,
+      "false_positives": 182,
+      "labelled_scenarios": 24,
+      "precision": 0.1333,
       "recall": 1.0,
-      "true_positives": 620
+      "true_positives": 28
     },
     "max_blast_depth": 6,
-    "mean_blast_nodes": 117.847
+    "mean_blast_nodes": 118.548
   },
   "inclusion_and_privacy": {
     "access_preservation_rate": 1.0,
-    "approved_arrangements_in_selected_plans": 3630,
+    "approved_arrangements_in_selected_plans": 168,
     "personal_events_to_unauthorised_audience": 0,
     "prohibited_field_occurrences": 0
   },
   "latency": {
-    "mean_end_to_end_ms": 684.017,
-    "mean_solve_ms": 440.818,
-    "p95_end_to_end_ms": 1178.46,
-    "p95_solve_ms": 732.37
+    "mean_end_to_end_ms": 159.544,
+    "mean_solve_ms": 108.862,
+    "p95_end_to_end_ms": 269.66,
+    "p95_solve_ms": 166.02
   },
   "planning_quality": {
     "hard_constraint_violation_rate": 0.0,
-    "mean_distinct_strategies": 2.693,
-    "mean_options_offered": 2.693,
-    "multiple_strategy_rate": 0.6992,
+    "mean_distinct_strategies": 2.714,
+    "mean_options_offered": 2.714,
+    "multiple_strategy_rate": 0.7143,
     "non_minimal_conflict_rate": 0.0,
-    "published_feasible_plans": 1629,
-    "rejected_plans": 2612,
+    "published_feasible_plans": 76,
+    "rejected_plans": 135,
     "rejected_without_conflict_set_rate": 0.0,
     "unvalidated_proof_rate": 0.0
   },
   "platform_quality": {
-    "dead_letters": 28,
+    "dead_letters": 9,
     "declared_but_not_injected": [
-      "command_rejection",
-      "connector_failure",
       "out_of_order_event"
     ],
-    "duplicates_suppressed": 16,
-    "events": 51924,
+    "duplicates_suppressed": 8,
+    "events": 2583,
     "fault_handling_by_kind": {
       "duplicate_event": {
-        "applicable": 16,
-        "handled": 16
+        "applicable": 1,
+        "handled": 1
       },
       "late_event": {
-        "applicable": 16,
-        "handled": 16
+        "applicable": 1,
+        "handled": 1
       },
       "missing_acknowledgment": {
-        "applicable": 27,
-        "handled": 27
+        "applicable": 1,
+        "handled": 1
       },
       "partial_update": {
-        "applicable": 48,
-        "handled": 48
+        "applicable": 1,
+        "handled": 1
       },
       "schema_incompatibility": {
-        "applicable": 12,
-        "handled": 12
+        "applicable": 1,
+        "handled": 1
       }
     },
     "fault_handling_rate": 1.0,
-    "fault_scenarios": 187,
-    "faults_applicable": 119,
-    "faults_injected": 137,
+    "fault_scenarios": 8,
+    "faults_applicable": 5,
+    "faults_injected": 7,
     "hash_chain_intact_rate": 1.0,
     "inbox_duplicates_suppressed": 0,
     "injectable_faults": [
@@ -151,14 +149,14 @@
       "partial_update",
       "schema_incompatibility"
     ],
-    "mean_events_per_disruption": 51.924,
-    "mean_lineage_nodes": 51.908,
+    "mean_events_per_disruption": 53.812,
+    "mean_lineage_nodes": 53.792,
     "replay_identical_rate": 1.0
   },
   "robustness": {
-    "mean_expected_delay_minutes": 70.556,
+    "mean_expected_delay_minutes": 70.835,
     "mean_on_time_probability": 0.0,
     "p95_worst_credible_delay_minutes": 137.33,
-    "plans_simulated": 605
+    "plans_simulated": 28
   }
 }

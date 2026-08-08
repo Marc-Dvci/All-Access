@@ -50,9 +50,13 @@ jobs:
           git diff --exit-code docs/accessibility_audit.json \
             || (echo "::error::accessibility audit output changed; commit the artifact" && exit 1)
 
-      - name: Software bill of materials is current
-        # Compares a freshly generated SBOM against the committed one, ignoring
-        # the timestamp. A dependency change without a regenerated SBOM fails.
+      - name: Software bill of materials covers every declared dependency
+        # Fails if the committed SBOM is missing, malformed, or does not record
+        # a dependency declared in pyproject.toml. Version drift against this
+        # runner is printed, not failed: nothing here is pinned, so pip resolves
+        # the latest release of everything and a patch bump to ruff or starlette
+        # would otherwise turn the build red for a change nobody made. Run
+        # `--check --strict` locally to assert an exact environment match.
         run: python tools/generate_sbom.py --check
 
   closed-loop:
@@ -107,6 +111,42 @@ jobs:
           assert summary["planning_quality"]["hard_constraint_violation_rate"] == 0.0
           print(f"{len(full)} scenarios, {violations} hard violations, artifacts consistent")
           PY
+
+  browser:
+    name: the interface renders
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Render every view in a real browser
+        # The accessibility audit reads markup and the API tests read JSON;
+        # neither can see a renderer reading a field the payload does not have.
+        # Every endpoint returned 200 with a substantive payload for the whole
+        # time the control board was rendering a department row named after a
+        # target system and calling it ready while verification was blocking
+        # the day. This job opens all thirteen views, fails on any console
+        # error, uncaught exception or failed request, and exercises the
+        # selects, the keyboard tab pattern and a full re-run.
+        run: python tools/ui_smoke.py --shots artifacts/screenshots
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: artifacts/screenshots
+          if-no-files-found: warn
 
   deployment:
     name: deployment paths

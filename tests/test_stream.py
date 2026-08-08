@@ -315,3 +315,41 @@ def test_lineage_traces_causation(bus) -> None:
 def test_every_event_type_resolves_to_a_contract(event_type: EventType) -> None:
     assert subject_for(event_type) is not None
     assert contract_for(event_type) is not None
+
+
+# ---------------------------------------------------------------------------
+# Software bill of materials
+#
+# `--check` used to compare an exact content digest against the current
+# environment. Nothing in this project is pinned, so pip resolves the latest
+# release of everything and the check could not pass twice in a row on CI: a
+# patch bump to a transitive dependency, or a different Python minor version
+# (`tomli` and `exceptiongroup` exist on 3.10 and not 3.12), turned the build
+# red for a change nobody made. It now checks coverage and reports drift.
+# ---------------------------------------------------------------------------
+
+
+def test_sbom_covers_every_declared_runtime_dependency() -> None:
+    import json
+    from pathlib import Path
+
+    from tools.generate_sbom import _normalise, declared_runtime_dependencies
+
+    root = Path(__file__).resolve().parent.parent
+    sbom = json.loads((root / "sbom.json").read_text(encoding="utf-8"))
+    recorded = {_normalise(str(c["name"])) for c in sbom["components"]}
+    assert declared_runtime_dependencies() <= recorded
+
+
+def test_declared_dependencies_are_parsed_without_extras_or_specifiers() -> None:
+    from tools.generate_sbom import declared_runtime_dependencies
+
+    declared = declared_runtime_dependencies()
+    # "uvicorn[standard]>=0.30" and "PyYAML>=6.0" must normalise to bare names.
+    assert "uvicorn" in declared
+    assert "pyyaml" in declared
+    assert "python-multipart" in declared
+    assert not any(any(ch in name for ch in "[]<>=!~ ") for name in declared)
+    # Optional extras are not runtime dependencies and must not be required.
+    assert "confluent-kafka" not in declared
+    assert "google-adk" not in declared

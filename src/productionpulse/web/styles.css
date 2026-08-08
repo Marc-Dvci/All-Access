@@ -274,6 +274,11 @@ h3 { font-size: 1rem; margin: 1.25rem 0 0.35rem; }
 .chip.bad { color: var(--bad); background: var(--bad-bg); }
 .chip.quiet { color: var(--quiet); background: var(--quiet-bg); }
 
+/* A cell whose value is a real answer that happens to be the default — "as
+   emitted" in the replay log. Recessed, but `--quiet` is a 4.5:1 token, not a
+   decorative grey, so it stays readable. */
+.quiet-cell { color: var(--quiet); font-style: italic; }
+
 /* -- tables --------------------------------------------------------------- */
 
 .table-scroll {

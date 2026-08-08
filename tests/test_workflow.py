@@ -408,3 +408,92 @@ def test_every_scenario_produces_a_valid_source_event(bus) -> None:
     for scenario in generate(60):
         event = build_source_event(bus, scenario)
         assert event.envelope.signature
+
+
+# ---------------------------------------------------------------------------
+# Department readiness in the read model
+#
+# These exist because a browser found the defect and nothing else could have.
+# The read model reported a single row keyed on the *target system* name with
+# zero counts, and the control board's own readiness rule (`issued == accepted`)
+# called that row ready — so the board asserted every department was ready in
+# the same run where verification refused to close the day on props. Every API
+# endpoint returned 200 throughout. See tools/ui_smoke.py.
+# ---------------------------------------------------------------------------
+
+
+def test_department_readiness_is_keyed_by_department(hero_run) -> None:
+    _bus, _systems, coordinator, _outcome, _source = hero_run
+    departments = coordinator.views.departments
+
+    assert departments, "no department readiness was folded from the stream"
+    # The target system is not a department, and used to be the only key here.
+    assert "department_tasks" not in departments
+    assert {"props", "camera", "wardrobe"} <= set(departments)
+    for name, row in departments.items():
+        assert row.department == name
+        assert row.tasks_issued > 0, f"{name} was folded with no tasks issued"
+
+
+def test_readiness_is_never_claimed_for_a_department_with_no_tasks() -> None:
+    """`issued == accepted` is True at 0 == 0. The domain rule is not."""
+    from productionpulse.stream.views import DepartmentReadiness
+
+    assert DepartmentReadiness("props").ready is False
+    assert DepartmentReadiness("props", tasks_issued=2, tasks_accepted=1).ready is False
+    assert DepartmentReadiness("props", tasks_issued=2, tasks_accepted=2).ready is True
+
+
+def test_control_board_readiness_agrees_with_verification(hero_run) -> None:
+    """The board and the Verification Agent must never contradict each other.
+
+    Before the fix the board reported every department ready while verification
+    was blocking on a missing props acceptance — inside the same run.
+    """
+    _bus, systems, coordinator, _outcome, _source = hero_run
+    outstanding = {
+        t.department for t in systems[TargetSystem.DEPARTMENT_TASKS].outstanding()
+    }
+    not_ready = {n for n, r in coordinator.views.departments.items() if not r.ready}
+    assert not_ready == outstanding
+
+
+def test_board_shows_the_department_verification_blocked_on() -> None:
+    """The same check, in the state where it can actually fail.
+
+    `hero_run` resolves the block, so by the end nothing is outstanding and the
+    assertion above holds with both sides empty — it would pass against a board
+    that never populated at all. This run leaves the block in place, so the
+    board has to name props specifically while verification is blocking on it.
+    Against the old read model this sees no `props` key and fails.
+    """
+    from productionpulse.stream.bus import LocalEventBus
+    from productionpulse.stream.registry import LocalSchemaRegistry
+
+    problem = scenario_problem(STORM_SCENARIO, twin=build_twin())
+    bus = LocalEventBus(LocalSchemaRegistry(), w.PRODUCTION_ID)
+    systems = build_systems(w.PRODUCTION_ID, hold_department="props")
+    coordinator = ProductionCoordinator(bus, systems, reasoner=OfflineReasoner())
+    outcome = coordinator.handle(
+        problem, build_source_event(bus, STORM_SCENARIO),
+        title=STORM_SCENARIO.title, scenario_id=STORM_SCENARIO.scenario_id,
+        scenarios=40, auto_resolve_blocking=False,
+    )
+
+    assert outcome.verification is not None and not outcome.verification.ready
+    departments = coordinator.views.departments
+    assert departments["props"].ready is False
+    assert departments["props"].tasks_accepted < departments["props"].tasks_issued
+    assert {n for n, r in departments.items() if not r.ready} == {"props"}
+
+
+def test_department_readiness_survives_replay(hero_run) -> None:
+    """Readiness is a fold, so replaying the log must rebuild it identically."""
+    from productionpulse.stream.views import MaterializedViews
+
+    bus, _systems, coordinator, _outcome, _source = hero_run
+    rebuilt = MaterializedViews().apply_all(bus.all_events())
+    assert {n: (r.tasks_issued, r.tasks_accepted, r.ready)
+            for n, r in rebuilt.departments.items()} == \
+           {n: (r.tasks_issued, r.tasks_accepted, r.ready)
+            for n, r in coordinator.views.departments.items()}

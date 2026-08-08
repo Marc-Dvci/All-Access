@@ -66,14 +66,29 @@ Taken directly from `not_covered` in the artifact:
 - Contrast of any colour set outside `styles.css`
 - 1.4.10 Reflow verified visually at 320 CSS pixels
 
-**A browser has never rendered this interface.** No session in this project has
-had browser tooling available. All 15 API endpoints return 200 with substantive
-payloads, the markup and stylesheet pass 62 static checks, and there is no
-`innerHTML` — but nobody has watched it draw, tabbed through it, or put a screen
-reader on it.
+### What the automated render adds, and what it still does not
 
-That is a gap, it is the first thing to close, and it is recorded here rather
-than left for someone to discover.
+`tools/ui_smoke.py` drives all thirteen views in Chromium on every CI run. Each
+view must draw substantive content; any console error, uncaught exception or
+failed request fails the run; both in-view selects and a full re-run are
+exercised; and the tab list is driven with `ArrowRight`, `ArrowLeft` and `End` to
+check that the APG pattern in `app.js` behaves the way the markup claims.
+
+Its first run found an accessibility defect no static audit could have seen.
+**The outcome of "Run disruption" was announced into the live region and then
+overwritten by "Control board loaded" inside the same second**, because reloading
+the view announced itself last. A screen-reader user heard that a view had loaded
+and never heard how many plans were feasible or how many were rejected. The
+pending notice now outranks the view-loaded message. The markup was correct
+throughout — one polite live region, properly configured — which is all the
+markup can tell you.
+
+**What is still not verified.** A machine reading the DOM is not a person using
+the product. Nobody has tabbed through this with a screen reader, checked reflow
+visually at 320 CSS pixels, or confirmed that announcement *order* makes sense
+across a whole task rather than one interaction. **No screen-reader user has
+tested this interface.** That is the gap that remains, and for a product making
+this particular argument it is the one that matters most.
 
 ---
 
