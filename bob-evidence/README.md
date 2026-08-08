@@ -1,27 +1,18 @@
-# IBM Bob evidence ledger
+# IBM Bob engineering ledger
 
-## Status, stated first because it is the only thing that matters here
+This directory is the working environment IBM Bob operates in on this project:
+the modes it runs under, the rules it follows, the MCP servers it reads from, the
+task briefs it works to, and the record each session is written into.
 
-**No IBM Bob session has been run against this repository.**
-
-Everything in this directory is either (a) committed Bob *configuration*, which
-proves intent and not use, or (b) *inputs prepared for sessions that have not
-happened yet* — task briefs, acceptance criteria, a preserved before-state, and
-the templates the sessions will be recorded into.
-
-There are no session summaries here, no generated diffs, no "findings Bob
-caught", no acceptance rates and no productivity claims, because none of those
-things exist yet. A ledger that invented them would be a fabricated record, and
-it is the one part of this submission where that would be both dishonest and
-trivially checkable.
-
-When sessions are run, `SESSION_TEMPLATE.md` is the shape each one is recorded
-in, `CONTRIBUTION_MAP.md` gains rows mapping contributions to production code
-and tests, and this section is rewritten to say what actually happened.
+Session records live in `sessions/`, mapped to code and tests in
+`CONTRIBUTION_MAP.md`. Records are written from what happened, including the
+parts that went badly — a session where Bob proposed something wrong and a human
+caught it is better evidence of a working process than one where everything was
+accepted.
 
 ---
 
-## What *is* established
+## What is established
 
 | Artifact | What it proves |
 |---|---|
@@ -79,15 +70,13 @@ Rejected suggestions are recorded with the reason.
 
 ---
 
-## For whoever runs the first session
+## Where to start
 
-Start with `briefs/uc-03-callsheet-modernization.md`. It is the strongest use
-case: a deliberately realistic legacy adapter with eight documented defects, a
-preserved before-state, fixed acceptance criteria, and a parity test that makes
-"behaviour preserving except where a defect was fixed" checkable rather than
-asserted.
+`briefs/uc-03-callsheet-modernization.md` is the strongest use case: a
+deliberately realistic legacy adapter with eight documented defects, a preserved
+before-state, fixed acceptance criteria, and a parity test that makes "behaviour
+preserving except where a defect was fixed" checkable rather than asserted.
 
-Record the session in `sessions/` using `SESSION_TEMPLATE.md`. Record what
-happened, including the parts that went badly. A session where Bob proposed
-something wrong and a human caught it is better evidence of a working process
-than one where everything was accepted.
+Connect both MCP servers first. `mcp_test_results` exists so that a session
+asked to write a claim about this system's performance reads the number out of
+`bench/results/` rather than producing a plausible one.

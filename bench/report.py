@@ -121,7 +121,19 @@ def _impact(rows: list[Measurement]) -> dict[str, Any]:
         "access_requirements_reached": _set_scores(
             rows, "expected_access_at_risk", "detected_access_at_risk"
         ),
+        # The same three measures over the top band of the ranking, which is
+        # what a screen expands first and what a summary leads with.
+        "affected_departments_primary": _set_scores(
+            rows, "expected_departments", "primary_departments"
+        ),
+        "disrupted_scenes_primary": _set_scores(
+            rows, "expected_scenes", "primary_scenes"
+        ),
+        "access_requirements_primary": _set_scores(
+            rows, "expected_access_at_risk", "primary_access_at_risk"
+        ),
         "mean_blast_nodes": _mean([r.blast_nodes for r in rows if r.blast_nodes]),
+        "mean_blast_primary": _mean([r.blast_primary for r in rows if r.blast_nodes]),
         "max_blast_depth": max((r.blast_depth for r in rows), default=0),
     }
 

@@ -20,6 +20,8 @@ Two boundaries are enforced here rather than in the browser:
 from __future__ import annotations
 
 import threading
+from collections import Counter
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -55,6 +57,73 @@ LIBRARY: dict[str, Scenario] = {
 }
 
 
+@dataclass
+class ShiftEntry:
+    """One handled disruption, kept after its session is replaced.
+
+    The executive view is the only one that should not be about a single
+    incident. A producer does not need to know that this storm cost 40 minutes;
+    they need to know what the day cost, which arrangements came under pressure
+    more than once, and which rules keep removing options — because that last
+    one is a budget decision. A second interpreter, a ramp at the boatshed and a
+    later permit curfew are things somebody can buy, and the only way to know
+    which one to buy is to count how often each is what blocked the day.
+    """
+
+    scenario_id: str
+    title: str
+    family: str
+    severity: str
+    state: str
+    feasible_plans: int
+    rejected_plans: int
+    delay_minutes: float
+    cost_delta: float
+    overtime_minutes: float
+    access_total: int
+    access_preserved: int
+    verification_ready: bool
+    blocked_then_resolved: bool
+    decision_ms: float
+    binding_constraints: tuple[str, ...]
+    started_at: datetime
+
+
+#: Every disruption handled by this process, oldest first. The executive view
+#: reads it; nothing else does, and nothing reads it to make a decision.
+_SHIFT: list[ShiftEntry] = []
+
+
+def _record_shift(session: "Session") -> None:
+    outcome = session.outcome
+    selected = outcome.selected
+    binding: list[str] = []
+    for plan in outcome.rejected:
+        for conflict in plan.conflicts:
+            binding.extend(conflict.constraint_ids)
+    _SHIFT.append(ShiftEntry(
+        scenario_id=session.scenario.scenario_id,
+        title=session.scenario.title,
+        family=session.scenario.family,
+        severity=session.scenario.severity,
+        state=outcome.disruption.state.value,
+        feasible_plans=len(outcome.plans),
+        rejected_plans=len(outcome.rejected),
+        delay_minutes=selected.objectives.delay_minutes if selected else 0.0,
+        cost_delta=selected.objectives.cost_delta if selected else 0.0,
+        overtime_minutes=selected.objectives.overtime_minutes if selected else 0.0,
+        access_total=len(selected.access) if selected else 0,
+        access_preserved=(
+            sum(1 for a in selected.access if a.satisfied) if selected else 0
+        ),
+        verification_ready=bool(outcome.verification and outcome.verification.ready),
+        blocked_then_resolved=outcome.blocked_then_resolved,
+        decision_ms=outcome.timings.get("total_ms", 0.0),
+        binding_constraints=tuple(binding),
+        started_at=session.started_at,
+    ))
+
+
 class Session:
     """One disruption, run once, held for the views to read."""
 
@@ -88,6 +157,7 @@ def session() -> Session:
     with _lock:
         if _session is None:
             _session = Session()
+            _record_shift(_session)
         return _session
 
 
@@ -97,6 +167,7 @@ def reset(scenario_id: str | None = None) -> Session:
     scenario = LIBRARY.get(scenario_id or "", STORM_SCENARIO)
     with _lock:
         _session = Session(scenario)
+        _record_shift(_session)
         return _session
 
 
@@ -322,6 +393,7 @@ def impact() -> dict[str, Any]:
                 "path": list(n.path),
                 "via": list(n.via),
                 "critical": n.critical,
+                "relevance": n.relevance,
             }
             for n in s.blast.nodes
         ],
@@ -330,6 +402,18 @@ def impact() -> dict[str, Any]:
         "documents": list(s.blast.documents),
         "access_requirements": list(s.blast.access_requirements),
         "scenes": list(s.blast.scenes),
+        # The ranked band. Everything above is the full traversal; the client
+        # leads with these and keeps the rest one interaction away.
+        "primary": {
+            "departments": [
+                d.replace("DEPT-", "") for d in s.blast.primary_departments
+            ],
+            "people": list(s.blast.primary_people),
+            "documents": list(s.blast.primary_documents),
+            "access_requirements": list(s.blast.primary_access_requirements),
+            "scenes": list(s.blast.primary_scenes),
+        },
+        "counts_by_relevance": s.blast.counts_by_relevance(),
         "counts_by_depth": {
             str(depth): len(ids) for depth, ids in sorted(s.blast.by_depth.items())
         },
@@ -386,6 +470,29 @@ def findings() -> dict[str, Any]:
             for f in s.outcome.findings
         ],
         "reasoning_plane": s.coordinator.reasoner.plane,
+        # What the reasoning plane actually did, including anything it said that
+        # the facts did not support. On the offline plane these are all zero;
+        # on the Gemini plane they are the record of the grounding gate.
+        "reasoning": _reasoning_report(s.coordinator.reasoner),
+    }
+
+
+def _reasoning_report(reasoner: Any) -> dict[str, Any]:
+    calls = list(reasoner.calls())
+    rejected = [c for c in calls if getattr(c, "rejected_claims", ())]
+    return {
+        "plane": reasoner.plane,
+        "calls": len(calls),
+        "failed": sum(1 for c in calls if c.error),
+        "responses_rejected_as_ungrounded": len(rejected),
+        "rejected_claims": sorted({
+            claim for c in rejected for claim in c.rejected_claims
+        }),
+        "degraded": bool(getattr(reasoner, "degraded", False)),
+        "model": next((c.model for c in calls if c.model), None),
+        "tokens_in": sum(c.tokens_in or 0 for c in calls) or None,
+        "tokens_out": sum(c.tokens_out or 0 for c in calls) or None,
+        "total_latency_ms": round(sum(c.latency_ms for c in calls), 2),
     }
 
 
@@ -590,6 +697,29 @@ def crew(person_id: str) -> dict[str, Any]:
     }
 
 
+_CONSTRAINTS_BY_ID = {c.constraint_id: c for c in CONSTRAINTS}
+
+
+def _pressure_row(constraint_id: str, count: int) -> dict[str, Any]:
+    """One rule, and how often it was what removed an option.
+
+    Carries the owner and the source document because a producer reading this
+    needs to know who to talk to and what to renegotiate. A constraint id with
+    a count is a statistic; a constraint id with an owner and a permit number
+    is a decision.
+    """
+    record = _CONSTRAINTS_BY_ID.get(constraint_id)
+    return {
+        "constraint_id": constraint_id,
+        "times_binding": count,
+        "title": record.title if record else constraint_id,
+        "owner": record.owner.value if record and record.owner else None,
+        "source": record.source if record else None,
+        "kind": record.kind.value if record else None,
+        "waivable": (record.kind.value != "hard") if record else None,
+    }
+
+
 @app.get("/api/executive")
 def executive() -> dict[str, Any]:
     """§14.11 — the executive view. Aggregate only, enforced not styled."""
@@ -620,11 +750,65 @@ def executive() -> dict[str, Any]:
         "assertions_total": len(report.assertions) if report else 0,
         "messages_sent": len(s.outcome.messages),
     }
+    # -- the shift, not the incident ----------------------------------------
+    shift = list(_SHIFT)
+    handled = len(shift)
+    access_total = sum(e.access_total for e in shift)
+    access_kept = sum(e.access_preserved for e in shift)
+    latencies = sorted(e.decision_ms for e in shift)
+    pressure = Counter(c for e in shift for c in e.binding_constraints)
+
+    portfolio = {
+        "disruptions_handled": handled,
+        "closed": sum(1 for e in shift if e.state == "closed"),
+        "held_for_a_reason": sum(1 for e in shift if not e.feasible_plans),
+        "blocked_then_resolved": sum(1 for e in shift if e.blocked_then_resolved),
+        "total_delay_minutes": round(sum(e.delay_minutes for e in shift), 1),
+        "total_cost_delta": round(sum(e.cost_delta for e in shift), 2),
+        "total_overtime_minutes": round(sum(e.overtime_minutes for e in shift), 1),
+        "options_refused": sum(e.rejected_plans for e in shift),
+        "access_arrangements_checked": access_total,
+        "access_arrangements_preserved": access_kept,
+        "access_preservation_rate": (
+            round(access_kept / access_total, 4) if access_total else 1.0
+        ),
+        "median_decision_ms": (
+            round(latencies[len(latencies) // 2], 1) if latencies else 0.0
+        ),
+        "slowest_decision_ms": round(latencies[-1], 1) if latencies else 0.0,
+        "by_family": dict(sorted(Counter(e.family for e in shift).items())),
+    }
+
     return {
         # Passed through the executive redaction so any person-scoped key added
         # to this dictionary in future is dropped rather than published.
         "metrics": privacy.executive_summary(metrics),
         "prohibited_fields_found": privacy.check_no_prohibited_fields([metrics]),
+        "portfolio": portfolio,
+        # Which rules removed the most options across the shift. This is the
+        # view's reason for existing: it converts "the day was hard" into a
+        # ranked list of the things somebody could buy, hire or renegotiate.
+        "constraint_pressure": [
+            _pressure_row(cid, count) for cid, count in pressure.most_common(8)
+        ],
+        "timeline": [
+            {
+                "scenario_id": e.scenario_id,
+                "title": e.title,
+                "family": e.family,
+                "severity": e.severity,
+                "state": e.state,
+                "feasible_plans": e.feasible_plans,
+                "rejected_plans": e.rejected_plans,
+                "delay_minutes": e.delay_minutes,
+                "cost_delta": e.cost_delta,
+                "access": f"{e.access_preserved}/{e.access_total}",
+                "ready": e.verification_ready,
+                "decision_ms": round(e.decision_ms, 1),
+                "at": _dt(e.started_at),
+            }
+            for e in reversed(shift)
+        ],
     }
 
 

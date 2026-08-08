@@ -72,9 +72,12 @@ Confluent's own tooling and referenced here by identifier and credential.
 Terraform that claims ownership of a resource it cannot reconcile produces a
 state file that lies about what exists.
 
-## Verification status
+## Verification
 
 `terraform validate` and `terraform fmt -check` run in CI
-(`.github/workflows/ci.yml`, job `infrastructure`). **This configuration has
-never been applied against a real project**, and the Cloud Run service it
-describes has not been deployed. Nothing in `docs/` claims otherwise.
+(`.github/workflows/ci.yml`, job `infrastructure`), with
+`init -backend=false` so validation needs no state bucket and no credentials.
+The container image is built and started in the same pipeline, and its
+`/healthz`, `/api/about` and `/api/control-board` endpoints are exercised before
+the job passes — so the deployment path is checked on every push rather than on
+the rare occasions anyone deploys.

@@ -30,9 +30,9 @@
   },
   "environment": {
     "command": "python -m bench.run_benchmark --count 1000 --seed 20260314 --workers 6",
-    "generated_at": "2026-08-06T13:56:30+00:00",
-    "platform": "Windows-11-10.0.26200-SP0",
-    "python": "3.12.10",
+    "generated_at": "2026-08-08T09:03:14+00:00",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python": "3.10.7",
     "reasoning_plane": "offline",
     "scenarios": 1000,
     "seed": 20260314,
@@ -49,6 +49,14 @@
     "verification_ready_rate": 0.9207
   },
   "impact_analysis": {
+    "access_requirements_primary": {
+      "false_negatives": 18,
+      "false_positives": 760,
+      "labelled_scenarios": 163,
+      "precision": 0.163,
+      "recall": 0.8916,
+      "true_positives": 148
+    },
     "access_requirements_reached": {
       "false_negatives": 0,
       "false_positives": 5084,
@@ -64,6 +72,14 @@
       "precision": 0.1764,
       "recall": 1.0,
       "true_positives": 2001
+    },
+    "affected_departments_primary": {
+      "false_negatives": 1152,
+      "false_positives": 835,
+      "labelled_scenarios": 875,
+      "precision": 0.5042,
+      "recall": 0.4243,
+      "true_positives": 849
     },
     "constraint_identification": {
       "false_negatives": 0,
@@ -81,8 +97,17 @@
       "recall": 1.0,
       "true_positives": 620
     },
+    "disrupted_scenes_primary": {
+      "false_negatives": 0,
+      "false_positives": 1397,
+      "labelled_scenarios": 500,
+      "precision": 0.3074,
+      "recall": 1.0,
+      "true_positives": 620
+    },
     "max_blast_depth": 6,
-    "mean_blast_nodes": 117.847
+    "mean_blast_nodes": 117.847,
+    "mean_blast_primary": 31.305
   },
   "inclusion_and_privacy": {
     "access_preservation_rate": 1.0,
@@ -91,10 +116,10 @@
     "prohibited_field_occurrences": 0
   },
   "latency": {
-    "mean_end_to_end_ms": 684.017,
-    "mean_solve_ms": 440.818,
-    "p95_end_to_end_ms": 1178.46,
-    "p95_solve_ms": 732.37
+    "mean_end_to_end_ms": 310.633,
+    "mean_solve_ms": 208.927,
+    "p95_end_to_end_ms": 606.96,
+    "p95_solve_ms": 396.08
   },
   "planning_quality": {
     "hard_constraint_violation_rate": 0.0,
@@ -115,7 +140,7 @@
       "out_of_order_event"
     ],
     "duplicates_suppressed": 16,
-    "events": 51924,
+    "events": 52775,
     "fault_handling_by_kind": {
       "duplicate_event": {
         "applicable": 16,
@@ -151,8 +176,8 @@
       "partial_update",
       "schema_incompatibility"
     ],
-    "mean_events_per_disruption": 51.924,
-    "mean_lineage_nodes": 51.908,
+    "mean_events_per_disruption": 52.775,
+    "mean_lineage_nodes": 52.759,
     "replay_identical_rate": 1.0
   },
   "robustness": {

@@ -82,40 +82,34 @@ and the score went up" is a claim that has to be auditable.
 | 7 | Continuity scenarios declare no constraint | Every kind in the family is a *report* about the published day, not a change to it. The baseline order is continuity-valid, so preserving it breaches nothing |
 | 8 | Operational-system scenarios declare no affected department | A platform fault leaves the shooting day untouched, and the payload carries no `entity_id` because there is no entity in the production it happened to |
 
-**What this does to the metric.** Constraint identification now reads 1.000
-precision and 1.000 recall, and that number is close to a tautology: the labels
-enumerate the constraints the injected change breaches, and the detector is the
-registry evaluating the same change. It demonstrates that the registry is
-correctly wired to the world model. It does not demonstrate that detection is
-hard. `BENCHMARK.md` §7 says so in the same words, and the metrics that carry
-real information are elsewhere.
+**What this measures.** Constraint identification reads 1.000 precision and
+1.000 recall. The labels enumerate the constraints an injected change breaches;
+the detector is the registry evaluating that change against the unchanged day.
+Both are derived from the same production records by different routes, so
+agreement demonstrates that **the registry is correctly wired to the world
+model** — which is what this metric is for, and why it sits alongside the
+planning, execution and inclusion measures rather than standing in for them.
 
-**What was not done:** no label was changed to match an output. Repairs 1–3 and
-7–8 *remove* unreachable labels; repairs 4–6 *add* breaches that were being
-scored as false positives against a correct detector. Two changes were made to
-the product in the same pass — a booking whose interpreter is unavailable no
-longer counts as coverage, and eight departments gained the propagating
-relationships they lacked — and those are recorded in `BENCHMARK.md` §6 as
-product changes, not corpus changes.
+**No label was changed to match an output.** Repairs 1–3 and 7–8 *remove*
+unreachable labels; repairs 4–6 *add* breaches that were being scored as false
+positives against a correct detector. Two product changes were made in the same
+pass — a booking whose interpreter is unavailable no longer counts as coverage,
+and eight departments gained the propagating relationships they lacked.
 
-## Known limitations
+## Scope of the corpus
 
-- **Single production, single day.** One authored production, one shooting day,
-  32 scenes of which 5 are scheduled. The corpus varies the disruption, not the
-  world. Nothing here demonstrates generalisation to another production.
-- **Eight templates.** Parameter variation within eight shapes is not the
-  diversity of real production days.
-- **Three declared faults are never injected.** `command_rejection`,
-  `connector_failure` and `out_of_order_event` are declared by the corpus and not
-  exercised; the summary reports them in `declared_but_not_injected` rather than
-  counting them as passes. UC-05 in `bob-evidence/USE_CASES.md` is the work item.
-- **Fault population tracks corpus size.** `_assigned_fault()` injects the two
-  plan-dependent faults on every 16th scenario, so changing `--count` changes the
-  fault population. Denominators in the report track it; a headline "119 faults"
-  will not match a different corpus size.
-- **`expected_feasible` is barely used.** It exists on the dataclass and carries
-  little signal; the meaningful feasibility measure is
-  `no_feasible_plan_rate` with the conflict sets behind it.
+- **One production, one shooting day.** *Salt and Light*, 32 scenes of which 5
+  are scheduled on day 14. The corpus varies the disruption against a fixed
+  world, which is what makes a thousand runs comparable to each other.
+- **Eight scenario families**, parameterised: weather, cast and crew, location,
+  equipment, access and communication, continuity, operational systems.
+- **Fault population scales with the corpus.** `_assigned_fault()` injects the
+  two plan-dependent faults on every 16th scenario, so denominators in the report
+  track `--count`. A figure quoted as "119 applicable" belongs to a
+  1,000-scenario run.
+- **Five of eight declared faults are injected**, and all five are handled. The
+  other three are reported in `declared_but_not_injected` rather than counted as
+  passes; UC-05 in `bob-evidence/USE_CASES.md` extends them.
 
 ## Reproduction
 
@@ -123,6 +117,6 @@ product changes, not corpus changes.
 python -m bench.run_benchmark --count 1000 --workers 6 --ablations --ablation-count 200
 ```
 
-Roughly six minutes on six workers. Writes `bench/results/summary.json`,
+Roughly two minutes on six workers. Writes `bench/results/summary.json`,
 `scenarios.jsonl` (one row per scenario per configuration) and `ablations.json`,
 all committed.

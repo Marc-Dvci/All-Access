@@ -27,6 +27,7 @@ whose opinions are worthless.
 from __future__ import annotations
 
 import os
+import re
 import time
 from dataclasses import dataclass, field
 from typing import Any, Protocol
@@ -56,6 +57,9 @@ class ReasoningCall:
     tokens_in: int | None = None
     tokens_out: int | None = None
     error: str | None = None
+    #: Identifiers or quantities the response carried that the facts did not
+    #: support. Non-empty means the response was discarded.
+    rejected_claims: tuple[str, ...] = ()
 
 
 class Reasoner(Protocol):
@@ -98,15 +102,90 @@ class OfflineReasoner:
         return list(self._calls)
 
 
+#: Identifier shapes this system uses. Anything matching one of these in a
+#: model's output is checkable against the facts it was given, which is what
+#: makes grounding enforceable rather than requested.
+_IDENTIFIER = re.compile(
+    r"\b(?:C|ACC|SC|PLAN|LOC|VEH|BOOK|PERM|CAST|CREW|DEPT|EV|DISR)-[A-Z0-9-]+\b"
+)
+#: Numbers with operational meaning. Bare small integers ("two units") are not
+#: worth policing; a measurement, a time, a cost or a percentage is.
+_QUANTITY = re.compile(r"\b\d[\d,]*\.?\d*\s*(?:mm|cm|m|km|kph|kg|%|min|minutes|hours)\b|"
+                       r"\b\d{1,2}:\d{2}\b|\b\d{4,}\b")
+
+
+def _facts_corpus(facts: dict[str, Any]) -> str:
+    """Everything the model was told, flattened for containment checks."""
+    import json
+
+    return json.dumps(facts, default=str).lower()
+
+
+def ungrounded_claims(text: str, facts: dict[str, Any]) -> tuple[str, ...]:
+    """Identifiers and quantities in `text` that do not appear in `facts`.
+
+    This is the check that lets a language model into a production decision
+    system at all. The model is given facts a deterministic layer has already
+    established and asked to express them; this reads what came back and finds
+    anything it could not have got from the input. A constraint id nobody
+    mentioned, a threshold in millimetres that appears nowhere, a call time an
+    hour off — each is a specific, mechanical thing to look for, and each is the
+    kind of detail a fluent paragraph carries convincingly.
+
+    It does not check that the prose is *true*, which no regular expression can.
+    It checks that every checkable token is one the model was handed. When it
+    finds one, `narrate()` discards the response and uses the deterministic
+    template instead, and records that it did.
+    """
+    corpus = _facts_corpus(facts)
+    unsupported: list[str] = []
+
+    # Identifiers are matched whole and nothing else will do. Comparing them
+    # loosely is how `C-XXX-001` passes because `ACC-001` was in the facts and
+    # the digits happen to agree — an invented constraint id waved through on
+    # the strength of a shared suffix.
+    for match in _IDENTIFIER.findall(text):
+        if match.strip().lower() not in corpus:
+            unsupported.append(match.strip())
+
+    # A quantity is supported if its digits appear anywhere: "45 mm" and
+    # "threshold_mm: 45" are one fact written two ways, and requiring the units
+    # to match the JSON key spelling would reject correct prose.
+    for match in _QUANTITY.findall(text):
+        token = match.strip().lower()
+        digits = re.sub(r"[^\d.:]", "", token)
+        if token in corpus or (digits and digits in corpus):
+            continue
+        unsupported.append(match.strip())
+
+    return tuple(dict.fromkeys(unsupported))
+
+
 class GeminiReasoner:
     """Gemini on Vertex AI, for interpretation and explanation only.
 
-    The system instruction forbids feasibility judgements explicitly, and the
-    caller never asks for one: `narrate()` receives facts that the deterministic
-    layer has already decided and asks only for their expression. If the call
-    fails the offline plane answers instead, and the failure is recorded rather
-    than hidden — a run that silently degraded to templates while reporting
-    "Gemini" would misrepresent what the judges are looking at.
+    Three things constrain what this plane can do, in increasing order of how
+    much they are worth.
+
+    1. **The system instruction** forbids feasibility judgements and invention.
+       This is the weakest control and it is listed first so it is not mistaken
+       for the important one.
+    2. **The caller never asks a question whose answer would be a decision.**
+       `narrate()` receives facts the deterministic layer has already
+       established and asks only for their expression. There is no code path
+       that asks Gemini whether a plan is feasible, because feasibility has one
+       answer and `constraints.registry.evaluate` owns it.
+    3. **Every response is checked before it is used.** `ungrounded_claims()`
+       reads the returned text for identifiers and quantities that do not appear
+       in the facts the model was given. A response carrying an invented
+       constraint id or an invented measurement is discarded in favour of the
+       deterministic template, and the rejection is recorded on the call. This
+       is the control that does the work: it does not ask the model to behave,
+       it checks whether it did.
+
+    A failed call, an empty response and a rejected response all fall back to
+    the offline plane and all set `degraded`. A run that silently produced
+    template output while reporting "Gemini" would misrepresent itself.
     """
 
     plane = "gemini"
@@ -119,7 +198,9 @@ class GeminiReasoner:
         "structured facts you are given. If the facts do not support a statement, say so. "
         "Write in plain production language, in at most three sentences. Do not include "
         "any personal information beyond what appears in the facts, and never speculate "
-        "about why a person requires an access arrangement."
+        "about why a person requires an access arrangement. "
+        "Every identifier and every measurement you write must appear in the facts you "
+        "were given; anything else will be rejected automatically and discarded."
     )
 
     def __init__(self, model: str = "gemini-2.5-flash", project: str | None = None,
@@ -131,6 +212,8 @@ class GeminiReasoner:
         self._fallback = OfflineReasoner()
         self._client = None
         self.degraded = False
+        #: Responses discarded for carrying an unsupported claim.
+        self.rejected = 0
 
     def _ensure_client(self):
         if self._client is None:
@@ -167,15 +250,27 @@ class GeminiReasoner:
             text = (response.text or "").strip()
             usage = getattr(response, "usage_metadata", None)
             elapsed = (time.perf_counter() - started) * 1000.0
+            if not text:
+                raise RuntimeError("empty response")
+
+            # The control that matters. Anything checkable in the response has
+            # to have come from the facts; if it did not, the response is not
+            # used at all. Discarding a fluent paragraph over one invented
+            # identifier is the correct trade in a system whose whole claim is
+            # that no model output reaches a decision unchecked.
+            rejected = ungrounded_claims(text, facts)
             self._calls.append(ReasoningCall(
                 agent=agent, purpose=purpose, plane=self.plane,
                 prompt_chars=len(prompt), response_chars=len(text),
                 latency_ms=elapsed, model=self.model,
                 tokens_in=getattr(usage, "prompt_token_count", None) if usage else None,
                 tokens_out=getattr(usage, "candidates_token_count", None) if usage else None,
+                rejected_claims=rejected,
             ))
-            if not text:
-                raise RuntimeError("empty response")
+            if rejected:
+                self.degraded = True
+                self.rejected += 1
+                return self._fallback.narrate(agent, purpose, facts, template)
             return text
         except Exception as exc:
             elapsed = (time.perf_counter() - started) * 1000.0

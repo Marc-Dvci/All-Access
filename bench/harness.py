@@ -144,7 +144,14 @@ class Measurement:
     detected_access_at_risk: list[str] = field(default_factory=list)
     expected_scenes: list[str] = field(default_factory=list)
     detected_scenes: list[str] = field(default_factory=list)
+    # The top band of the relevance ranking, scored separately so the recall of
+    # the traversal and the precision of what a screen leads with are both on
+    # the table rather than one standing in for the other.
+    primary_departments: list[str] = field(default_factory=list)
+    primary_access_at_risk: list[str] = field(default_factory=list)
+    primary_scenes: list[str] = field(default_factory=list)
     blast_nodes: int = 0
+    blast_primary: int = 0
     blast_depth: int = 0
 
     # -- planning quality (§16.3)
@@ -409,10 +416,16 @@ def _score_scope(measurement: Measurement, problem: Any, source: Any, outcome: A
     if blast is None:
         return
     measurement.blast_nodes = len(blast.nodes)
+    measurement.blast_primary = len(blast.primary)
     measurement.blast_depth = blast.max_depth
+    # `blast.departments` and friends are the full traversal; `primary_*` is
+    # the top band of the ranking. Both are scored against the same labels.
     measurement.detected_departments = _strip_prefix(blast.departments, "DEPT-")
     measurement.detected_scenes = sorted(blast.scenes)
     measurement.detected_access_at_risk = sorted(blast.access_requirements)
+    measurement.primary_departments = _strip_prefix(blast.primary_departments, "DEPT-")
+    measurement.primary_scenes = sorted(blast.primary_scenes)
+    measurement.primary_access_at_risk = sorted(blast.primary_access_requirements)
 
 
 def _score_planning(measurement: Measurement, problem: Any, outcome: Any,

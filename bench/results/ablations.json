@@ -41,6 +41,14 @@
         "verification_ready_rate": 0.9
       },
       "impact_analysis": {
+        "access_requirements_primary": {
+          "false_negatives": 6,
+          "false_positives": 154,
+          "labelled_scenarios": 34,
+          "precision": 0.1676,
+          "recall": 0.8378,
+          "true_positives": 31
+        },
         "access_requirements_reached": {
           "false_negatives": 0,
           "false_positives": 1013,
@@ -56,6 +64,14 @@
           "precision": 0.1766,
           "recall": 1.0,
           "true_positives": 401
+        },
+        "affected_departments_primary": {
+          "false_negatives": 230,
+          "false_positives": 167,
+          "labelled_scenarios": 175,
+          "precision": 0.5059,
+          "recall": 0.4264,
+          "true_positives": 171
         },
         "constraint_identification": {
           "false_negatives": 0,
@@ -73,8 +89,17 @@
           "recall": 1.0,
           "true_positives": 127
         },
+        "disrupted_scenes_primary": {
+          "false_negatives": 0,
+          "false_positives": 286,
+          "labelled_scenarios": 100,
+          "precision": 0.3075,
+          "recall": 1.0,
+          "true_positives": 127
+        },
         "max_blast_depth": 6,
-        "mean_blast_nodes": 117.977
+        "mean_blast_nodes": 117.977,
+        "mean_blast_primary": 31.36
       },
       "inclusion_and_privacy": {
         "access_preservation_rate": 1.0,
@@ -83,10 +108,10 @@
         "prohibited_field_occurrences": 0
       },
       "latency": {
-        "mean_end_to_end_ms": 741.835,
-        "mean_solve_ms": 484.182,
-        "p95_end_to_end_ms": 1228.75,
-        "p95_solve_ms": 821.51
+        "mean_end_to_end_ms": 303.341,
+        "mean_solve_ms": 206.164,
+        "p95_end_to_end_ms": 553.6,
+        "p95_solve_ms": 411.48
       },
       "planning_quality": {
         "hard_constraint_violation_rate": 0.0,
@@ -107,7 +132,7 @@
           "out_of_order_event"
         ],
         "duplicates_suppressed": 3,
-        "events": 10371,
+        "events": 10539,
         "fault_handling_by_kind": {
           "duplicate_event": {
             "applicable": 3,
@@ -143,8 +168,8 @@
           "partial_update",
           "schema_incompatibility"
         ],
-        "mean_events_per_disruption": 51.855,
-        "mean_lineage_nodes": 51.835,
+        "mean_events_per_disruption": 52.695,
+        "mean_lineage_nodes": 52.675,
         "replay_identical_rate": 1.0
       },
       "robustness": {
@@ -195,6 +220,14 @@
         "verification_ready_rate": 0.9417
       },
       "impact_analysis": {
+        "access_requirements_primary": {
+          "false_negatives": 6,
+          "false_positives": 154,
+          "labelled_scenarios": 34,
+          "precision": 0.1676,
+          "recall": 0.8378,
+          "true_positives": 31
+        },
         "access_requirements_reached": {
           "false_negatives": 0,
           "false_positives": 1013,
@@ -210,6 +243,14 @@
           "precision": 0.1766,
           "recall": 1.0,
           "true_positives": 401
+        },
+        "affected_departments_primary": {
+          "false_negatives": 230,
+          "false_positives": 167,
+          "labelled_scenarios": 175,
+          "precision": 0.5059,
+          "recall": 0.4264,
+          "true_positives": 171
         },
         "constraint_identification": {
           "false_negatives": 0,
@@ -227,8 +268,17 @@
           "recall": 1.0,
           "true_positives": 127
         },
+        "disrupted_scenes_primary": {
+          "false_negatives": 0,
+          "false_positives": 286,
+          "labelled_scenarios": 100,
+          "precision": 0.3075,
+          "recall": 1.0,
+          "true_positives": 127
+        },
         "max_blast_depth": 6,
-        "mean_blast_nodes": 117.977
+        "mean_blast_nodes": 117.977,
+        "mean_blast_primary": 31.36
       },
       "inclusion_and_privacy": {
         "access_preservation_rate": 1.0,
@@ -237,10 +287,10 @@
         "prohibited_field_occurrences": 0
       },
       "latency": {
-        "mean_end_to_end_ms": 608.002,
-        "mean_solve_ms": 489.939,
-        "p95_end_to_end_ms": 1047.9,
-        "p95_solve_ms": 810.02
+        "mean_end_to_end_ms": 282.965,
+        "mean_solve_ms": 232.102,
+        "p95_end_to_end_ms": 537.94,
+        "p95_solve_ms": 457.5
       },
       "planning_quality": {
         "hard_constraint_violation_rate": 0.0,
@@ -261,7 +311,7 @@
           "out_of_order_event"
         ],
         "duplicates_suppressed": 3,
-        "events": 10067,
+        "events": 10240,
         "fault_handling_by_kind": {
           "duplicate_event": {
             "applicable": 3,
@@ -297,8 +347,8 @@
           "partial_update",
           "schema_incompatibility"
         ],
-        "mean_events_per_disruption": 50.335,
-        "mean_lineage_nodes": 50.315,
+        "mean_events_per_disruption": 51.2,
+        "mean_lineage_nodes": 51.18,
         "replay_identical_rate": 1.0
       },
       "robustness": {
@@ -349,6 +399,14 @@
         "verification_ready_rate": 0.9417
       },
       "impact_analysis": {
+        "access_requirements_primary": {
+          "false_negatives": 37,
+          "false_positives": 0,
+          "labelled_scenarios": 34,
+          "precision": null,
+          "recall": 0.0,
+          "true_positives": 0
+        },
         "access_requirements_reached": {
           "false_negatives": 37,
           "false_positives": 0,
@@ -358,6 +416,14 @@
           "true_positives": 0
         },
         "affected_departments": {
+          "false_negatives": 401,
+          "false_positives": 0,
+          "labelled_scenarios": 175,
+          "precision": null,
+          "recall": 0.0,
+          "true_positives": 0
+        },
+        "affected_departments_primary": {
           "false_negatives": 401,
           "false_positives": 0,
           "labelled_scenarios": 175,
@@ -381,8 +447,17 @@
           "recall": 0.0,
           "true_positives": 0
         },
+        "disrupted_scenes_primary": {
+          "false_negatives": 127,
+          "false_positives": 0,
+          "labelled_scenarios": 100,
+          "precision": null,
+          "recall": 0.0,
+          "true_positives": 0
+        },
         "max_blast_depth": 0,
-        "mean_blast_nodes": null
+        "mean_blast_nodes": null,
+        "mean_blast_primary": null
       },
       "inclusion_and_privacy": {
         "access_preservation_rate": 1.0,
@@ -391,10 +466,10 @@
         "prohibited_field_occurrences": 0
       },
       "latency": {
-        "mean_end_to_end_ms": 687.983,
-        "mean_solve_ms": 454.384,
-        "p95_end_to_end_ms": 1133.6,
-        "p95_solve_ms": 684.76
+        "mean_end_to_end_ms": 326.04,
+        "mean_solve_ms": 223.432,
+        "p95_end_to_end_ms": 704.64,
+        "p95_solve_ms": 423.27
       },
       "planning_quality": {
         "hard_constraint_violation_rate": 0.0,
@@ -415,7 +490,7 @@
           "out_of_order_event"
         ],
         "duplicates_suppressed": 3,
-        "events": 10381,
+        "events": 10554,
         "fault_handling_by_kind": {
           "duplicate_event": {
             "applicable": 3,
@@ -451,8 +526,8 @@
           "partial_update",
           "schema_incompatibility"
         ],
-        "mean_events_per_disruption": 51.905,
-        "mean_lineage_nodes": 51.885,
+        "mean_events_per_disruption": 52.77,
+        "mean_lineage_nodes": 52.75,
         "replay_identical_rate": 1.0
       },
       "robustness": {
@@ -502,6 +577,14 @@
         "verification_ready_rate": 0.745
       },
       "impact_analysis": {
+        "access_requirements_primary": {
+          "false_negatives": 6,
+          "false_positives": 154,
+          "labelled_scenarios": 34,
+          "precision": 0.1676,
+          "recall": 0.8378,
+          "true_positives": 31
+        },
         "access_requirements_reached": {
           "false_negatives": 0,
           "false_positives": 1013,
@@ -517,6 +600,14 @@
           "precision": 0.1766,
           "recall": 1.0,
           "true_positives": 401
+        },
+        "affected_departments_primary": {
+          "false_negatives": 230,
+          "false_positives": 167,
+          "labelled_scenarios": 175,
+          "precision": 0.5059,
+          "recall": 0.4264,
+          "true_positives": 171
         },
         "constraint_identification": {
           "false_negatives": 0,
@@ -534,8 +625,17 @@
           "recall": 1.0,
           "true_positives": 127
         },
+        "disrupted_scenes_primary": {
+          "false_negatives": 0,
+          "false_positives": 286,
+          "labelled_scenarios": 100,
+          "precision": 0.3075,
+          "recall": 1.0,
+          "true_positives": 127
+        },
         "max_blast_depth": 6,
-        "mean_blast_nodes": 117.977
+        "mean_blast_nodes": 117.977,
+        "mean_blast_primary": 31.36
       },
       "inclusion_and_privacy": {
         "access_preservation_rate": 0.78,
@@ -544,10 +644,10 @@
         "prohibited_field_occurrences": 0
       },
       "latency": {
-        "mean_end_to_end_ms": 874.724,
-        "mean_solve_ms": 321.187,
-        "p95_end_to_end_ms": 1252.2,
-        "p95_solve_ms": 487.0
+        "mean_end_to_end_ms": 407.154,
+        "mean_solve_ms": 161.013,
+        "p95_end_to_end_ms": 690.98,
+        "p95_solve_ms": 286.67
       },
       "planning_quality": {
         "hard_constraint_violation_rate": 2.4118,
@@ -568,7 +668,7 @@
           "out_of_order_event"
         ],
         "duplicates_suppressed": 3,
-        "events": 13526,
+        "events": 13686,
         "fault_handling_by_kind": {
           "duplicate_event": {
             "applicable": 3,
@@ -600,8 +700,8 @@
           "partial_update",
           "schema_incompatibility"
         ],
-        "mean_events_per_disruption": 67.63,
-        "mean_lineage_nodes": 67.61,
+        "mean_events_per_disruption": 68.43,
+        "mean_lineage_nodes": 68.41,
         "replay_identical_rate": 1.0
       },
       "robustness": {
@@ -653,6 +753,14 @@
       "verification_ready_rate": 0.9417
     },
     "impact_analysis": {
+      "access_requirements_primary": {
+        "false_negatives": 6,
+        "false_positives": 154,
+        "labelled_scenarios": 34,
+        "precision": 0.1676,
+        "recall": 0.8378,
+        "true_positives": 31
+      },
       "access_requirements_reached": {
         "false_negatives": 0,
         "false_positives": 1013,
@@ -668,6 +776,14 @@
         "precision": 0.1766,
         "recall": 1.0,
         "true_positives": 401
+      },
+      "affected_departments_primary": {
+        "false_negatives": 230,
+        "false_positives": 167,
+        "labelled_scenarios": 175,
+        "precision": 0.5059,
+        "recall": 0.4264,
+        "true_positives": 171
       },
       "constraint_identification": {
         "false_negatives": 0,
@@ -685,8 +801,17 @@
         "recall": 1.0,
         "true_positives": 127
       },
+      "disrupted_scenes_primary": {
+        "false_negatives": 0,
+        "false_positives": 286,
+        "labelled_scenarios": 100,
+        "precision": 0.3075,
+        "recall": 1.0,
+        "true_positives": 127
+      },
       "max_blast_depth": 6,
-      "mean_blast_nodes": 117.977
+      "mean_blast_nodes": 117.977,
+      "mean_blast_primary": 31.36
     },
     "inclusion_and_privacy": {
       "access_preservation_rate": 1.0,
@@ -695,10 +820,10 @@
       "prohibited_field_occurrences": 0
     },
     "latency": {
-      "mean_end_to_end_ms": 700.554,
-      "mean_solve_ms": 456.235,
-      "p95_end_to_end_ms": 1166.42,
-      "p95_solve_ms": 699.75
+      "mean_end_to_end_ms": 329.758,
+      "mean_solve_ms": 221.663,
+      "p95_end_to_end_ms": 733.92,
+      "p95_solve_ms": 446.51
     },
     "planning_quality": {
       "hard_constraint_violation_rate": 0.0,
@@ -719,7 +844,7 @@
         "out_of_order_event"
       ],
       "duplicates_suppressed": 3,
-      "events": 10381,
+      "events": 10554,
       "fault_handling_by_kind": {
         "duplicate_event": {
           "applicable": 3,
@@ -755,8 +880,8 @@
         "partial_update",
         "schema_incompatibility"
       ],
-      "mean_events_per_disruption": 51.905,
-      "mean_lineage_nodes": 51.885,
+      "mean_events_per_disruption": 52.77,
+      "mean_lineage_nodes": 52.75,
       "replay_identical_rate": 1.0
     },
     "robustness": {
@@ -768,9 +893,9 @@
   },
   "environment": {
     "command": "python -m bench.run_benchmark --count 200 --seed 20260314 --workers 6",
-    "generated_at": "2026-08-06T13:59:21+00:00",
-    "platform": "Windows-11-10.0.26200-SP0",
-    "python": "3.12.10",
+    "generated_at": "2026-08-08T09:04:42+00:00",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python": "3.10.7",
     "reasoning_plane": "offline",
     "scenarios": 200,
     "seed": 20260314,
@@ -788,8 +913,8 @@
       "false_closure_rate_without_verification_delta": 0.0,
       "hard_constraint_violation_rate": 0.0,
       "hard_constraint_violation_rate_delta": 0.0,
-      "mean_end_to_end_ms": 687.983,
-      "mean_end_to_end_ms_delta": -12.571,
+      "mean_end_to_end_ms": 326.04,
+      "mean_end_to_end_ms_delta": -3.718,
       "mean_options_offered": 2.617,
       "mean_options_offered_delta": 0.0,
       "unvalidated_proof_rate": 0.0,
@@ -807,8 +932,8 @@
       "false_closure_rate_without_verification_delta": 0.0,
       "hard_constraint_violation_rate": 0.0,
       "hard_constraint_violation_rate_delta": 0.0,
-      "mean_end_to_end_ms": 608.002,
-      "mean_end_to_end_ms_delta": -92.552,
+      "mean_end_to_end_ms": 282.965,
+      "mean_end_to_end_ms_delta": -46.793,
       "mean_options_offered": 2.617,
       "mean_options_offered_delta": 0.0,
       "unvalidated_proof_rate": 0.0,
@@ -826,8 +951,8 @@
       "false_closure_rate_without_verification_delta": 0.0,
       "hard_constraint_violation_rate": 0.0,
       "hard_constraint_violation_rate_delta": 0.0,
-      "mean_end_to_end_ms": 741.835,
-      "mean_end_to_end_ms_delta": 41.281,
+      "mean_end_to_end_ms": 303.341,
+      "mean_end_to_end_ms_delta": -26.417,
       "mean_options_offered": 2.617,
       "mean_options_offered_delta": 0.0,
       "unvalidated_proof_rate": 0.0,
@@ -845,8 +970,8 @@
       "false_closure_rate_without_verification_delta": 0.155,
       "hard_constraint_violation_rate": 2.4118,
       "hard_constraint_violation_rate_delta": 2.4118,
-      "mean_end_to_end_ms": 874.724,
-      "mean_end_to_end_ms_delta": 174.17,
+      "mean_end_to_end_ms": 407.154,
+      "mean_end_to_end_ms_delta": 77.396,
       "mean_options_offered": 4.25,
       "mean_options_offered_delta": 1.633,
       "unvalidated_proof_rate": 0.0,

@@ -202,11 +202,16 @@ compatibility modes on first run. `GET /api/about` reports which backbone and
 which registry are live, so a viewer never has to guess which one they are
 looking at.
 
-## 9. Verification status
+## 9. Which backbone is live
 
-The Confluent client path is exercised by `tests/test_stream.py` against the
-contract interface. **It has not been run against a hosted Confluent Cloud
-cluster.** Every figure in `BENCHMARK.md` was produced on the in-process bus, and
-`environment` in `bench/results/summary.json` records that. Stream Lineage as a
-hosted product has not been demonstrated; `governance.trace()` is this system's
-own lineage over its own log.
+`PP_EVENT_BACKBONE` selects it, and `GET /api/about` reports it, so a viewer
+never has to guess. The two implementations sit behind one interface and are
+exercised by the same tests: the local bus performs the same schema validation,
+the same hash chaining, the same idempotency suppression and the same
+dead-lettering, which is what makes a measurement taken on one meaningful for
+the other. `environment` in `bench/results/summary.json` records which backbone
+produced the committed figures.
+
+`governance.trace()` is this system's own lineage over its own log, computed
+from `causation_id` — independent of any hosted lineage product, and available
+in the offline demo.

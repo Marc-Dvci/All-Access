@@ -497,3 +497,59 @@ def test_department_readiness_survives_replay(hero_run) -> None:
             for n, r in rebuilt.departments.items()} == \
            {n: (r.tasks_issued, r.tasks_accepted, r.ready)
             for n, r in coordinator.views.departments.items()}
+
+
+def test_readiness_is_published_only_when_it_changes(hero_run) -> None:
+    """`READINESS_CHANGED` means changed.
+
+    Readiness is published twice per disruption — once before verification and
+    once after a held department accepts. Emitting every department both times
+    produces a byte-identical payload for the ones that did not move, which the
+    bus suppresses as a duplicate and dead-letters. The guard works; the traffic
+    should not exist. Seven spurious entries per disruption in a dead-letter
+    queue is how a queue stops being read.
+    """
+    from productionpulse.contracts import EventType
+
+    bus, _systems, coordinator, _outcome, _source = hero_run
+    readiness = [
+        e for e in bus.all_events()
+        if e.envelope.event_type is EventType.READINESS_CHANGED
+    ]
+    departments = set(coordinator.views.departments)
+
+    # One per department, plus one for the department that actually changed.
+    assert len(readiness) == len(departments) + 1
+    assert not any(
+        d.topic == EventType.READINESS_CHANGED.value for d in bus.dead_letters
+    )
+
+    changed = [e for e in readiness if e.payload["state"] == "awaiting_acceptance"]
+    assert len(changed) == 1 and changed[0].payload["department"] == "props"
+
+
+def test_a_clean_run_dead_letters_nothing() -> None:
+    """The dead-letter queue is only worth reading if everything in it is real.
+
+    Its own run rather than the module fixture: `hero_run` is module-scoped and
+    a later test deliberately replays a command set to exercise idempotency,
+    which legitimately puts duplicates on that bus. Asserting an empty queue
+    against shared state would pass or fail on test ordering.
+    """
+    from productionpulse.stream.bus import LocalEventBus
+    from productionpulse.stream.registry import LocalSchemaRegistry
+
+    bus = LocalEventBus(LocalSchemaRegistry(), w.PRODUCTION_ID)
+    coordinator = ProductionCoordinator(
+        bus, build_systems(w.PRODUCTION_ID, hold_department="props"),
+        reasoner=OfflineReasoner(),
+    )
+    coordinator.handle(
+        scenario_problem(STORM_SCENARIO, twin=build_twin()),
+        build_source_event(bus, STORM_SCENARIO),
+        title=STORM_SCENARIO.title, scenario_id=STORM_SCENARIO.scenario_id,
+        scenarios=40,
+    )
+    assert bus.dead_letters == [], [
+        (d.topic, d.category, d.reason) for d in bus.dead_letters
+    ]

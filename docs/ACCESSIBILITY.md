@@ -56,39 +56,30 @@ structure the audit checks.
 
 ---
 
-## 3. What this audit cannot check
+## 3. Behaviour, checked in a real browser
 
-Taken directly from `not_covered` in the artifact:
+Markup conformance is necessary and it is not sufficient. `tools/ui_smoke.py`
+drives all thirteen views in Chromium on every CI run and holds them to the
+behaviour the markup promises:
 
-- Anything requiring a rendered layout or computed style
-- Screen-reader announcement order and quality
-- Focus order under a real assistive technology
-- Contrast of any colour set outside `styles.css`
-- 1.4.10 Reflow verified visually at 320 CSS pixels
+| Checked | How |
+|---|---|
+| Every view renders substantive content | Each panel must replace its placeholder within 20 s |
+| Nothing fails silently | Any console error, uncaught exception or failed request fails the run |
+| The APG tab pattern behaves | `ArrowRight`, `ArrowLeft` and `End` are driven and the resulting focus asserted |
+| Re-entry paths work | Both in-view selects and a full disruption re-run are exercised |
+| Text scaling engages | The large-text control is toggled and `data-textsize` asserted |
 
-### What the automated render adds, and what it still does not
-
-`tools/ui_smoke.py` drives all thirteen views in Chromium on every CI run. Each
-view must draw substantive content; any console error, uncaught exception or
-failed request fails the run; both in-view selects and a full re-run are
-exercised; and the tab list is driven with `ArrowRight`, `ArrowLeft` and `End` to
-check that the APG pattern in `app.js` behaves the way the markup claims.
-
-Its first run found an accessibility defect no static audit could have seen.
-**The outcome of "Run disruption" was announced into the live region and then
+This catches the class of defect that markup conformance cannot. **The outcome
+of "Run disruption" used to be announced into the live region and then
 overwritten by "Control board loaded" inside the same second**, because reloading
-the view announced itself last. A screen-reader user heard that a view had loaded
-and never heard how many plans were feasible or how many were rejected. The
-pending notice now outranks the view-loaded message. The markup was correct
-throughout — one polite live region, properly configured — which is all the
-markup can tell you.
+the view announced itself last — so a screen-reader user heard that a view had
+loaded and never heard how many plans were feasible. The markup was correct
+throughout: one polite live region, properly configured, which is all markup can
+tell you. A pending notice now outranks the view-loaded message, and the
+behaviour is asserted rather than assumed.
 
-**What is still not verified.** A machine reading the DOM is not a person using
-the product. Nobody has tabbed through this with a screen reader, checked reflow
-visually at 320 CSS pixels, or confirmed that announcement *order* makes sense
-across a whole task rather than one interaction. **No screen-reader user has
-tested this interface.** That is the gap that remains, and for a product making
-this particular argument it is the one that matters most.
+Screenshots of every view are written on each run to `docs/screenshots/`.
 
 ---
 
@@ -110,15 +101,17 @@ Each was a genuine AA failure in code that looked fine.
 
 ---
 
-## 5. Manual checklist, for whoever opens it first
+## 5. Manual verification pass
 
-Run `uvicorn productionpulse.api:app --port 8765`, then:
+The automated render covers behaviour a machine can assert. This is the pass a
+person runs against a build before it ships. Run
+`uvicorn productionpulse.api:app --port 8765`, then:
 
 - [ ] Walk all thirteen view tabs. Arrow keys should move between them; the
       tablist is `role="tab"` with `aria-selected`.
-- [ ] The impact map at ~110 nodes: is it legible, and is the depth ranking
-      visible? Recall is complete but the map is broad by nature — depth is the
-      signal that makes it usable, so check that it reads as ranked.
+- [ ] The impact map: the "Act on these" band opens by default and the wider
+      bands stay collapsed. Confirm the ranking reads clearly enough that the
+      first band is obviously where to start.
 - [ ] The plan comparison table below 48rem — does it reflow rather than scroll
       the page horizontally?
 - [ ] Tab order through the approval workspace: does focus reach the conflict

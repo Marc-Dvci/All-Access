@@ -254,39 +254,66 @@
     });
   };
 
+  var BANDS = [
+    ["primary", "Act on these",
+     "Reached directly, without passing through a call sheet or a department " +
+     "roster on the way. These are the consequences to work first."],
+    ["secondary", "Check these",
+     "One intermediary further out, or reached through a single shared record. " +
+     "Real dependencies that usually need confirming rather than acting on."],
+    ["contextual", "Context",
+     "Everything else the change can reach. Kept because the list is complete " +
+     "by design — a department missed here is a scene nobody re-dressed."]
+  ];
+
   renderers.impact = function (root) {
     return get("/api/impact").then(function (d) {
       clear(root);
+      var counts = d.counts_by_relevance || {};
+      var primary = d.primary || {};
       root.appendChild(el("div", { class: "cards" }, [
-        card("Entities reached", num(d.nodes.length), "across " + d.max_depth + " levels"),
-        card("Departments", String(d.departments.length), d.departments.join(", ") || "none"),
-        card("Access arrangements", String(d.access_requirements.length),
-             d.access_requirements.join(", ") || "none reached"),
-        card("Scenes", String(d.scenes.length), "on the shooting day")
+        card("Act on these", num(counts.primary || 0),
+             "of " + num(d.nodes.length) + " reached, across " + d.max_depth + " levels"),
+        card("Departments", String((primary.departments || []).length),
+             (primary.departments || []).join(", ") || "none directly affected"),
+        card("Access arrangements",
+             String((primary.access_requirements || []).length),
+             (primary.access_requirements || []).join(", ") || "none reached directly"),
+        card("Scenes", String((primary.scenes || []).length), "on the shooting day")
       ]));
 
       root.appendChild(el("div", { class: "note-block" }, [
-        "The traversal is deliberately wide — it is a recall instrument, not a " +
-        "shortlist. Consequences are ranked by depth, and the benchmark reports " +
-        "both its recall and its breadth (docs/BENCHMARK.md §3.2)."
+        "A shooting day is a dense graph: five scenes, three locations, two units " +
+        "and one call sheet put almost everything within a few hops of everything " +
+        "else. The traversal reports all of it — every labelled consequence in the " +
+        "corpus is found — and ranks it, so the screen leads with what to act on " +
+        "and keeps the rest one click away."
       ]));
 
-      var byDepth = {};
+      var byBand = { primary: [], secondary: [], contextual: [] };
       d.nodes.forEach(function (n) {
-        (byDepth[n.depth] = byDepth[n.depth] || []).push(n);
+        (byBand[n.relevance] || byBand.contextual).push(n);
       });
-      Object.keys(byDepth).sort(function (a, b) { return a - b; }).forEach(function (depth) {
-        var nodes = byDepth[depth];
-        var details = el("details", depth === "1" ? { open: true } : null, [
-          el("summary", { text: "Depth " + depth + " — " + nodes.length + " consequence(s)" })
+
+      BANDS.forEach(function (band) {
+        var key = band[0], title = band[1], blurb = band[2];
+        var nodes = byBand[key];
+        if (!nodes.length) return;
+        var details = el("details", key === "primary" ? { open: true } : null, [
+          el("summary", null, [
+            title + " — " + nodes.length + " consequence(s) ",
+            chip(key, key === "primary" ? "ok" : (key === "secondary" ? "warn" : "quiet"))
+          ])
         ]);
+        details.appendChild(el("p", { class: "evidence", text: blurb }));
         details.appendChild(table(
-          "Consequences at depth " + depth,
-          ["Entity", "Type", "Label", "Reached via"],
+          title,
+          ["Entity", "Type", "Label", "Depth", "Reached via"],
           nodes.slice(0, 60).map(function (n) {
             return [n.entity_id, n.entity_type.replace(/_/g, " "), n.label,
-                    n.path.join(" → ")];
-          })
+                    n.depth, n.path.join(" → ")];
+          }),
+          [null, null, null, "num", null]
         ));
         if (nodes.length > 60) {
           details.appendChild(el("p", { class: "evidence",
@@ -585,9 +612,29 @@
                   x.applicable_constraints.join(", ") || "—"];
         })
       ));
-      root.appendChild(el("p", { class: "evidence",
-        text: "Reasoning plane: " + f.reasoning_plane + ". An abstention is recorded as " +
-              "an abstention — an agent with nothing to say does not manufacture a finding." }));
+      var r = f.reasoning || {};
+      root.appendChild(el("h2", { text: "Reasoning plane" }));
+      root.appendChild(el("div", { class: "panel" }, [
+        pairs([
+          ["Plane", r.plane || f.reasoning_plane],
+          ["Model", r.model || "deterministic templates"],
+          ["Calls", num(r.calls || 0)],
+          ["Responses rejected as ungrounded",
+           String(r.responses_rejected_as_ungrounded || 0)],
+          ["Claims rejected",
+           (r.rejected_claims && r.rejected_claims.length)
+             ? r.rejected_claims.join(", ") : "none"],
+          ["Tokens", r.tokens_in ? num(r.tokens_in) + " in / " + num(r.tokens_out) + " out"
+                                 : "—"]
+        ]),
+        el("p", { class: "evidence",
+          text: "Every response from the model plane is read for identifiers and " +
+                "measurements that do not appear in the facts it was given. One " +
+                "that carries an invented constraint id or an invented threshold " +
+                "is discarded and the deterministic text is used instead. An " +
+                "abstention is recorded as an abstention — an agent with nothing " +
+                "to say does not manufacture a finding." })
+      ]));
     });
   };
 
@@ -684,24 +731,83 @@
   renderers.executive = function (root) {
     return get("/api/executive").then(function (d) {
       clear(root);
+      var p = d.portfolio;
+
+      root.appendChild(el("h2", { text: "The shift so far" }));
+      root.appendChild(el("div", { class: "cards" }, [
+        card("Disruptions handled", num(p.disruptions_handled),
+             p.closed + " closed, " + p.held_for_a_reason + " held for a stated reason"),
+        card("Schedule impact", num(p.total_delay_minutes) + " min",
+             num(p.total_overtime_minutes) + " min overtime across the shift"),
+        card("Cost impact", num(p.total_cost_delta),
+             "cumulative, against the baseline day"),
+        card("Options refused", num(p.options_refused),
+             "plans that broke a hard rule and were never offered"),
+        card("Access preserved",
+             p.access_arrangements_preserved + " of " + p.access_arrangements_checked,
+             pct(p.access_preservation_rate) + " across every disruption"),
+        card("Decision time", num(p.median_decision_ms) + " ms",
+             "median; slowest " + num(p.slowest_decision_ms) + " ms")
+      ]));
+
+      if (d.constraint_pressure && d.constraint_pressure.length) {
+        root.appendChild(el("h2", { text: "What is removing your options" }));
+        root.appendChild(el("div", { class: "note-block" }, [
+          "Ranked by how often each rule was the reason an option could not be " +
+          "used. This is the list to spend money against: a second interpreter, " +
+          "a ramp, a later curfew. Each row names the person who owns the rule " +
+          "and the document it comes from, so the next conversation has somewhere " +
+          "to start."
+        ]));
+        root.appendChild(table(
+          "Constraints ranked by how often they were binding",
+          ["Constraint", "Times binding", "Rule", "Owner", "Source", "Waivable"],
+          d.constraint_pressure.map(function (c) {
+            return [
+              el("code", { text: c.constraint_id }),
+              c.times_binding,
+              c.title,
+              (c.owner || "—").replace(/_/g, " "),
+              c.source || "—",
+              c.waivable === null ? "—"
+                : (c.waivable ? chip("with authority", "warn")
+                              : chip("no", "bad"))
+            ];
+          }),
+          [null, "num", null, null, null, null]
+        ));
+      }
+
+      root.appendChild(el("h2", { text: "Every disruption this shift" }));
+      root.appendChild(table(
+        "Disruptions handled, most recent first",
+        ["When", "Disruption", "Family", "Severity", "Plans", "Refused",
+         "Delay", "Cost", "Access", "State"],
+        (d.timeline || []).map(function (t) {
+          return [
+            clock(t.at), t.title, t.family.replace(/_/g, " "), t.severity,
+            t.feasible_plans, t.rejected_plans,
+            num(t.delay_minutes), num(t.cost_delta), t.access,
+            chip(t.state.replace(/_/g, " "), t.ready ? "ok" : "warn")
+          ];
+        }),
+        [null, null, null, null, "num", "num", "num", "num", null, null]
+      ));
+
+      root.appendChild(el("h2", { text: "This disruption" }));
       var m = d.metrics;
       root.appendChild(el("div", { class: "cards" }, [
         card("Decision latency", num(m.decision_latency_ms) + " ms",
              "source event to verified readiness"),
         card("Solver latency", num(m.solver_latency_ms) + " ms", "plan generation only"),
-        card("Delay", num(m.delay_minutes) + " min", "under the approved plan"),
-        card("Incremental cost", num(m.cost_delta), "against the baseline day"),
-        card("Prevented violations", num(m.prevented_hard_constraint_violations),
-             "plans refused on hard constraints"),
-        card("Access preserved",
-             m.access_arrangements_preserved + " of " + m.access_arrangements_total,
-             "approved arrangements"),
         card("Acknowledgment", pct(m.acknowledgment_completion), "of required responses"),
         card("Assertions", m.assertions_passed + " of " + m.assertions_total,
              "verification checks passing")
       ]));
+
       root.appendChild(el("div", { class: "note-block" }, [
-        "Prohibited personal fields found in this payload: " +
+        "Everything on this screen is aggregate. Prohibited personal fields found " +
+        "in this payload: " +
         (d.prohibited_fields_found.length ? d.prohibited_fields_found.join(", ") : "none") +
         ". The check runs on every request rather than being asserted once."
       ]));

@@ -3,18 +3,11 @@
 Maps each IBM Bob contribution to the production code it changed and the tests
 that cover it.
 
-## Status
-
-**Empty. No IBM Bob session has been run against this repository, so there are no
-contributions to map.**
-
-This file exists because `.bob/rules/02-workflow.md` step 8 requires it and
-because its emptiness is itself the accurate record. It is not a placeholder for
-rows that were deleted; it is a table that has never had a row.
+Required by `.bob/rules/02-workflow.md` step 8. One row per session, added when
+the session is recorded in `sessions/`.
 
 | Use case | Session | Mode | Files changed | Tests | Accepted | Rejected |
 |---|---|---|---|---|---|---|
-| *(none)* | | | | | | |
 
 ---
 

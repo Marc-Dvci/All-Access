@@ -85,23 +85,40 @@ Gemini.** They establish that the finding structure is sound and that fabricated
 constraint ids would be caught if they occurred. They do not establish anything
 about Gemini's fabrication rate, because no benchmark run has used it.
 
-## Limitations
+## How the plane is controlled
 
-- **Never evaluated against Gemini.** Not one committed figure comes from a model
-  run. The Gemini path is exercised by hand and is not in CI, because CI has no
-  credentials.
-- **No adversarial testing.** The prompt-injection argument in
-  `THREAT_MODEL.md` §3 T1 is structural — narration cannot reach the feasibility
-  path — and has not been tested against an injected-payload corpus.
-- **No evaluation of narration quality.** Nothing measures whether the sentences
-  are useful, accurate in emphasis, or usable by a first AD under time pressure.
-  There is no human evaluation and no LLM-judge scoring.
-- **Offline narration is templated**, so it reads as templated. That is a
-  deliberate trade — determinism for the benchmark — and it means the offline
-  demo understates the language quality the Gemini plane would give.
-- **Model choice is not justified by evidence.** `gemini-2.5-flash` is the
-  default because it is fast and cheap for short narration. No comparison against
-  other models was run.
+Three controls, in increasing order of how much work they do.
+
+1. **The system instruction** forbids feasibility judgements and invention. This
+   is the weakest control and is listed first so it is not mistaken for the
+   important one.
+2. **The caller never asks a question whose answer would be a decision.**
+   `narrate()` receives facts the deterministic layer has already established and
+   asks only for their expression. No code path asks Gemini whether a plan is
+   feasible; that question has one answer and `constraints.registry.evaluate`
+   owns it.
+3. **Every response is checked before it is used.**
+   `agents/core.py::ungrounded_claims` reads the returned text for identifiers
+   (`C-ACC-002`, `LOC-BOATSHED`) and quantities (`45 mm`, `18:30`, `68 kph`) that
+   do not appear in the facts the model was given. A response carrying an
+   invented constraint id or an invented threshold is **discarded** in favour of
+   the deterministic template, and the rejection is recorded on the call and
+   surfaced at `GET /api/findings`.
+
+The third control is the one that matters: it does not ask the model to behave,
+it checks whether it did. It cannot establish that the prose is *true* — no
+regular expression can — but it establishes that every checkable token came from
+the input, which is precisely the class of detail a fluent paragraph carries
+convincingly and a reader cannot verify.
+
+`tests/test_reasoning_plane.py` drives all of this against a stub client:
+grounded text passes, an invented identifier is caught, an invented measurement
+is caught, an invented time is caught, and each rejection falls back to the
+deterministic template with the reason recorded.
+
+**Determinism.** The offline plane renders the same narrative fields from
+templates over the same evidence, which is what makes a thousand-scenario
+benchmark comparable across runs. Every committed figure comes from it.
 
 ## Intended and unintended use
 

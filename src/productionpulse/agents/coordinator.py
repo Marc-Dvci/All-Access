@@ -118,6 +118,9 @@ class ProductionCoordinator:
         self.saga = SagaCoordinator(bus, systems)
         self._root_event_id: str | None = None
         self._applied_events: set[str] = set()
+        #: Last published readiness per department, so `READINESS_CHANGED` is
+        #: emitted only when it changed. See `_emit_department_readiness`.
+        self._department_readiness: dict[str, tuple[str, int, int]] = {}
         bus.subscribe("*", self._on_event)
 
     def _on_event(self, event: Event) -> None:
@@ -662,12 +665,25 @@ class ProductionCoordinator:
                 accepted[task.department] = accepted.get(task.department, 0) + 1
         for department in sorted(issued):
             done = accepted.get(department, 0)
+            state = ("accepted" if done >= issued[department]
+                     else "awaiting_acceptance")
+            observed = (state, issued[department], done)
+            # Only publish an actual change. This method is called twice — once
+            # before verification and once after a blocked department accepts —
+            # and re-emitting an unchanged department produces a byte-identical
+            # payload, which the bus correctly suppresses as a duplicate and
+            # dead-letters. That is the idempotency guard doing its job on
+            # traffic that should never have been generated: it put seven
+            # spurious entries per disruption into a queue whose whole value is
+            # that everything in it is worth looking at.
+            if self._department_readiness.get(department) == observed:
+                continue
+            self._department_readiness[department] = observed
             self._emit(
                 EventType.READINESS_CHANGED,
                 {
                     "department": department,
-                    "state": "accepted" if done >= issued[department]
-                             else "awaiting_acceptance",
+                    "state": state,
                     "plan_id": plan_id,
                     "attributes": {
                         "tasks_issued": issued[department],

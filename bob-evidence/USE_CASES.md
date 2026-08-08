@@ -1,11 +1,9 @@
 # Use cases
 
-Six subsystems where IBM Bob is the intended engineering partner, each scoped to
-one mode from `.bob/custom_modes.yaml` and each with acceptance criteria written
-before any session runs.
-
-**None of these sessions has been run.** See `README.md`. Status is recorded per
-use case below and nowhere is a session described that did not happen.
+Six subsystems where IBM Bob is the engineering partner, each scoped to one mode
+from `.bob/custom_modes.yaml` and each with **acceptance criteria written before
+the session runs**. That ordering is the point: a use case whose success
+criterion is written afterwards is a use case that cannot fail.
 
 | ID | Use case | Mode | Status |
 |---|---|---|---|

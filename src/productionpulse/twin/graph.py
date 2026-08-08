@@ -514,6 +514,64 @@ class TwinSnapshot:
         return self._twin.entities
 
 
+#: Relationships that fan out across the whole production rather than carrying
+#: an operational consequence to one place.
+#:
+#: A call sheet documents every scene on the day, and a department owns every
+#: resource it is responsible for. Both are true and both are useful — the call
+#: sheet does have to be reissued — but a path that reaches wardrobe *through*
+#: the call sheet has not shown that wardrobe has anything to do. Traversing
+#: them is right; presenting what lies beyond them as a direct consequence is
+#: not.
+HUB_KINDS: frozenset[str] = frozenset({
+    "documented_in",
+    "owned_by_department",
+    "communicates_to",
+    "belongs_to_production",
+})
+
+#: A consequence stops being actionable somewhere. Past this depth a node is
+#: context for whoever wants it, not a line on a first AD's screen.
+PRIMARY_MAX_DEPTH = 2
+SECONDARY_MAX_DEPTH = 4
+
+
+def _relevance_of(depth: int, via: tuple[str, ...]) -> str:
+    """Rank one consequence by how directly the disruption reaches it.
+
+    Two signals, both structural:
+
+    * **depth** — how many intermediaries the consequence sits behind.
+    * **hub edges traversed *through*** — whether the path continued onward
+      after passing a relationship that connects everything to everything.
+
+    Only `via[:-1]` is examined, and the distinction is the whole point.
+    *Arriving* at a department along `owned_by_department` is exact: a resource
+    has one owning department, and that department is precisely who needs
+    telling. *Continuing* from that department to everything else it owns is the
+    fan-out. The same holds for a call sheet: the scene that moved does
+    invalidate it, and the other thirty-one scenes it documents are not
+    consequences of the move. Penalising arrival rather than transit deletes
+    every department from the result, which is what the first version of this
+    function did.
+
+    A shooting day is genuinely a dense graph: five scenes, three locations, two
+    units, one call sheet and eleven permits mean almost everything is within
+    three or four hops of almost everything else. Reporting that honestly gives
+    perfect recall and an unusable screen. Ranking it says which of the hundred
+    or so reachable entities a person should look at first, without throwing any
+    of them away — `nodes` still carries all of them, and `docs/BENCHMARK.md`
+    reports the recall of the full set and the precision of the primary cut
+    side by side.
+    """
+    through_hubs = sum(1 for kind in via[:-1] if kind in HUB_KINDS)
+    if depth <= PRIMARY_MAX_DEPTH and through_hubs == 0:
+        return "primary"
+    if depth <= SECONDARY_MAX_DEPTH and through_hubs <= 1:
+        return "secondary"
+    return "contextual"
+
+
 @dataclass(frozen=True)
 class ImpactNode:
     entity_id: str
@@ -523,15 +581,32 @@ class ImpactNode:
     path: tuple[str, ...]
     via: tuple[str, ...]
     critical: bool = False
+    #: `primary`, `secondary` or `contextual`. See `_relevance_of`.
+    relevance: str = "primary"
+
+    @property
+    def is_primary(self) -> bool:
+        return self.relevance == "primary"
 
 
 @dataclass(frozen=True)
 class BlastRadius:
-    """Everything a disruption reaches, and how it reached it.
+    """Everything a disruption reaches, how it reached it, and how directly.
 
     `path` on each node is the chain of entities traversed, which is what the
     impact map draws and what lets a user expand a consequence and see its
     source. An impact analysis you cannot interrogate is an assertion.
+
+    The typed accessors — `departments`, `scenes`, `access_requirements` and so
+    on — return **everything reached**, and every one of them holds full recall
+    against the corpus labels. The `primary_*` accessors return the top band of
+    the ranking, which is what a screen expands by default and what a summary
+    leads with.
+
+    Both exist because the asymmetry is real and it runs the other way from the
+    usual one: a department missed off the list is a scene nobody re-dressed,
+    and a department listed unnecessarily is one wasted phone call. So the
+    system never narrows what it *knows*; it only decides what to show first.
     """
 
     origin_ids: tuple[str, ...]
@@ -543,6 +618,11 @@ class BlastRadius:
     access_requirements: tuple[str, ...]
     scenes: tuple[str, ...]
     max_depth: int
+    primary_departments: tuple[str, ...] = ()
+    primary_people: tuple[str, ...] = ()
+    primary_documents: tuple[str, ...] = ()
+    primary_access_requirements: tuple[str, ...] = ()
+    primary_scenes: tuple[str, ...] = ()
 
     @property
     def direct(self) -> tuple[str, ...]:
@@ -551,6 +631,24 @@ class BlastRadius:
     @property
     def transitive(self) -> tuple[str, ...]:
         return tuple(n.entity_id for n in self.nodes if n.depth > 1)
+
+    @property
+    def primary(self) -> tuple[ImpactNode, ...]:
+        return tuple(n for n in self.nodes if n.relevance == "primary")
+
+    @property
+    def secondary(self) -> tuple[ImpactNode, ...]:
+        return tuple(n for n in self.nodes if n.relevance == "secondary")
+
+    @property
+    def contextual(self) -> tuple[ImpactNode, ...]:
+        return tuple(n for n in self.nodes if n.relevance == "contextual")
+
+    def counts_by_relevance(self) -> dict[str, int]:
+        return {
+            band: sum(1 for n in self.nodes if n.relevance == band)
+            for band in ("primary", "secondary", "contextual")
+        }
 
     def reached(self, entity_id: str) -> ImpactNode | None:
         for n in self.nodes:
@@ -622,6 +720,7 @@ def blast_radius(
                 depth=depth,
                 path=path,
                 via=via,
+                relevance=_relevance_of(depth, via),
             )
         if depth >= max_depth:
             continue
@@ -639,19 +738,33 @@ def blast_radius(
     for n in nodes:
         by_depth[n.depth] = by_depth[n.depth] + (n.entity_id,)
 
-    def of(*types: str) -> tuple[str, ...]:
-        return tuple(n.entity_id for n in nodes if n.entity_type in types)
+    def of(*types: str, primary_only: bool = False) -> tuple[str, ...]:
+        return tuple(
+            n.entity_id for n in nodes
+            if n.entity_type in types and (n.is_primary or not primary_only)
+        )
+
+    people_types = ("crew_member", "performer")
+    document_types = ("call_sheet", "briefing", "revision", "permit")
+    access_types = ("access_requirement", "caregiving_requirement")
 
     return BlastRadius(
         origin_ids=origins,
         nodes=nodes,
         by_depth=dict(by_depth),
+        # Everything reached. Full recall is the property worth keeping here.
         departments=of("department"),
-        people=of("crew_member", "performer"),
-        documents=of("call_sheet", "briefing", "revision", "permit"),
-        access_requirements=of("access_requirement", "caregiving_requirement"),
+        people=of(*people_types),
+        documents=of(*document_types),
+        access_requirements=of(*access_types),
         scenes=of("scene"),
         max_depth=max((n.depth for n in nodes), default=0),
+        # The top band of the ranking: what a screen expands first.
+        primary_departments=of("department", primary_only=True),
+        primary_people=of(*people_types, primary_only=True),
+        primary_documents=of(*document_types, primary_only=True),
+        primary_access_requirements=of(*access_types, primary_only=True),
+        primary_scenes=of("scene", primary_only=True),
     )
 
 

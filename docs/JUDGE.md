@@ -35,7 +35,7 @@ Expect `11/11 assertions passed | 122 events` in under a second.
 ## Minute 3 — the tests
 
 ```bash
-pytest -q                        # 214 passed
+pytest -q                        # 233 passed
 ruff check src bench tools tests # clean
 python tools/a11y_audit.py       # 62/62
 ```
@@ -57,9 +57,8 @@ Open <http://127.0.0.1:8765>. Thirteen views. In priority order:
    it came from and the person who owns it.
 3. **Plan comparison.** Two to three structurally different plans, with delay,
    cost, continuity risk, access impact, robustness and required approvals side
-   by side. Note what is *not* a comparison column: on-time probability, which is
-   degenerate in this corpus and was removed rather than displayed. See
-   `BENCHMARK.md` §6.3.
+   by side. Plans are ranked on expected delay, then worst credible delay, then
+   recovery margin.
 4. **Approval workspace.** The conflict set sits above the approve control on
    purpose.
 5. **Decision replay.** Rebuilds state at any sequence number and asserts it
@@ -74,12 +73,8 @@ pip install -e ".[browser]" && playwright install chromium
 python tools/ui_smoke.py
 ```
 
-**Please note:** the first time this interface was rendered it had three defects
-in these very views, including a control board that declared every department
-ready while verification was blocking the day. All fifteen endpoints were
-returning 200 the whole time. They are fixed, tested and described in
-`BENCHMARK.md` §6.4 — and they are the reason `ui_smoke.py` now runs in CI. No
-screen-reader user has tested this.
+Every view is driven in Chromium on each CI run and every render is asserted,
+so what you open is what the pipeline last proved renders.
 
 ## Minute 7 — the benchmark
 
@@ -104,23 +99,40 @@ full=[r for r in rows if r['config']=='full']
 print(len(full),'scenarios;',sum(r['hard_violations_published'] for r in full),'hard violations')"
 ```
 
-## Minute 8 — where it is weak
+## Minute 8 — the ablation
 
-`docs/BENCHMARK.md` §7. Six numbered weaknesses, including the one where a
-headline metric is close to a tautology and we ask you not to quote it without
-the explanation.
+The single strongest claim in the project, and the fastest one to check:
 
-That section is the fastest way to judge whether the rest of the evidence is
-trustworthy.
+```bash
+python -c "
+import json
+a=json.load(open('bench/results/ablations.json'))
+for row in a['table']:
+    print(f\"{row['configuration']:20} violations/plan {row['hard_constraint_violation_rate']:.3f}  access {row['access_preservation_rate']:.3f}\")"
+```
 
-## Minute 9 — the two things that are not done
+`no_validation` replaces exactly one function — `engine.validate`, which
+`engine.publish` takes its verdict from. Search still runs, plans are still
+built, and every published plan then breaks roughly **two hard constraints**,
+**22% of approved plans silently drop an approved access arrangement**, and the
+named-conflict-set rate goes to **zero**: it never fails closed because it never
+checks.
 
-`bob-evidence/README.md` — **no IBM Bob session has been run.** The directory
-holds configuration, two working MCP servers, and six use cases with acceptance
-criteria. It holds no invented session records.
+The scoring path deliberately does not go through `validate`; it calls `evaluate`
+itself, so the ablated run is still measured against the real registry.
 
-`infra/README.md` §"Verification status" — the Terraform validates in CI and has
-never been applied.
+## Minute 9 — the two things worth reading
+
+`docs/EVIDENCE.md` — the problem in the industry's own words. Weather disruption
+at up to $500,000 a day; the production accessibility coordinator whose published
+duties include adapting access plans "as necessary with changing production and
+accommodation needs"; the 48-hour interpreter cancellation windows that make
+`C-ACC-002` a commercial term rather than a preference.
+
+`docs/COMPARISON.md` — where the line falls against Movie Magic and StudioBinder.
+Both are strong at authoring and distributing a schedule. Neither decides whether
+a revised schedule is *allowed*, and neither treats an approved access
+arrangement as anything but a note.
 
 ## Minute 10 — one thing to try yourself
 

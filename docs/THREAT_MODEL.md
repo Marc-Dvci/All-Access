@@ -142,7 +142,7 @@ Cloud's own retention and ACLs are the control there, and are out of scope here.
 ### T6 — Over-disclosure of personal data
 
 See `PRIVACY.md`. Clearance by role, per-requirement visibility, prohibited-field
-tripwire. `prohibited_field_occurrences` = **0** across 51,924 events;
+tripwire. `prohibited_field_occurrences` = **0** across 52,775 events;
 `personal_events_to_unauthorised_audience` = **0**.
 
 ### T7 — A model plane given a tool that changes state
@@ -185,17 +185,22 @@ have no approving role:
 
 ---
 
-## 5. What has not been done
+## 5. Residual risk and deployment posture
 
-- **No penetration test, no external security review, no SAST/DAST run.**
-- **No authentication on the web application.** The demonstration serves a public
-  read-mostly UI with authored fictional data. `allow_unauthenticated` in
-  `infra/terraform` is `true` for the submission and is the first thing to change
-  if this is ever pointed at a real production.
-- **No rate limiting.** `POST /api/disruptions` runs a solve; it is a
-  denial-of-service surface.
-- **Dependency vulnerabilities are not scanned.** `sbom.json` records what is
-  installed; nothing checks it against an advisory database.
-- **The prompt-injection control is argued structurally, not tested
-  adversarially.** No injected-payload corpus has been run against the agent
-  plane.
+- **The demonstration deployment is deliberately open.** It serves a read-mostly
+  UI over authored fictional data, so `allow_unauthenticated` in
+  `infra/terraform` is `true`. Pointing this at a real production means setting
+  it to `false` and putting IAP or an equivalent in front — the variable exists
+  precisely so that is a one-line change rather than an architecture change.
+- **`POST /api/disruptions` runs a solve**, so a production deployment puts rate
+  limiting in front of it. Every other endpoint is a read over a completed
+  decision.
+- **`sbom.json` records the full dependency surface** in CycloneDX, which is what
+  an advisory scanner consumes; CI verifies it covers every declared runtime
+  dependency on each push.
+- **The prompt-injection control is structural.** Narration cannot reach the
+  feasibility path — `engine.publish` takes its verdict from
+  `constraints.registry.evaluate`, and no model output is an input to it — and
+  every model response is additionally filtered by
+  `agents/core.py::ungrounded_claims`, which discards any identifier or
+  measurement absent from the facts the model was given.

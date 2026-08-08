@@ -74,7 +74,7 @@ this system populates any of these keys. If a future change ever introduces one,
 it is stripped before serialisation and the strip is counted.
 
 `prohibited_field_occurrences` in the benchmark summary is that count across
-every event of every scenario. It is currently **0 across 51,924 events**.
+every event of every scenario. It is currently **0 across 52,775 events**.
 
 > **A finding worth keeping.** The bare key `condition` was on this list
 > originally. Every weather event carries `condition: storm_force`, so the
@@ -82,7 +82,7 @@ every event of every scenario. It is currently **0 across 51,924 events**.
 > forecast is one somebody switches off inside a week. It now names the medical
 > senses explicitly (`medical_condition`, `health_condition`). This was found by
 > running the metric across the corpus, which is the argument for having the
-> metric. See `BENCHMARK.md` §7.
+> metric.
 
 ---
 

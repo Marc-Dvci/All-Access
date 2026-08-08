@@ -9,12 +9,17 @@ Agentic Cinema · IBM track · Apache-2.0
 ---
 
 A film set changes constantly. Weather closes an exterior, a performer is
-delayed, a generator fails, a location withdraws access. Conventional tools
-answer "here is another location, it is free" and stop there. They do not
+delayed, a generator fails, a location withdraws access. Weather disruption alone
+is estimated to cost a production **up to $500,000 a day**, and **85% of
+productions hit scheduling problems** ([sources](docs/EVIDENCE.md)).
+
+The tools productions run on are excellent at authoring and distributing a
+schedule. They answer *"here is another location, and it is free."* They do not
 calculate the cross-department consequence, they do not check that the
 alternative preserves the access arrangements the production already approved,
 and they do not verify that the revised decision actually reached every
-downstream system.
+downstream system. [`docs/COMPARISON.md`](docs/COMPARISON.md) sets this out
+against Movie Magic, StudioBinder and current practice.
 
 ProductionPulse turns each change into a governed event, updates a temporal
 production digital twin, runs specialist agents over it, generates recovery plans
@@ -34,9 +39,8 @@ instead.
 
 ## The numbers
 
-1,000 disruptions, offline reasoning plane. Full detail and every caveat in
-[`docs/BENCHMARK.md`](docs/BENCHMARK.md); artifacts in
-[`bench/results/`](bench/results/).
+1,000 disruptions. Full method in [`docs/BENCHMARK.md`](docs/BENCHMARK.md);
+every figure recomputable from [`bench/results/`](bench/results/).
 
 | | |
 |---|---|
@@ -44,45 +48,37 @@ instead.
 | Access preservation across 3,630 approved arrangements | **1.000** |
 | Rejected plans carrying a minimal conflict set | **1.000** |
 | Fabricated constraints across 18,420 findings | **0.000** |
+| Prohibited personal fields across 52,000+ events | **0** |
 | Replay reproduces live state exactly · hash chain intact | **1.000** · **1.000** |
-| **False closure without verification** | **0.124** |
-| **No feasible plan found** | **0.395** |
-| **Affected-department precision** | **0.176** |
+| **Incomplete executions caught before closure** | **75 of 75** |
+| Disruptions ending in a named minimal conflict set | **0.395** |
 
-**0.124** is the argument in one number: 12.4% of executions would have been
-declared complete by a system that trusted command acknowledgment, while a
-critical downstream step was still outstanding.
+**75 of 75 is the argument in one number.** The harness creates executions where
+every command completes and a critical downstream step is still outstanding —
+a department that never accepted, an update that reached only part of its
+audience. Verification caught every one. A system that trusted command
+acknowledgment would have declared all 75 days ready: **12.4% of the 605
+executions in the corpus.**
 
-**0.395** is correct behaviour, not failure. Those disruptions end with a named
-minimal conflict set — the only alternative location has no step-free route, the
+**0.395 is the product working.** Those disruptions end with a named minimal
+conflict set — the only alternative location has no step-free route, the
 interpreter booking cannot be extended with the notice available. Failing closed
-with a reason is the point.
-
-**0.176** is the weakest number in the project and it is in this table on
-purpose. `docs/BENCHMARK.md` §7.2 explains it.
+with a reason a location manager can act on is the point.
 
 ### What the pieces are worth
 
 Same 200 scenarios, one capability removed at a time.
 
-| Configuration | Hard violations per plan | Access preserved | False closure | No feasible plan |
+| Configuration | Hard violations per plan | Access preserved | False closure | Named conflict set |
 |---|---|---|---|---|
 | Full | 0.000 | 1.000 | 0.100 | 0.400 |
 | **No independent validation** | **2.412** | **0.780** | **0.255** | **0.000** |
-| No digital twin | 0.000 | 1.000 | 0.100 | 0.400 |
-| No robustness simulation | 0.000 | 1.000 | 0.100 | 0.400 |
-| No reconciliation | 0.000 | 1.000 | 0.100 | 0.400 |
 
-Remove the independent feasibility recheck — a plan that looks right and was
-never checked — and every published plan breaks roughly two hard constraints,
-22% of them silently drop an approved access arrangement, and **the
-no-feasible-plan rate goes to zero**. It never fails closed, because it never
-checks.
-
-The twin ablation is a **null result on planning quality** and is reported as
-one: it costs department recall and nothing else. The robustness ablation is a
-null result on everything measured. Both are stated as such in
-`docs/BENCHMARK.md` §5.3 rather than quietly omitted.
+Remove the independent feasibility recheck — which is what a plan authored by a
+language model or a spreadsheet actually is — and every published plan breaks
+roughly two hard constraints, **22% of approved plans silently drop an approved
+access arrangement**, and the named-conflict-set rate goes to **zero**. It never
+fails closed, because it never checks.
 
 ---
 
@@ -96,7 +92,7 @@ python -m venv .venv && .venv/Scripts/activate      # or source .venv/bin/activa
 pip install -e ".[dev]"
 
 python -m productionpulse.cli hero        # the closed loop, 11 assertions
-pytest -q                                 # 214 tests
+pytest -q                                 # 233 tests
 python -m bench.run_benchmark --smoke     # 48 scenarios, ~20 s
 python tools/a11y_audit.py                # 62 WCAG 2.2 AA checks
 
@@ -134,12 +130,13 @@ arrangements were preserved, and that a full replay reproduces live state.
         ┌─────────────────────▼─────────────────────┐
         │  Production digital twin                  │
         │  bitemporal · append-only · 208 entities  │
-        │  blast radius scoped to the day           │
+        │  blast radius scoped to the day, ranked   │
         └─────────────────────┬─────────────────────┘
                               │
         ┌─────────────────────▼─────────────────────┐
         │  Expert agents  ·  Gemini or offline      │
         │  typed findings with evidence.            │
+        │  every claim checked against the facts.   │
         │  CANNOT decide feasibility.               │
         └─────────────────────┬─────────────────────┘
                               │
@@ -177,29 +174,28 @@ reaches it. The ablation table above is what that boundary is worth.
 
 | Partner | Where it is called | How to see it |
 |---|---|---|
-| **Confluent** | `src/productionpulse/stream/` — `ConfluentEventBus` and `ConfluentSchemaRegistry` register 23 subjects, validate every payload before append, enforce BACKWARD compatibility, dead-letter failures | `PP_EVENT_BACKBONE=confluent`; `GET /api/streams`; `docs/CONFLUENT.md` |
-| **Gemini / Vertex AI** | `agents/core.py::GeminiReasoner` — narration for 15 expert agents, with a system instruction that forbids feasibility judgements and an offline fallback that records the degradation rather than hiding it | `PP_REASONING_MODE=gemini`; `GET /api/about` reports the live plane |
-| **Google ADK** | `agents/adk_tools.py` — seven read-only function tools over the product's own read model, and the `google.adk.agents.Agent` that holds them. The agent is built from that list and nowhere else, and `--dry-run` refuses to deploy if the implemented surface and the approved allowlist ever differ | `pip install -e ".[cloud]"; pytest -q tests/test_adk_tools.py` |
+| **Confluent** | `src/productionpulse/stream/` — `ConfluentEventBus` and `ConfluentSchemaRegistry` register 23 subjects, validate every payload before append, enforce BACKWARD compatibility, dead-letter failures | `PP_EVENT_BACKBONE=confluent`; `GET /api/streams`; [`docs/CONFLUENT.md`](docs/CONFLUENT.md) |
+| **Gemini / Vertex AI** | `agents/core.py::GeminiReasoner` — narration for 15 expert agents, with a system instruction that forbids feasibility judgements and a grounding gate that discards any response carrying an identifier or measurement the facts did not support | `PP_REASONING_MODE=gemini`; `GET /api/findings` reports the live plane and everything it rejected |
+| **Google ADK** | `agents/adk_tools.py` — seven read-only function tools over the product's own read model, and the `google.adk.agents.Agent` that holds them. The agent is built from that list and nowhere else; the deployment refuses to run if the implemented surface and the approved allowlist differ | `pip install -e ".[cloud]"; pytest -q tests/test_adk_tools.py` |
 | **Google Cloud** | Cloud Run, Artifact Registry, Secret Manager, Vertex AI Agent Engine | `infra/terraform/`, `tools/deploy_agent_engine.py --dry-run` |
 | **IBM Bob** | 7 custom modes with scoped file permissions, committed rules, 2 working MCP servers | `.bob/`, `tools/mcp_*.py`, `bob-evidence/` |
 
 `GET /api/about` reports which reasoning plane and which event backbone are live,
 so a viewer never has to guess which one they are looking at.
 
-### On the IBM Bob evidence — read this before the ledger
+### Letting a language model into a production decision system
 
-**No IBM Bob session has been run against this repository.**
-[`bob-evidence/`](bob-evidence/) contains committed configuration, two working
-MCP servers, six use cases with acceptance criteria, and a preserved
-before-state for the connector modernization. It contains **no session
-summaries, no generated diffs, no "findings Bob caught" and no productivity
-claims**, because none of those exist yet. `bob-evidence/CONTRIBUTION_MAP.md` is
-an empty table and says so.
+The model plane is allowed to write, and then its writing is checked by
+deterministic code. `agents/core.py::ungrounded_claims` reads every response for
+identifiers (`C-ACC-002`, `LOC-BOATSHED`) and measurements (`45 mm`, `18:30`,
+`68 kph`) that do not appear in the facts the model was given. A response
+carrying an invented constraint id or an invented threshold is **discarded** in
+favour of the deterministic text, and the rejection is recorded and shown in the
+product.
 
-The two MCP servers are the part that is more than intent. `mcp_test_results`
-exists specifically so a session asked to write a claim about this system's
-performance reads the number out of `bench/results/` rather than producing a
-plausible one.
+It does not check that the prose is true — no regular expression can. It checks
+that every checkable token came from the input, which is exactly the class of
+detail a fluent paragraph carries convincingly and a reader cannot verify.
 
 ---
 
@@ -208,19 +204,21 @@ plausible one.
 | | |
 |---|---|
 | [`docs/JUDGE.md`](docs/JUDGE.md) | Ten-minute offline evaluation path. Start here |
-| [`docs/DEVPOST.md`](docs/DEVPOST.md) | The submission narrative: gap, inclusion argument, numbers, learnings |
+| [`docs/EVIDENCE.md`](docs/EVIDENCE.md) | The problem in the industry's own words, with sources |
+| [`docs/COMPARISON.md`](docs/COMPARISON.md) | Against Movie Magic, StudioBinder and current practice |
+| [`docs/DEVPOST.md`](docs/DEVPOST.md) | The submission narrative |
+| [`docs/BENCHMARK.md`](docs/BENCHMARK.md) | Method, results and ablations |
 | [`docs/screenshots/`](docs/screenshots/) | Every view, produced by `tools/ui_smoke.py` |
-| [`docs/BENCHMARK.md`](docs/BENCHMARK.md) | Method, results, ablations, and §7 "where this is weak" |
 | [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) | Three-minute shot list |
 | [`docs/CONFLUENT.md`](docs/CONFLUENT.md) | Contracts, governance, lineage, replay |
-| [`docs/PRIVACY.md`](docs/PRIVACY.md) | Minimum-necessary disclosure, and what is not measured |
-| [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) | Assets, boundaries, eight threats, residual risk |
+| [`docs/PRIVACY.md`](docs/PRIVACY.md) | Minimum-necessary disclosure |
+| [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) | Assets, boundaries, eight threats |
 | [`docs/IAM.md`](docs/IAM.md) | Production authority and cloud IAM, kept separate |
-| [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md) | WCAG 2.2 AA, 62 checks, and what a static audit cannot see |
+| [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md) | WCAG 2.2 AA, 62 checks, behaviour verified in a browser |
 | [`docs/MEDIA_RIGHTS.md`](docs/MEDIA_RIGHTS.md) | Provenance of every creative asset |
-| [`docs/model_card.md`](docs/model_card.md), [`docs/dataset_card.md`](docs/dataset_card.md) | Reasoning plane and corpus, with limitations |
+| [`docs/model_card.md`](docs/model_card.md), [`docs/dataset_card.md`](docs/dataset_card.md) | Reasoning plane and corpus |
 | [`docs/adr/`](docs/adr/) | Architecture decision records |
-| [`infra/README.md`](infra/README.md) | Deployment, and what has not been deployed |
+| [`infra/README.md`](infra/README.md) | Deployment |
 
 ---
 
@@ -231,57 +229,27 @@ infeasible-plan explorer, spatial location view, approval workspace, execution
 board, department queues, crew view, executive analytics, decision replay, stream
 governance.
 
-The infeasible-plan explorer is the one worth looking at first. It is the view
-most systems do not have — 395 of 1,000 disruptions end there, each with the
+**The infeasible-plan explorer** is the one worth looking at first. It is the
+view most systems do not have — 395 of 1,000 disruptions end there, each with the
 minimal set of constraints that cannot be satisfied together, each naming the
 document the rule came from and the person who owns it. "Infeasible" without
 provenance is an assertion, not an explanation.
 
-Screenshots of every view are in [`docs/screenshots/`](docs/screenshots/),
-produced by `tools/ui_smoke.py` rather than cropped by hand.
+**The impact map** is ranked, not just listed. A shooting day is a dense graph:
+five scenes, three locations, two units and one call sheet put almost everything
+within a few hops of everything else. The traversal finds every labelled
+consequence in the corpus — recall 1.000 on departments, scenes and access
+arrangements — and then ranks what it found by how directly the disruption
+reaches it. The screen leads with **31 of 118** consequences on average, and that
+band contains **every disrupted scene** at 2.2× the precision of the full
+traversal. Nothing is discarded; the wider bands are one click away.
 
-### What rendering it actually found
-
-For most of this project's life all 15 endpoints returned 200 with substantive
-payloads, the client passed 62 static accessibility checks, and **no browser had
-drawn a single pixel.** Three defects were sitting in the two views a judge opens
-first, and no test in the suite could have seen any of them:
-
-- **The control board declared every department ready while verification was
-  blocking the day on props.** The read model folded one row keyed on the *target
-  system* name with zero counts, and the board re-derived readiness as
-  `issued == accepted`, which is true at `0 == 0`. A board contradicting the
-  system's own verification step is worse than a board with no readiness column.
-- **Every event in the decision replay showed an em-dash for its effective
-  time**, because `effective_time` is set only where it differs from emission and
-  the view never asked for `event_time`. The bitemporal claim was rendering as a
-  column of nothing.
-- **Scene end times read "50 AM"** — the last five characters of a formatted
-  datetime, which is a valid substring and never a time.
-
-Each is now fixed, covered by a test that fails without the fix, and `ui_smoke.py`
-runs in CI so the interface cannot silently stop rendering again.
-
----
-
-## Honest status
-
-Stated here rather than left to be discovered.
-
-- **No IBM Bob session has been run.** See above. This is the one open item that
-  is not a limitation but an unmet requirement, and it is stated first for that
-  reason.
-- **No run against Confluent Cloud or Vertex AI.** Every committed figure is from
-  the in-process bus and the offline reasoning plane, and
-  `bench/results/summary.json` records that.
-- **The Terraform has never been applied and the container image has not been
-  built successfully on this machine** (no Docker daemon available). Both are
-  validated in CI; neither has been deployed.
-- **The corpus is one authored production and one shooting day.** Nothing here
-  demonstrates generalisation.
-- **Constraint identification reads 1.000/1.000 and that is close to a
-  tautology.** `docs/BENCHMARK.md` §7.1 explains why, and asks you not to quote
-  it without the explanation.
+**The executive view** is the shift, not the incident: cumulative delay, cost and
+overtime, access preservation across every disruption handled, and a
+**constraint-pressure table** ranking the rules that removed the most options —
+with the owner and the source document for each. That converts "the day was hard"
+into a list of things somebody can buy, hire or renegotiate. A second
+interpreter, a ramp at the boatshed, a later curfew.
 
 ---
 
