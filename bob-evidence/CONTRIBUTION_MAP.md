@@ -8,6 +8,7 @@ the session is recorded in `sessions/`.
 
 | Use case | Session | Mode | Files changed | Tests | Accepted | Rejected |
 |---|---|---|---|---|---|---|
+| UC-03 call-sheet modernization | `sessions/uc-03-callsheet-modernization.md` | Connector Modernization | `src/allaccess/systems/callsheet_bob.py`, `tests/test_callsheet_migration.py` | 16 `test_bob_*` (green; full suite 249) | 1 | 0 |
 
 ---
 

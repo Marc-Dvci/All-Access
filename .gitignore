@@ -47,3 +47,7 @@ demo_video/speech/
 demo_video/_narration_padded.wav
 demo_video/_narration_raw.mp3
 demo_video/narration.mp3
+
+# IBM Bob session recording (203 MB — linked on YouTube instead) and frames
+bob-evidence/Bob session.mp4
+bob-evidence/_frames/

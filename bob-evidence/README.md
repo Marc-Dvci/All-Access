@@ -10,6 +10,13 @@ parts that went badly — a session where Bob proposed something wrong and a hum
 caught it is better evidence of a working process than one where everything was
 accepted.
 
+> **Session run — UC-03, 28 August 2026.** IBM Bob 2.0.3, Connector Modernization
+> mode, rebuilt the call-sheet connector from the legacy adapter and the brief
+> alone (the hand-written reference was withheld). All eight documented defects
+> fixed, each with a failing-first test; full suite 249 green. Record:
+> [`sessions/uc-03-callsheet-modernization.md`](sessions/uc-03-callsheet-modernization.md).
+> Screen recording (`Bob session.mp4`, 5:26): **[YouTube link — paste here]**.
+
 ---
 
 ## What is established
