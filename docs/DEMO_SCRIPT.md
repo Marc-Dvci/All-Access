@@ -52,32 +52,21 @@ Generated from `src/allaccess/web/demo.js` by `tools/demo_script.py`.
 Editing this table by hand will be overwritten; change the beat instead.
 
 
-Runs **2:59** over 22 beats.
+Runs **1:52** over 11 beats.
 
 | # | Cue | Chapter | Narration |
 |---|---|---|---|
-| 1 | 0:00 | — | When a shoot falls apart, the fastest fix often quietly drops someone — a step-free route, an interpreter. All-Access recovers the day without trading those away, and proves the plan reached everyone. |
-| 2 | 0:12 | The day | Day fourteen of Salt and Light. Five scenes, three locations — every approved access arrangement satisfied. |
-| 3 | 0:23 | The day | Weather and scenes on one axis. The amber bars are exterior work. |
-| 4 | 0:28 | The disruption | A verified storm reaches the harbour at eighteen thirty. Sixty-eight kilometre winds, sea state six. |
-| 5 | 0:35 | The disruption | Source event to verified readiness — the whole loop — in under half a second. Nothing on this screen is a recording. |
-| 6 | 0:46 | Intake | The event arrives typed, contract-validated and hash-chained, carrying the authority that says whether the system may act without a human first. |
-| 7 | 0:54 | Impact | The digital twin traverses the dependency graph — a hundred and nineteen affected entities across six levels. |
-| 8 | 1:01 | Impact | Distance from the centre is how far the storm had to travel. Each wedge is one kind of thing. |
-| 9 | 1:06 | Impact | The purple rings are approved access arrangements. A scheduling tool would have shown the replacement location as free. |
-| 10 | 1:12 | The refusal | The obvious move is the boatshed. It is available. The system will not publish it. |
-| 11 | 1:19 | The refusal | A minimal conflict set: C-ACC-001, a step-free route to the working position — with the owner and the approved arrangement it comes from. |
-| 12 | 1:27 | The refusal | Not “infeasible”. Why — and whether the rule may be waived. This one may not. |
-| 13 | 1:32 | The measurement | Underneath it, the survey: the shed door's cill is a hundred and forty millimetres against a twenty limit. A location manager can act on that — not on 'accessibility concern'. |
-| 14 | 1:43 | The options | Three structurally different plans, each rechecked against all thirty-four constraints independently, before any was shown to anyone. |
-| 15 | 1:52 | The options | Objectives trade off. Hard constraints trade off against nothing — which is why the access row reads the same on all three. |
-| 16 | 2:00 | Authority | The system approves nothing. Two named authorities sign, and each signature is bound to the plan hash and the constraints in force — single use, expiring. |
-| 17 | 2:09 | Execution | Nine typed commands through the saga coordinator. Every one completed. Every acknowledgment returned. |
-| 18 | 2:17 | Execution | A system that trusted that would call the day ready. This one refuses — props hasn't accepted — and there is no override. |
-| 19 | 2:26 | Execution | Across a thousand disruptions, verification caught seventy-five of seventy-five incomplete executions — twelve percent of runs that would otherwise have closed early. |
-| 20 | 2:34 | The shift | For the producer, not the incident but the shift: which rules removed the most options, who owns them, and where they came from — a list you can spend money against. |
-| 21 | 2:43 | The evidence | Every screen is a fold over one event log. Replay it into a fresh view and it reproduces live state exactly, hash chain intact. |
-| 22 | 2:51 | — | *title or closing card — no narration* |
+| 1 | 0:00 | — | Every film and television set runs on a fragile promise — that everyone who is called can actually do their job that day. |
+| 2 | 0:09 | — | But sets change by the hour — weather, a delay, a location lost at short notice. And the fastest fix is often the one that quietly leaves someone behind. All-Access is built so that can't happen. |
+| 3 | 0:22 | The day | Here is a real shoot day. Salt and Light — five scenes, three locations, and every access arrangement in place. Everyone can work. |
+| 4 | 0:31 | The disruption | Then a storm rolls in and closes the harbour. Watch what All-Access does — live, in under a second. |
+| 5 | 0:42 | The ripple | Instantly, it sees everything the storm touches — every scene, every department, and every person's access needs. |
+| 6 | 0:50 | The refusal | The obvious fix is to move to the boatshed. It is free, and a scheduling tool would just take it. But there is no step-free way in — and someone on this crew depends on one. So All-Access refuses it. |
+| 7 | 1:03 | A reason you can act on | And it does not just say no. It shows exactly why — the only route in has a step at the door — so a location manager can fix it. Not a vague note nobody can act on. |
+| 8 | 1:15 | The options | Instead, it offers plans that all keep every access arrangement intact — because an access need is never something to trade away for a faster day. |
+| 9 | 1:25 | The judgment stays human | All-Access never decides on its own. It proposes; the people responsible approve. |
+| 10 | 1:32 | Everyone, or no one | Then it makes sure the new plan actually reaches every department — and it will not call the day ready until everyone has it. |
+| 11 | 1:42 | — | All-Access. Recover any disruption — without ever leaving someone behind. For every production, and every person on it. |
 
 ---
 

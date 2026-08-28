@@ -77,7 +77,7 @@
   left: 50%;
   bottom: 26px;
   transform: translateX(-50%);
-  z-index: 9002;
+  z-index: 9005;
   width: min(62rem, calc(100vw - 3rem));
   padding: 0.85rem 1.2rem 0.95rem;
   border-radius: 14px;
@@ -197,6 +197,31 @@
   font-variant-numeric: tabular-nums;
 }
 #demo-card .k-stat span { display: block; font-size: 0.82rem; color: #9aa4b2; }
+
+/* -- launch slides (intro and close) -------------------------------------
+ * A standalone branded screen, not the product dimmed behind a card. */
+#demo-card.launch {
+  background: radial-gradient(130% 120% at 50% 0%, #16233e 0%, #0a0e16 62%);
+}
+#demo-card .k-eyebrow {
+  font-size: 0.78rem; font-weight: 800; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 1rem;
+}
+#demo-card.launch .k-mark { width: 4rem; height: 4rem; font-size: 1.4rem; margin-bottom: 1.2rem; }
+#demo-card.launch h2 { font-size: 3rem; margin-bottom: 0.9rem; }
+#demo-card .k-tagline {
+  margin: 0 auto; max-width: 40rem; font-size: 1.4rem; font-weight: 600;
+  color: #eef2f8; line-height: 1.35;
+}
+#demo-card .k-where {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 0.55rem;
+  margin-top: 1.7rem;
+}
+#demo-card .k-where span {
+  font-size: 0.85rem; color: #c3ccd9;
+  border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 999px;
+  padding: 0.32rem 0.85rem;
+}
 
 @media (prefers-reduced-motion: reduce) {
   #demo-cursor, #demo-spot, #demo-caption, #demo-card, #demo-progress > span {

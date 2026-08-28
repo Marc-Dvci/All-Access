@@ -1,83 +1,43 @@
 1
-00:00:00,000 --> 00:00:12,679
-When a shoot falls apart, the fastest fix often quietly drops someone — a step-free route, an interpreter. All-Access recovers the day without trading those away, and proves the plan reached everyone.
+00:00:00,000 --> 00:00:07,803
+Every film and television set runs on a fragile promise — that everyone who is called can actually do their job that day.
 
 2
-00:00:12,854 --> 00:00:20,469
-Day fourteen of Salt and Light. Five scenes, three locations — every approved access arrangement satisfied.
+00:00:07,978 --> 00:00:20,753
+But sets change by the hour — weather, a delay, a location lost at short notice. And the fastest fix is often the one that quietly leaves someone behind. All-Access is built so that can't happen.
 
 3
-00:00:20,644 --> 00:00:24,683
-Weather and scenes on one axis. The amber bars are exterior work.
+00:00:20,928 --> 00:00:29,983
+Here is a real shoot day. Salt and Light — five scenes, three locations, and every access arrangement in place. Everyone can work.
 
 4
-00:00:24,858 --> 00:00:31,465
-A verified storm reaches the harbour at eighteen thirty. Sixty-eight kilometre winds, sea state six.
+00:00:30,158 --> 00:00:36,261
+Then a storm rolls in and closes the harbour. Watch what All-Access does — live, in under a second.
 
 5
-00:00:31,640 --> 00:00:38,703
-Source event to verified readiness — the whole loop — in under half a second. Nothing on this screen is a recording.
+00:00:36,436 --> 00:00:44,291
+Instantly, it sees everything the storm touches — every scene, every department, and every person's access needs.
 
 6
-00:00:38,878 --> 00:00:48,029
-The event arrives typed, contract-validated and hash-chained, carrying the authority that says whether the system may act without a human first.
+00:00:44,466 --> 00:00:56,065
+The obvious fix is to move to the boatshed. It is free, and a scheduling tool would just take it. But there is no step-free way in — and someone on this crew depends on one. So All-Access refuses it.
 
 7
-00:00:48,204 --> 00:00:55,219
-The digital twin traverses the dependency graph — a hundred and nineteen affected entities across six levels.
+00:00:56,240 --> 00:01:06,135
+And it does not just say no. It shows exactly why — the only route in has a step at the door — so a location manager can fix it. Not a vague note nobody can act on.
 
 8
-00:00:55,394 --> 00:01:00,969
-Distance from the centre is how far the storm had to travel. Each wedge is one kind of thing.
+00:01:06,310 --> 00:01:15,701
+Instead, it offers plans that all keep every access arrangement intact — because an access need is never something to trade away for a faster day.
 
 9
-00:01:01,144 --> 00:01:08,015
-The purple rings are approved access arrangements. A scheduling tool would have shown the replacement location as free.
+00:01:15,876 --> 00:01:21,331
+All-Access never decides on its own. It proposes; the people responsible approve.
 
 10
-00:01:08,190 --> 00:01:13,333
-The obvious move is the boatshed. It is available. The system will not publish it.
+00:01:21,506 --> 00:01:28,713
+Then it makes sure the new plan actually reaches every department — and it will not call the day ready until everyone has it.
 
 11
-00:01:13,508 --> 00:01:23,211
-A minimal conflict set: C-ACC-001, a step-free route to the working position — with the owner and the approved arrangement it comes from.
-
-12
-00:01:23,386 --> 00:01:28,577
-Not “infeasible”. Why — and whether the rule may be waived. This one may not.
-
-13
-00:01:28,752 --> 00:01:39,271
-Underneath it, the survey: the shed door's cill is a hundred and forty millimetres against a twenty limit. A location manager can act on that — not on 'accessibility concern'.
-
-14
-00:01:39,446 --> 00:01:47,661
-Three structurally different plans, each rechecked against all thirty-four constraints independently, before any was shown to anyone.
-
-15
-00:01:47,836 --> 00:01:55,739
-Objectives trade off. Hard constraints trade off against nothing — which is why the access row reads the same on all three.
-
-16
-00:01:55,914 --> 00:02:05,713
-The system approves nothing. Two named authorities sign, and each signature is bound to the plan hash and the constraints in force — single use, expiring.
-
-17
-00:02:05,888 --> 00:02:11,751
-Nine typed commands through the saga coordinator. Every one completed. Every acknowledgment returned.
-
-18
-00:02:11,926 --> 00:02:19,013
-A system that trusted that would call the day ready. This one refuses — props hasn't accepted — and there is no override.
-
-19
-00:02:19,188 --> 00:02:29,251
-Across a thousand disruptions, verification caught seventy-five of seventy-five incomplete executions — twelve percent of runs that would otherwise have closed early.
-
-20
-00:02:29,426 --> 00:02:39,729
-For the producer, not the incident but the shift: which rules removed the most options, who owns them, and where they came from — a list you can spend money against.
-
-21
-00:02:39,904 --> 00:02:49,103
-Every screen is a fold over one event log. Replay it into a fresh view and it reproduces live state exactly, hash chain intact.
+00:01:28,888 --> 00:01:37,127
+All-Access. Recover any disruption — without ever leaving someone behind. For every production, and every person on it.

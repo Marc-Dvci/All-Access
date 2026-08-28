@@ -103,14 +103,15 @@ uvicorn allaccess.api:app --port 8765     # then open http://127.0.0.1:8765
 
 **Watch it instead of reading about it:** <http://127.0.0.1:8765/?demo=1>
 
-A 2:53 guided demonstration that plays itself — the storm arriving, the impact
-traversal, the refusal with its named conflict set, the survey measurement
-behind that refusal, the three plans, the human approval, and the verification
-that will not call the day ready. It is not a recording: it drives this client
-through this API over a workflow run that starts when you open the page, using
-the same controls a person uses. Escape stops it. The narration is burned in as
-captions, and [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) is its cue sheet,
-generated from the beats themselves rather than transcribed from them.
+A guided demonstration that plays itself — the storm arriving, everything it
+touches, the refusal of the free-but-inaccessible location and the reason a
+location manager can act on, the plans that keep every access arrangement, the
+human approval, and the verification that will not call the day ready. It is not
+a recording: it drives this client through this API over a workflow run that
+starts when you open the page, using the same controls a person uses. Escape
+stops it. The narration is burned in as captions, and
+[`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) is its cue sheet, generated from the
+beats themselves rather than transcribed from them.
 
 Or drive the interface without watching — thirteen views plus every
 demonstration beat in a real browser, failing on any console error, uncaught

@@ -129,11 +129,12 @@
     ui.caption.classList.toggle("visible", Boolean(line));
   }
 
-  function showCard(children) {
+  function showCard(children, variant) {
     while (ui.card.firstChild) ui.card.removeChild(ui.card.firstChild);
     var inner = document.createElement("div");
     children.forEach(function (c) { inner.appendChild(c); });
     ui.card.appendChild(inner);
+    ui.card.classList.toggle("launch", variant === "launch");
     ui.card.classList.add("visible");
   }
 
@@ -144,6 +145,12 @@
     if (className) n.className = className;
     if (text !== undefined) n.textContent = text;
     return n;
+  }
+
+  function chips(labels) {
+    var wrap = node("div", "k-where");
+    labels.forEach(function (label) { wrap.appendChild(node("span", null, label)); });
+    return wrap;
   }
 
   // -- pointer and spotlight ------------------------------------------------
@@ -224,27 +231,41 @@
   var BEATS = [
     {
       chapter: "",
-      say: "When a shoot falls apart, the fastest fix often quietly drops someone " +
-           "— a step-free route, an interpreter. All-Access recovers the day without " +
-           "trading those away, and proves the plan reached everyone.",
-      ms: 12000,
+      say: "Every film and television set runs on a fragile promise \u2014 that " +
+           "everyone who is called can actually do their job that day.",
+      ms: 9000,
       run: async function () {
         showCard([
+          node("div", "k-eyebrow", "Agentic Cinema \u00b7 IBM track"),
           node("div", "k-mark", "AA"),
           node("h2", null, "All-Access"),
-          node("p", null,
-            "The production control system that recovers a disrupted shoot day " +
-            "without ever dropping an approved access arrangement — and proves the " +
-            "plan reached every department."),
-          node("p", null, "Agentic Cinema · IBM track")
-        ]);
+          node("p", "k-tagline",
+            "A shoot day isn't recovered until it's recovered for everyone.")
+        ], "launch");
       }
     },
 
     {
-      chapter: "The day", ms: 11000,
-      say: "Day fourteen of Salt and Light. Five scenes, three locations — " +
-           "every approved access arrangement satisfied.",
+      chapter: "",
+      say: "But sets change by the hour \u2014 weather, a delay, a location lost at " +
+           "short notice. And the fastest fix is often the one that quietly leaves " +
+           "someone behind. All-Access is built so that can't happen.",
+      ms: 13000,
+      run: async function () {
+        showCard([
+          node("h2", null, "When the day falls apart,"),
+          node("p", "k-tagline",
+            "the fix can't be the one that leaves someone behind."),
+          chips(["Film & TV productions", "On location", "On the lot", "Every department"])
+        ], "launch");
+      }
+    },
+
+    {
+      chapter: "The day",
+      say: "Here is a real shoot day. Salt and Light \u2014 five scenes, three " +
+           "locations, and every access arrangement in place. Everyone can work.",
+      ms: 9000,
       run: async function () {
         hideCard();
         await wait(300);
@@ -252,31 +273,18 @@
         await spot(panel("board") + ".headline");
       }
     },
-    {
-      chapter: "The day", ms: 5000,
-      say: "Weather and scenes on one axis. The amber bars are exterior work.",
-      run: async function () {
-        await spot(first([panel("board") + "figure.figure"]));
-      }
-    },
 
     {
-      chapter: "The disruption", ms: 7000,
-      say: "A verified storm reaches the harbour at eighteen thirty. " +
-           "Sixty-eight kilometre winds, sea state six.",
+      chapter: "The disruption",
+      say: "Then a storm rolls in and closes the harbour. Watch what All-Access " +
+           "does \u2014 live, in under a second.",
+      ms: 11000,
       run: async function () {
         unspot();
         window.scrollTo(0, 0);
         var select = $("#scenario-select");
         if (select) { select.value = HERO; }
-        await moveTo("#scenario-select");
-      }
-    },
-    {
-      chapter: "The disruption", ms: 11000,
-      say: "Source event to verified readiness — the whole loop — in under half " +
-           "a second. Nothing on this screen is a recording.",
-      run: async function () {
+        await moveTo("#scenario-select", 300);
         await click("#run-scenario");
         await until(function () {
           return /feasible plan/.test($("#live-status").textContent);
@@ -288,69 +296,34 @@
     },
 
     {
-      chapter: "Intake", ms: 8000,
-      say: "The event arrives typed, contract-validated and hash-chained, " +
-           "carrying the authority that says whether the system may act " +
-           "without a human first.",
-      run: async function () {
-        await goto("intake");
-        await spot(panel("intake") + ".cards");
-      }
-    },
-
-    {
-      chapter: "Impact", ms: 7000,
-      say: "The digital twin traverses the dependency graph — a hundred and " +
-           "nineteen affected entities across six levels.",
+      chapter: "The ripple",
+      say: "Instantly, it sees everything the storm touches \u2014 every scene, every " +
+           "department, and every person's access needs.",
+      ms: 8000,
       run: async function () {
         await goto("impact");
         await spot(panel("impact") + "figure.figure");
       }
     },
-    {
-      chapter: "Impact", ms: 5000,
-      say: "Distance from the centre is how far the storm had to travel. " +
-           "Each wedge is one kind of thing.",
-      run: async function () { await wait(200); }
-    },
-    {
-      chapter: "Impact", ms: 6000,
-      say: "The purple rings are approved access arrangements. A scheduling tool " +
-           "would have shown the replacement location as free.",
-      run: async function () {
-        await spot(panel("impact") + ".cards");
-      }
-    },
 
     {
-      chapter: "The refusal", ms: 7000,
-      say: "The obvious move is the boatshed. It is available. " +
-           "The system will not publish it.",
+      chapter: "The refusal",
+      say: "The obvious fix is to move to the boatshed. It is free, and a " +
+           "scheduling tool would just take it. But there is no step-free way in " +
+           "\u2014 and someone on this crew depends on one. So All-Access refuses it.",
+      ms: 13000,
       run: async function () {
         await goto("rejected");
         await spot(panel("rejected") + ".headline");
       }
     },
-    {
-      chapter: "The refusal", ms: 8000,
-      say: "A minimal conflict set: C-ACC-001, a step-free route to the working " +
-           "position — with the owner and the approved arrangement it comes from.",
-      run: async function () {
-        await spot(first([panel("rejected") + "details", panel("rejected") + ".headline"]));
-      }
-    },
-    {
-      chapter: "The refusal", ms: 5000,
-      say: "Not “infeasible”. Why — and whether the rule may be waived. " +
-           "This one may not.",
-      run: async function () { await wait(200); }
-    },
 
     {
-      chapter: "The measurement", ms: 11000,
-      say: "Underneath it, the survey: the shed door's cill is a hundred and forty " +
-           "millimetres against a twenty limit. A location manager can act on that " +
-           "— not on 'accessibility concern'.",
+      chapter: "A reason you can act on",
+      say: "And it does not just say no. It shows exactly why \u2014 the only route " +
+           "in has a step at the door \u2014 so a location manager can fix it. Not a " +
+           "vague note nobody can act on.",
+      ms: 12000,
       run: async function () {
         await goto("spatial");
         await spot(panel("spatial") + "figure.figure");
@@ -358,106 +331,53 @@
     },
 
     {
-      chapter: "The options", ms: 9000,
-      say: "Three structurally different plans, each rechecked against all " +
-           "thirty-four constraints independently, before any was shown to anyone.",
+      chapter: "The options",
+      say: "Instead, it offers plans that all keep every access arrangement " +
+           "intact \u2014 because an access need is never something to trade away for " +
+           "a faster day.",
+      ms: 10000,
       run: async function () {
         await goto("plans");
         await spot(panel("plans") + ".plangrid");
       }
     },
-    {
-      chapter: "The options", ms: 8000,
-      say: "Objectives trade off. Hard constraints trade off against nothing — " +
-           "which is why the access row reads the same on all three.",
-      run: async function () {
-        await spot(first([panel("plans") + ".plancard.chosen", panel("plans") + ".plangrid"]));
-      }
-    },
 
     {
-      chapter: "Authority", ms: 9000,
-      say: "The system approves nothing. Two named authorities sign, and each " +
-           "signature is bound to the plan hash and the constraints in force " +
-           "— single use, expiring.",
+      chapter: "The judgment stays human",
+      say: "All-Access never decides on its own. It proposes; the people " +
+           "responsible approve.",
+      ms: 7000,
       run: async function () {
         await goto("approval");
-        await spot(first([panel("approval") + ".table-scroll", panel("approval") + ".headline"]));
+        await spot(first([panel("approval") + ".headline", panel("approval") + ".table-scroll"]));
       }
     },
 
     {
-      chapter: "Execution", ms: 8000,
-      say: "Nine typed commands through the saga coordinator. Every one " +
-           "completed. Every acknowledgment returned.",
+      chapter: "Everyone, or no one",
+      say: "Then it makes sure the new plan actually reaches every department " +
+           "\u2014 and it will not call the day ready until everyone has it.",
+      ms: 10000,
       run: async function () {
         await goto("execution");
-        await spot(panel("execution") + ".flow");
-      }
-    },
-    {
-      chapter: "Execution", ms: 9000,
-      say: "A system that trusted that would call the day ready. This one refuses " +
-           "— props hasn't accepted — and there is no override.",
-      run: async function () {
         await spot(panel("execution") + ".headline");
       }
     },
-    {
-      chapter: "Execution", ms: 8000,
-      say: "Across a thousand disruptions, verification caught seventy-five of " +
-           "seventy-five incomplete executions — twelve percent of runs that " +
-           "would otherwise have closed early.",
-      run: async function () {
-        await spot(panel("execution") + ".cards");
-      }
-    },
 
     {
-      chapter: "The shift", ms: 9000,
-      say: "For the producer, not the incident but the shift: which rules removed " +
-           "the most options, who owns them, and where they came from — a list " +
-           "you can spend money against.",
-      run: async function () {
-        await goto("executive");
-        await spot(first([panel("executive") + ".panel", panel("executive") + ".cards"]));
-      }
-    },
-
-    {
-      chapter: "The evidence", ms: 8000,
-      say: "Every screen is a fold over one event log. Replay it into a fresh view " +
-           "and it reproduces live state exactly, hash chain intact.",
-      run: async function () {
-        await goto("replay");
-        await spot(panel("replay") + ".cards");
-      }
-    },
-
-    {
-      chapter: "", say: "", ms: 8000,
+      chapter: "",
+      say: "All-Access. Recover any disruption \u2014 without ever leaving someone " +
+           "behind. For every production, and every person on it.",
+      ms: 10000,
       run: async function () {
         unspot();
         ui.cursor.classList.remove("visible");
-        var stats = node("div", "k-stats");
-        [["0.000", "hard-constraint violations in 1,629 published plans"],
-         ["1.000", "access preservation across 3,630 arrangements"],
-         ["75/75", "incomplete executions caught before closure"],
-         ["2.412", "violations per plan without the independent recheck"]
-        ].forEach(function (pair) {
-          var stat = node("div", "k-stat");
-          stat.appendChild(node("b", null, pair[0]));
-          stat.appendChild(node("span", null, pair[1]));
-          stats.appendChild(stat);
-        });
         showCard([
-          node("h2", null, "One thousand disruptions."),
-          node("p", null,
-            "Remove the independent feasibility recheck — which is what a plan " +
-            "authored by a language model or a spreadsheet actually is — and it " +
-            "stops failing closed entirely, because it stops checking."),
-          stats
-        ]);
+          node("div", "k-mark", "AA"),
+          node("h2", null, "All-Access"),
+          node("p", "k-tagline", "No one gets left off the call sheet."),
+          chips(["Recover the day", "Keep every access need", "Prove it reached everyone"])
+        ], "launch");
       }
     }
   ];

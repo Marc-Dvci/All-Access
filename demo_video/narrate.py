@@ -32,6 +32,7 @@ from ui_smoke import free_port, start_server  # noqa: E402
 
 VOICE = "en-US-AndrewMultilingualNeural"
 RATE = "+9%"
+LEAD_SILENCE = 0.5          # silence before the first word
 GAP_SECONDS = 0.35          # trailing silence after a spoken beat
 SILENT_SECONDS = 3.0       # a beat with no narration (a wordless transition)
 HARD_LIMIT_SECONDS = 178.0
@@ -139,14 +140,15 @@ async def main(beats: list[dict]) -> None:
     offset = 0.0
     for i, beat in enumerate(beats):
         say = (beat.get("say") or "").strip()
+        lead = LEAD_SILENCE if i == 0 else 0.0
         if say:
             clip = SPEECH_DIR / f"b{i:02d}.mp3"
             speech, _ = await render_clip(say, clip)
-            beat_dur = speech + GAP_SECONDS
-            clips.append((offset, clip))
+            beat_dur = lead + speech + GAP_SECONDS
+            clips.append((offset + lead, clip))
         else:
             speech = 0.0
-            beat_dur = SILENT_SECONDS
+            beat_dur = lead + SILENT_SECONDS
         durations.append(int(round(beat_dur * 1000)))
         timeline.append({
             "i": i, "at": round(offset, 3), "chapter": beat.get("chapter", ""),

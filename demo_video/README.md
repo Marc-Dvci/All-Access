@@ -25,8 +25,10 @@ python demo_video/record.py      # 2. record + mux  ->  all-access-demo.mp4
 python demo_video/record.py https://<cloud-run-url>/
 ```
 
-Output: `all-access-demo.mp4`, 1920×1080, H.264/AAC, **2:54** — safely under the
-3:00 judging limit.
+Output: `all-access-demo.mp4`, 1920×1080, H.264/AAC, **1:39** — a tight
+product-launch walkthrough, well under the 3:00 judging limit. It opens on two
+standalone branded slides (what the product is, who it's for, and its promise),
+then walks the real workflow.
 
 ## Why every take is identical
 
