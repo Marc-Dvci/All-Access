@@ -31,7 +31,7 @@ decides whether a revised schedule is **allowed**.
 
 ## Where the line falls
 
-| | Movie Magic | StudioBinder | Phone + spreadsheet | ProductionPulse |
+| | Movie Magic | StudioBinder | Phone + spreadsheet | All-Access |
 |---|---|---|---|---|
 | Script breakdown, stripboard, scheduling | ● | ● | ○ | ○ |
 | Call sheet generation and distribution | ◐ | ● | ◐ | ● |
@@ -59,7 +59,7 @@ conditions, the working-hours policy and the approved access arrangements,
 simultaneously?"*
 
 A red flag warns you. It does not stop the schedule being published, and it has
-no concept of a rule that may not be waived. ProductionPulse will not publish a
+no concept of a rule that may not be waived. All-Access will not publish a
 plan it cannot prove satisfies all 34 constraints — and re-checks the finished
 plan against the registry independently of the search that produced it. Remove
 that recheck and every published plan breaks roughly two hard rules.
@@ -70,7 +70,7 @@ StudioBinder's dashboard tells you a call sheet was delivered and who confirmed.
 That is genuinely ahead of the field. It still stops at the document: it tracks
 whether a **message** landed, not whether the **state change** did.
 
-ProductionPulse issues typed commands to each downstream system, then reconciles
+All-Access issues typed commands to each downstream system, then reconciles
 the state it intended against the state those systems report, and blocks
 readiness on the difference. In the reference run the day was refused because
 props had accepted nothing — while every command had completed successfully.
@@ -92,7 +92,7 @@ with changing production and accommodation needs"
 That person is real, skilled, frequently treated as a luxury line item, and not
 in the room at 18:00.
 
-ProductionPulse encodes their approved arrangements as hard constraints with no
+All-Access encodes their approved arrangements as hard constraints with no
 soft weight. The objective function has no coefficient with which to trade a
 step-free route against a saved hour. A plan that drops one is not a worse plan;
 it is not a plan. Across 3,630 approved arrangements in the corpus, preservation
@@ -104,7 +104,7 @@ measured cost of treating them as a note.
 When a scheduling tool cannot resolve something it shows a conflict marker. When
 a first AD cannot resolve something they say "we can't do the boatshed."
 
-ProductionPulse returns the **minimal set of constraints that cannot be satisfied
+All-Access returns the **minimal set of constraints that cannot be satisfied
 together**, with the measurement that decides it, the document it comes from and
 the person who owns it:
 
@@ -117,7 +117,7 @@ on — a threshold in millimetres is actionable; "accessibility concern" is not.
 
 ---
 
-## What ProductionPulse is not
+## What All-Access is not
 
 It does not break down a script, build a stripboard, or replace Movie Magic. It
 assumes a schedule already exists and a production already runs on one of these

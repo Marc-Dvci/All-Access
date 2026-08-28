@@ -1,4 +1,4 @@
-# ProductionPulse Inclusive
+# All-Access
 
 **Every production disruption becomes a provably feasible, human-approved
 recovery plan — and the system proves the plan actually happened everywhere it
@@ -21,7 +21,7 @@ and they do not verify that the revised decision actually reached every
 downstream system. [`docs/COMPARISON.md`](docs/COMPARISON.md) sets this out
 against Movie Magic, StudioBinder and current practice.
 
-ProductionPulse turns each change into a governed event, updates a temporal
+All-Access turns each change into a governed event, updates a temporal
 production digital twin, runs specialist agents over it, generates recovery plans
 with a deterministic solver that **publishes nothing it cannot prove feasible**,
 routes the decision to the person with the authority to make it, executes through
@@ -91,16 +91,28 @@ git clone <repo> && cd All-Access
 python -m venv .venv && .venv/Scripts/activate      # or source .venv/bin/activate
 pip install -e ".[dev]"
 
-python -m productionpulse.cli hero        # the closed loop, 11 assertions
+python -m allaccess.cli hero        # the closed loop, 11 assertions
 pytest -q                                 # 233 tests
 python -m bench.run_benchmark --smoke     # 48 scenarios, ~20 s
-python tools/a11y_audit.py                # 62 WCAG 2.2 AA checks
+python tools/a11y_audit.py                # 78 WCAG 2.2 AA checks
 
-uvicorn productionpulse.api:app --port 8765     # then open http://127.0.0.1:8765
+uvicorn allaccess.api:app --port 8765     # then open http://127.0.0.1:8765
 ```
 
-Or drive the interface without opening it yourself — thirteen views in a real
-browser, failing on any console error, uncaught exception or failed request:
+**Watch it instead of reading about it:** <http://127.0.0.1:8765/?demo=1>
+
+A 2:53 guided demonstration that plays itself — the storm arriving, the impact
+traversal, the refusal with its named conflict set, the survey measurement
+behind that refusal, the three plans, the human approval, and the verification
+that will not call the day ready. It is not a recording: it drives this client
+through this API over a workflow run that starts when you open the page, using
+the same controls a person uses. Escape stops it. The narration is burned in as
+captions, and [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) is its cue sheet,
+generated from the beats themselves rather than transcribed from them.
+
+Or drive the interface without watching — thirteen views plus every
+demonstration beat in a real browser, failing on any console error, uncaught
+exception or failed request:
 
 ```bash
 pip install -e ".[browser]" && playwright install chromium
@@ -174,8 +186,8 @@ reaches it. The ablation table above is what that boundary is worth.
 
 | Partner | Where it is called | How to see it |
 |---|---|---|
-| **Confluent** | `src/productionpulse/stream/` — `ConfluentEventBus` and `ConfluentSchemaRegistry` register 23 subjects, validate every payload before append, enforce BACKWARD compatibility, dead-letter failures | `PP_EVENT_BACKBONE=confluent`; `GET /api/streams`; [`docs/CONFLUENT.md`](docs/CONFLUENT.md) |
-| **Gemini / Vertex AI** | `agents/core.py::GeminiReasoner` — narration for 15 expert agents, with a system instruction that forbids feasibility judgements and a grounding gate that discards any response carrying an identifier or measurement the facts did not support | `PP_REASONING_MODE=gemini`; `GET /api/findings` reports the live plane and everything it rejected |
+| **Confluent** | `src/allaccess/stream/` — `ConfluentEventBus` and `ConfluentSchemaRegistry` register 23 subjects, validate every payload before append, enforce BACKWARD compatibility, dead-letter failures | `AA_EVENT_BACKBONE=confluent`; `GET /api/streams`; [`docs/CONFLUENT.md`](docs/CONFLUENT.md) |
+| **Gemini / Vertex AI** | `agents/core.py::GeminiReasoner` — narration for 15 expert agents, with a system instruction that forbids feasibility judgements and a grounding gate that discards any response carrying an identifier or measurement the facts did not support | `AA_REASONING_MODE=gemini`; `GET /api/findings` reports the live plane and everything it rejected |
 | **Google ADK** | `agents/adk_tools.py` — seven read-only function tools over the product's own read model, and the `google.adk.agents.Agent` that holds them. The agent is built from that list and nowhere else; the deployment refuses to run if the implemented surface and the approved allowlist differ | `pip install -e ".[cloud]"; pytest -q tests/test_adk_tools.py` |
 | **Google Cloud** | Cloud Run, Artifact Registry, Secret Manager, Vertex AI Agent Engine | `infra/terraform/`, `tools/deploy_agent_engine.py --dry-run` |
 | **IBM Bob** | 7 custom modes with scoped file permissions, committed rules, 2 working MCP servers | `.bob/`, `tools/mcp_*.py`, `bob-evidence/` |
@@ -209,12 +221,12 @@ detail a fluent paragraph carries convincingly and a reader cannot verify.
 | [`docs/DEVPOST.md`](docs/DEVPOST.md) | The submission narrative |
 | [`docs/BENCHMARK.md`](docs/BENCHMARK.md) | Method, results and ablations |
 | [`docs/screenshots/`](docs/screenshots/) | Every view, produced by `tools/ui_smoke.py` |
-| [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) | Three-minute shot list |
+| [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) | The guided demonstration and its cue sheet, generated from the beats |
 | [`docs/CONFLUENT.md`](docs/CONFLUENT.md) | Contracts, governance, lineage, replay |
 | [`docs/PRIVACY.md`](docs/PRIVACY.md) | Minimum-necessary disclosure |
 | [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) | Assets, boundaries, eight threats |
 | [`docs/IAM.md`](docs/IAM.md) | Production authority and cloud IAM, kept separate |
-| [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md) | WCAG 2.2 AA, 62 checks, behaviour verified in a browser |
+| [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md) | WCAG 2.2 AA, 78 checks, behaviour verified in a browser |
 | [`docs/MEDIA_RIGHTS.md`](docs/MEDIA_RIGHTS.md) | Provenance of every creative asset |
 | [`docs/model_card.md`](docs/model_card.md), [`docs/dataset_card.md`](docs/dataset_card.md) | Reasoning plane and corpus |
 | [`docs/adr/`](docs/adr/) | Architecture decision records |
@@ -224,10 +236,15 @@ detail a fluent paragraph carries convincingly and a reader cannot verify.
 
 ## The product
 
-Thirteen views: control board, disruption intake, impact map, plan comparison,
-infeasible-plan explorer, spatial location view, approval workspace, execution
-board, department queues, crew view, executive analytics, decision replay, stream
-governance.
+Thirteen views in five groups, following the decision rather than an alphabet:
+**the day** (control board, intake), **the decision** (impact map, plan
+comparison, infeasible plans, spatial survey), **the action** (approval,
+execution, departments), **who it reaches** (crew view, executive), and **the
+evidence** (decision replay, streams).
+
+Every view opens on the sentence it concluded, then the evidence for it. A
+screen that makes a first AD derive the verdict from a table has not finished
+the job the table started.
 
 **The infeasible-plan explorer** is the one worth looking at first. It is the
 view most systems do not have — 395 of 1,000 disruptions end there, each with the
@@ -235,14 +252,22 @@ minimal set of constraints that cannot be satisfied together, each naming the
 document the rule came from and the person who owns it. "Infeasible" without
 provenance is an assertion, not an explanation.
 
-**The impact map** is ranked, not just listed. A shooting day is a dense graph:
-five scenes, three locations, two units and one call sheet put almost everything
-within a few hops of everything else. The traversal finds every labelled
-consequence in the corpus — recall 1.000 on departments, scenes and access
-arrangements — and then ranks what it found by how directly the disruption
-reaches it. The screen leads with **31 of 118** consequences on average, and that
-band contains **every disrupted scene** at 2.2× the precision of the full
-traversal. Nothing is discarded; the wider bands are one click away.
+**The impact map** is ranked, not just listed, and drawn as what it is. A
+shooting day is a dense graph: five scenes, three locations, two units and one
+call sheet put almost everything within a few hops of everything else. The
+traversal finds every labelled consequence in the corpus — recall 1.000 on
+departments, scenes and access arrangements — and then ranks what it found by
+how directly the disruption reaches it. The screen leads with **31 of 118**
+consequences on average, and that band contains **every disrupted scene** at 2.2×
+the precision of the full traversal. Nothing is discarded; the wider bands are
+one click away.
+
+The diagram places each entity by traversal depth and clusters it by kind, so
+the shape of the problem — access arrangements at depth two, crew at depth three
+— is visible before a word is read. Layout is a pure function of the payload:
+types ordered by size then name, members by depth then id. Two runs of the same
+disruption draw the same picture, pixel for pixel, and no number appears only in
+a drawing — the table under each one carries the data.
 
 **The executive view** is the shift, not the incident: cumulative delay, cost and
 overtime, access preservation across every disruption handled, and a

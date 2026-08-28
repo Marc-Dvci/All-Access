@@ -53,13 +53,13 @@ REVIEW_TOPIC = "production.manual-review"
 
 
 def _signing_key() -> bytes:
-    key = os.environ.get("PP_SIGNING_KEY")
+    key = os.environ.get("AA_SIGNING_KEY")
     if key:
         return key.encode("utf-8")
     # A per-process key. Signatures stay verifiable within a run, which is what
-    # the demonstration needs; a deployment sets PP_SIGNING_KEY from Secret
+    # the demonstration needs; a deployment sets AA_SIGNING_KEY from Secret
     # Manager so they stay verifiable across restarts.
-    return hashlib.sha256(f"productionpulse-{os.getpid()}-{time.time()}".encode()).digest()
+    return hashlib.sha256(f"allaccess-{os.getpid()}-{time.time()}".encode()).digest()
 
 
 _KEY = _signing_key()
@@ -328,11 +328,11 @@ class ConfluentEventBus(EventBus):
         mirror_locally: bool = True,
     ) -> None:
         super().__init__(registry, production_id)
-        self.bootstrap = bootstrap or os.environ.get("PP_KAFKA_BOOTSTRAP", "")
-        self.api_key = api_key or os.environ.get("PP_KAFKA_API_KEY", "")
-        self.api_secret = api_secret or os.environ.get("PP_KAFKA_API_SECRET", "")
+        self.bootstrap = bootstrap or os.environ.get("AA_KAFKA_BOOTSTRAP", "")
+        self.api_key = api_key or os.environ.get("AA_KAFKA_API_KEY", "")
+        self.api_secret = api_secret or os.environ.get("AA_KAFKA_API_SECRET", "")
         if not self.bootstrap:
-            raise ValueError("PP_KAFKA_BOOTSTRAP is required for the Confluent event bus")
+            raise ValueError("AA_KAFKA_BOOTSTRAP is required for the Confluent event bus")
         from confluent_kafka import Producer
 
         config = {
@@ -342,7 +342,7 @@ class ConfluentEventBus(EventBus):
             "retries": 5,
             "linger.ms": 5,
             "compression.type": "lz4",
-            "client.id": f"productionpulse-{production_id}",
+            "client.id": f"allaccess-{production_id}",
         }
         if self.api_key:
             config.update({
@@ -477,13 +477,13 @@ class ConfluentEventBus(EventBus):
 def build_bus(production_id: str = "PROD") -> LocalEventBus | ConfluentEventBus:
     """The backbone named by the environment.
 
-    `PP_STREAM_MODE=confluent` plus `PP_KAFKA_BOOTSTRAP` selects Confluent Cloud.
+    `AA_STREAM_MODE=confluent` plus `AA_KAFKA_BOOTSTRAP` selects Confluent Cloud.
     Anything else runs locally. If Confluent is requested and cannot be reached,
     this raises rather than silently falling back — being told the demo ran on
     Confluent when it did not is worse than being told it failed.
     """
     registry = build_registry()
-    mode = os.environ.get("PP_STREAM_MODE", "local").lower()
+    mode = os.environ.get("AA_STREAM_MODE", "local").lower()
     if mode == "confluent":
         return ConfluentEventBus(registry, production_id)
     return LocalEventBus(registry, production_id)

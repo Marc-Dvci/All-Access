@@ -9,10 +9,10 @@ from __future__ import annotations
 
 import pytest
 
-from productionpulse.contracts import Authority, EventType
-from productionpulse.production import world as w
-from productionpulse.stream import governance
-from productionpulse.stream.schemas import (
+from allaccess.contracts import Authority, EventType
+from allaccess.production import world as w
+from allaccess.stream import governance
+from allaccess.stream.schemas import (
     CONTRACTS,
     CONTRACTS_BY_SUBJECT,
     assert_all_governed,
@@ -20,7 +20,7 @@ from productionpulse.stream.schemas import (
     contract_for,
     subject_for,
 )
-from productionpulse.stream.views import FLINK_STATEMENTS, MaterializedViews
+from allaccess.stream.views import FLINK_STATEMENTS, MaterializedViews
 
 
 def _weather_payload(**overrides):
@@ -263,7 +263,7 @@ def test_replay_reproduces_state_exactly(bus) -> None:
 
 def test_out_of_order_event_is_counted_not_dropped() -> None:
     """A late event is applied and counted, not silently discarded."""
-    from productionpulse.contracts import Event, EventEnvelope, stable_hash, utcnow
+    from allaccess.contracts import Event, EventEnvelope, stable_hash, utcnow
 
     views = MaterializedViews()
     late_time = w.at(2, 0)

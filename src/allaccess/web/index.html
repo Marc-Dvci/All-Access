@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>All-Access — production control</title>
+<meta name="description" content="Real-time production decision and execution infrastructure. Every disruption becomes a provably feasible, human-approved recovery plan.">
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<!-- Navigation glyphs. One sprite, referenced by <use>, so the markup below
+     stays readable and no icon font can fail to load and leave a row of boxes.
+     Every one is aria-hidden: the label beside it is the accessible name, and
+     nothing here is the only carrier of meaning. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <g id="i-stroke" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></g>
+    <symbol id="i-board" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6"/></g></symbol>
+    <symbol id="i-intake" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"/><path d="M12 3v11"/><path d="M8 10l4 4 4-4"/></g></symbol>
+    <symbol id="i-impact" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.2"/><path d="M6.8 6.8a7.4 7.4 0 0 0 0 10.4"/><path d="M17.2 6.8a7.4 7.4 0 0 1 0 10.4"/><path d="M3.4 3.4a12.2 12.2 0 0 0 0 17.2"/><path d="M20.6 3.4a12.2 12.2 0 0 1 0 17.2"/></g></symbol>
+    <symbol id="i-plans" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v17"/><path d="M5 8h14"/><path d="M5 8l-2.6 6a3 3 0 0 0 5.2 0z"/><path d="M19 8l-2.6 6a3 3 0 0 0 5.2 0z"/></g></symbol>
+    <symbol id="i-rejected" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.8"/><path d="M5.8 5.8l12.4 12.4"/></g></symbol>
+    <symbol id="i-spatial" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.2S19 15 19 10.2a7 7 0 1 0-14 0C5 15 12 21.2 12 21.2z"/><circle cx="12" cy="10" r="2.6"/></g></symbol>
+    <symbol id="i-approval" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5.8c0 4.5-3 7.9-7 9.2-4-1.3-7-4.7-7-9.2V6z"/><path d="M9 12l2.2 2.2L15.5 10"/></g></symbol>
+    <symbol id="i-execution" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l4.2 4.4L4 15.8"/><path d="M11.5 16H20"/></g></symbol>
+    <symbol id="i-departments" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12"/><path d="M9 12h12"/><path d="M9 18h12"/><circle cx="4.2" cy="6" r="1.2"/><circle cx="4.2" cy="12" r="1.2"/><circle cx="4.2" cy="18" r="1.2"/></g></symbol>
+    <symbol id="i-crew" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20.2a7.2 7.2 0 0 1 14.4 0"/></g></symbol>
+    <symbol id="i-executive" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20.5h18"/><path d="M6.5 20.5V12"/><path d="M12 20.5V4.5"/><path d="M17.5 20.5V9"/></g></symbol>
+    <symbol id="i-replay" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 12a8.4 8.4 0 1 0 2.6-6.1"/><path d="M3.2 4.4v5h5"/></g></symbol>
+    <symbol id="i-streams" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 7.5c2.4-2.6 4.4 2.6 6.9 0s4.4 2.6 6.9 0 4.4 2.6 4.9 1.4"/><path d="M2.6 13c2.4-2.6 4.4 2.6 6.9 0s4.4 2.6 6.9 0 4.4 2.6 4.9 1.4"/><path d="M2.6 18.5c2.4-2.6 4.4 2.6 6.9 0s4.4 2.6 6.9 0 4.4 2.6 4.9 1.4"/></g></symbol>
+  </defs>
+</svg>
+
+<header class="masthead">
+  <div class="masthead-identity">
+    <p class="mark" aria-hidden="true">PP</p>
+    <span>
+      <span class="wordmark">All-Access <span>Inclusive</span></span>
+      <span class="production" id="production-line">Loading production…</span>
+    </span>
+  </div>
+  <div class="masthead-controls">
+    <div class="field">
+      <label for="scenario-select">Disruption</label>
+      <select id="scenario-select"></select>
+    </div>
+    <button type="button" id="run-scenario" class="button primary">Run disruption</button>
+    <button type="button" id="play-demo" class="button">Play guided demo</button>
+    <button type="button" id="text-size" class="button" aria-pressed="false">Large text</button>
+  </div>
+</header>
+
+<div class="statusbar" id="statusbar">
+  <p id="live-status" role="status" aria-live="polite">Ready.</p>
+  <div class="phases" id="phase-rail"></div>
+</div>
+
+<div class="shell">
+  <nav class="tabs" aria-label="Product views">
+    <ul role="tablist" id="tablist">
+      <li role="presentation"><p class="navgroup">The day</p></li>
+      <li role="presentation"><button role="tab" id="tab-board" aria-controls="panel-board" aria-selected="true"><svg class="tabmark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-board"/></svg>Control board</button></li>
+      <li role="presentation"><button role="tab" id="tab-intake" aria-controls="panel-intake" aria-selected="false" tabindex="-1"><svg class="tabmark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-intake"/></svg>Intake</button></li>
+
+      <li role="presentation"><p class="navgroup">The decision</p></li>
+      <li role="presentation"><button role="tab" id="tab-impact" aria-controls="panel-impact" aria-selected="false" tabindex="-1"><svg class="tabmark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-impact"/></svg>Impact map</button></li>
+      <li role="presentation"><button role="tab" id="tab-plans" aria-controls="panel-plans" aria-selected="false" tabindex="-1"><svg class="tabmark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-plans"/></svg>Plan comparison</button></li>
+      <li role="presentation"><button role="tab" id="tab-rejected" aria-controls="panel-rejected" aria-selected="false" tabindex="-1"><svg class="tabmark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-rejected"/></svg>Infeasible plans</button></li>
+      <li role="presentation"><button role="tab" id="tab-spatial" aria-controls="panel-spatial" aria-selected="false" tabindex="-1"><svg class="tabmark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-spatial"/></svg>Spatial survey</button></li>
+
+      <li role="presentation"><p class="navgroup">The action</p></li>
+      <li role="presentation"><button role="tab" id="tab-approval" aria-controls="panel-approval" aria-selected="false" tabindex="-1"><svg class="tabmark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-approval"/></svg>Approval</button></li>
+      <li role="presentation"><button role="tab" id="tab-execution" aria-controls="panel-execution" aria-selected="false" tabindex="-1"><svg class="tabmark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-execution"/></svg>Execution</button></li>
+      <li role="presentation"><button role="tab" id="tab-departments" aria-controls="panel-departments" aria-selected="false" tabindex="-1"><svg class="tabmark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-departments"/></svg>Departments</button></li>
+
+      <li role="presentation"><p class="navgroup">Who it reaches</p></li>
+      <li role="presentation"><button role="tab" id="tab-crew" aria-controls="panel-crew" aria-selected="false" tabindex="-1"><svg class="tabmark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-crew"/></svg>Crew view</button></li>
+      <li role="presentation"><button role="tab" id="tab-executive" aria-controls="panel-executive" aria-selected="false" tabindex="-1"><svg class="tabmark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-executive"/></svg>Executive</button></li>
+
+      <li role="presentation"><p class="navgroup">The evidence</p></li>
+      <li role="presentation"><button role="tab" id="tab-replay" aria-controls="panel-replay" aria-selected="false" tabindex="-1"><svg class="tabmark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-replay"/></svg>Decision replay</button></li>
+      <li role="presentation"><button role="tab" id="tab-streams" aria-controls="panel-streams" aria-selected="false" tabindex="-1"><svg class="tabmark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-streams"/></svg>Streams</button></li>
+    </ul>
+  </nav>
+
+  <main id="main" tabindex="-1">
+    <section role="tabpanel" id="panel-board" aria-labelledby="tab-board">
+      <h1>Production control board</h1>
+      <p class="lede">Where the day stands, what changed, and what is waiting on a person.</p>
+      <div id="board-content" class="loading">Loading…</div>
+    </section>
+
+    <section role="tabpanel" id="panel-intake" aria-labelledby="tab-intake" hidden>
+      <h1>Disruption intake</h1>
+      <p class="lede">The event as it arrived, its authority, and whether it may be acted on without human confirmation.</p>
+      <div id="intake-content" class="loading">Loading…</div>
+    </section>
+
+    <section role="tabpanel" id="panel-impact" aria-labelledby="tab-impact" hidden>
+      <h1>Impact map</h1>
+      <p class="lede">Everything the disruption reaches, ranked by how directly. Expand a consequence to see the path that produced it.</p>
+      <div id="impact-content" class="loading">Loading…</div>
+    </section>
+
+    <section role="tabpanel" id="panel-plans" aria-labelledby="tab-plans" hidden>
+      <h1>Plan comparison</h1>
+      <p class="lede">Only plans proved feasible against every hard constraint appear here. Hard constraints are not traded off against objectives.</p>
+      <div id="plans-content" class="loading">Loading…</div>
+    </section>
+
+    <section role="tabpanel" id="panel-rejected" aria-labelledby="tab-rejected" hidden>
+      <h1>Infeasible plan explorer</h1>
+      <p class="lede">Why each rejected option cannot be used, the measurement that decides it, and whether the required change is permitted.</p>
+      <div id="rejected-content" class="loading">Loading…</div>
+    </section>
+
+    <section role="tabpanel" id="panel-spatial" aria-labelledby="tab-spatial" hidden>
+      <h1>Spatial location survey</h1>
+      <p class="lede">Routes, gradients, clear widths and thresholds — the measurements a step-free route either meets or does not.</p>
+      <div id="spatial-content" class="loading">Loading…</div>
+    </section>
+
+    <section role="tabpanel" id="panel-approval" aria-labelledby="tab-approval" hidden>
+      <h1>Approval workspace</h1>
+      <p class="lede">What is being approved, by whom, bound to the exact plan and the exact constraint set in force.</p>
+      <div id="approval-content" class="loading">Loading…</div>
+    </section>
+
+    <section role="tabpanel" id="panel-execution" aria-labelledby="tab-execution" hidden>
+      <h1>Execution and verification</h1>
+      <p class="lede">Every command, its target system, its dependencies, and whether the day is allowed to be called ready.</p>
+      <div id="execution-content" class="loading">Loading…</div>
+    </section>
+
+    <section role="tabpanel" id="panel-departments" aria-labelledby="tab-departments" hidden>
+      <h1>Department work queue</h1>
+      <p class="lede">What changed, why it matters, the exact action, and who has accepted it.</p>
+      <div id="departments-content" class="loading">Loading…</div>
+    </section>
+
+    <section role="tabpanel" id="panel-crew" aria-labelledby="tab-crew" hidden>
+      <h1>Crew view</h1>
+      <p class="lede">What one person is sent. Nothing on this screen records why an arrangement exists — there is no such field in the system.</p>
+      <div id="crew-content" class="loading">Loading…</div>
+    </section>
+
+    <section role="tabpanel" id="panel-executive" aria-labelledby="tab-executive" hidden>
+      <h1>Executive view</h1>
+      <p class="lede">Aggregate only. Personal requirements are removed by the redaction layer, not hidden by this page.</p>
+      <div id="executive-content" class="loading">Loading…</div>
+    </section>
+
+    <section role="tabpanel" id="panel-replay" aria-labelledby="tab-replay" hidden>
+      <h1>Decision replay</h1>
+      <p class="lede">The real event log for this disruption, and the proof that replaying it reproduces the live state exactly.</p>
+      <div id="replay-content" class="loading">Loading…</div>
+    </section>
+
+    <section role="tabpanel" id="panel-streams" aria-labelledby="tab-streams" hidden>
+      <h1>Event streams and governance</h1>
+      <p class="lede">The catalogue, the data contracts, the dead-letter queue and what was suppressed on write.</p>
+      <div id="streams-content" class="loading">Loading…</div>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">
+  <p id="about-line">All-Access — a decision and execution operating system for film and television production.</p>
+</footer>
+
+<script src="/static/app.js"></script>
+<script src="/static/demo.js"></script>
+</body>
+</html>

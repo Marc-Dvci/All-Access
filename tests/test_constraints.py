@@ -12,7 +12,7 @@ from datetime import timedelta
 
 import pytest
 
-from productionpulse.constraints.registry import (
+from allaccess.constraints.registry import (
     CONSTRAINTS,
     CONSTRAINTS_BY_ID,
     PROHIBITED_CHANGES,
@@ -22,14 +22,14 @@ from productionpulse.constraints.registry import (
     required_approvals,
     validate_registry,
 )
-from productionpulse.contracts import ConstraintKind, Role
-from productionpulse.production import world as w
-from productionpulse.solver.model import (
+from allaccess.contracts import ConstraintKind, Role
+from allaccess.production import world as w
+from allaccess.solver.model import (
     CandidatePlan,
     baseline_assignments,
     build_problem,
 )
-from productionpulse.solver.predicates import PREDICATES
+from allaccess.solver.predicates import PREDICATES
 
 
 def _baseline_plan() -> CandidatePlan:

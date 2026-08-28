@@ -9,7 +9,7 @@ an honest demonstration rather than a mock.
 
 `ConfluentSchemaRegistry` talks to a real Confluent Cloud Schema Registry over
 its REST API: it registers subjects, sets compatibility modes, and validates
-against the registered schema. Set `PP_SCHEMA_REGISTRY_URL` and credentials and
+against the registered schema. Set `AA_SCHEMA_REGISTRY_URL` and credentials and
 the same code path runs against the hosted service.
 
 The important property either way is that **validation is not optional**.
@@ -187,9 +187,9 @@ class ConfluentSchemaRegistry:
         api_secret: str | None = None,
         timeout: float = 10.0,
     ) -> None:
-        self.url = (url or os.environ.get("PP_SCHEMA_REGISTRY_URL", "")).rstrip("/")
-        self.api_key = api_key or os.environ.get("PP_SCHEMA_REGISTRY_KEY", "")
-        self.api_secret = api_secret or os.environ.get("PP_SCHEMA_REGISTRY_SECRET", "")
+        self.url = (url or os.environ.get("AA_SCHEMA_REGISTRY_URL", "")).rstrip("/")
+        self.api_key = api_key or os.environ.get("AA_SCHEMA_REGISTRY_KEY", "")
+        self.api_secret = api_secret or os.environ.get("AA_SCHEMA_REGISTRY_SECRET", "")
         self.timeout = timeout
         self._local = LocalSchemaRegistry()
         self.degraded = False
@@ -198,7 +198,7 @@ class ConfluentSchemaRegistry:
         self.rejections = 0
         if not self.url:
             raise ValueError(
-                "PP_SCHEMA_REGISTRY_URL is required for the Confluent Schema Registry"
+                "AA_SCHEMA_REGISTRY_URL is required for the Confluent Schema Registry"
             )
 
     def _client(self):
@@ -269,12 +269,12 @@ class ConfluentSchemaRegistry:
 def build_registry() -> SchemaRegistry:
     """The registry named by the environment, or the local one.
 
-    `PP_STREAM_MODE=confluent` selects the hosted registry. Anything else, or a
+    `AA_STREAM_MODE=confluent` selects the hosted registry. Anything else, or a
     missing URL, gets the local one — and the CLI prints which is in use, so a
     judge always knows which they are looking at.
     """
-    mode = os.environ.get("PP_STREAM_MODE", "local").lower()
-    if mode == "confluent" and os.environ.get("PP_SCHEMA_REGISTRY_URL"):
+    mode = os.environ.get("AA_STREAM_MODE", "local").lower()
+    if mode == "confluent" and os.environ.get("AA_SCHEMA_REGISTRY_URL"):
         registry = ConfluentSchemaRegistry()
         registry.register_all()
         return registry

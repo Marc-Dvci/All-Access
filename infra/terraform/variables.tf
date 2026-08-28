@@ -10,7 +10,7 @@ variable "region" {
 }
 
 variable "image_tag" {
-  description = "Tag of the ProductionPulse image in Artifact Registry."
+  description = "Tag of the All-Access image in Artifact Registry."
   type        = string
   default     = "latest"
 }

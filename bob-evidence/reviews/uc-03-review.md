@@ -4,7 +4,7 @@
 in advance. Sections 3 and 4 are empty and stay empty until there is something
 true to put in them.**
 
-Cited from `src/productionpulse/systems/callsheet_legacy.py`,
+Cited from `src/allaccess/systems/callsheet_legacy.py`,
 `callsheet_modern.py` and `pyproject.toml`.
 
 ---

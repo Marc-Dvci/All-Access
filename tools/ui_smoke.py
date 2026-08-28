@@ -32,6 +32,7 @@ Exit status is 0 only if every view drew and nothing was logged.
 from __future__ import annotations
 
 import argparse
+import re
 import socket
 import subprocess
 import sys
@@ -39,6 +40,7 @@ import time
 import urllib.error
 import urllib.request
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -97,7 +99,7 @@ def wait_for(url: str, timeout: float = 60.0) -> bool:
 
 def start_server(port: int) -> subprocess.Popen:
     proc = subprocess.Popen(
-        [sys.executable, "-m", "uvicorn", "productionpulse.api:app",
+        [sys.executable, "-m", "uvicorn", "allaccess.api:app",
          "--port", str(port), "--log-level", "warning"],
         cwd=str(ROOT),
         stdout=subprocess.DEVNULL,
@@ -107,6 +109,57 @@ def start_server(port: int) -> subprocess.Popen:
         proc.terminate()
         raise SystemExit("server did not become healthy within 60 s")
     return proc
+
+
+#: The guided demonstration is what a judge watches, so it is checked the same
+#: way the product is: played end to end in a real browser, at speed, with every
+#: beat required to put a caption on screen. A demonstration that silently skips
+#: a chapter is a three-minute video with a hole in it, and nothing else in this
+#: repository would notice.
+DEMO_SPEED = 14
+DEMO_MAX_SECONDS = 180
+
+
+def drive_demo(page: Any, failures: "Failures", shots: Path | None) -> None:
+    page.goto(f"{page.url.split('?')[0]}?demo=1&speed={DEMO_SPEED}", wait_until="networkidle")
+
+    declared = page.evaluate("() => window.AllAccessDemo.seconds")
+    beats = page.evaluate("() => window.AllAccessDemo.beats")
+    if declared > DEMO_MAX_SECONDS:
+        failures.add("demo", f"runs {declared:.0f} s, over the {DEMO_MAX_SECONDS} s limit")
+
+    seen: set[int] = set()
+    captioned: set[int] = set()
+    budget = int((declared / DEMO_SPEED + 30) / 0.12)
+    for _ in range(budget):
+        page.wait_for_timeout(120)
+        label = page.inner_text("#demo-hud")
+        match = re.search(r"(\d+) of (\d+)", label)
+        if match:
+            index = int(match.group(1))
+            seen.add(index)
+            # The narration line specifically, not the caption box: the box also
+            # holds the chapter name, so reading the whole thing reports a
+            # caption for a beat whose narration is empty. Confirmed by blanking
+            # one beat's `say` and watching this fail.
+            if page.inner_text("#demo-caption .c-line").strip():
+                captioned.add(index)
+        if not page.evaluate("() => document.body.classList.contains('demo-on')") and seen:
+            break
+    else:
+        failures.add("demo", "never finished")
+
+    missing = sorted(set(range(1, beats + 1)) - seen)
+    if missing:
+        failures.add("demo", f"beats never reached: {missing}")
+    # The title and closing cards carry their text in the card, not the caption.
+    silent = sorted(seen - captioned - {1, beats})
+    if silent:
+        failures.add("demo", f"beats that drew no caption: {silent}")
+
+    if shots:
+        page.screenshot(path=str(shots / "demo.png"))
+    print(f"  ok   guided demo         {len(seen)}/{beats} beats, {declared:.0f} s at 1x")
 
 
 def run(url: str, shots: Path | None, headed: bool) -> int:
@@ -180,10 +233,16 @@ def run(url: str, shots: Path | None, headed: bool) -> int:
                 failures.add(name, f"rendered {errors} error chip(s): {text[:160]!r}")
 
             # A dash where a value belongs usually means a field name that does
-            # not exist in the payload. Reported, not failed — some are real.
-            dashes = text.count("—")
+            # not exist in the payload. Counted on table cells whose whole
+            # content is the placeholder, not on the rendered text: an em-dash
+            # is also ordinary punctuation, and counting those made a view fail
+            # for the prose in its own captions.
+            dashes = page.eval_on_selector_all(
+                f"#{container} td",
+                "els => els.filter(e => e.textContent.trim() === '\\u2014').length",
+            )
             if dashes > 40:
-                failures.add(name, f"{dashes} em-dash placeholders — likely missing fields")
+                failures.add(name, f"{dashes} placeholder cells — likely missing fields")
 
             if shots:
                 page.screenshot(path=str(shots / f"{tab}.png"), full_page=True)
@@ -272,6 +331,8 @@ def run(url: str, shots: Path | None, headed: bool) -> int:
 
         if shots:
             page.screenshot(path=str(shots / "board-after-rerun.png"), full_page=True)
+
+        drive_demo(page, failures, shots)
 
         browser.close()
 

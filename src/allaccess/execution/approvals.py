@@ -38,10 +38,10 @@ from ..contracts import (
 
 
 def _key() -> bytes:
-    configured = os.environ.get("PP_APPROVAL_KEY")
+    configured = os.environ.get("AA_APPROVAL_KEY")
     if configured:
         return configured.encode("utf-8")
-    # Per-process. A deployment supplies PP_APPROVAL_KEY from Secret Manager so
+    # Per-process. A deployment supplies AA_APPROVAL_KEY from Secret Manager so
     # approvals stay verifiable across restarts; within a demonstration run this
     # is sufficient and requires no configuration.
     return hashlib.sha256(f"pp-approval-{os.getpid()}".encode()).digest()

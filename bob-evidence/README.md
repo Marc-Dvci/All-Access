@@ -22,7 +22,7 @@ accepted.
 | `.bobignore` | Context scoping |
 | `tools/mcp_schema_registry.py` | Read-only access to the 23 data contracts, with a real compatibility check |
 | `tools/mcp_test_results.py` | Read-only access to the committed benchmark artifacts and a live pytest run |
-| `src/productionpulse/systems/callsheet_legacy.py` | The preserved before-state for UC-03, with eight documented defects |
+| `src/allaccess/systems/callsheet_legacy.py` | The preserved before-state for UC-03, with eight documented defects |
 | `USE_CASES.md`, `briefs/` | Six use cases with requirements and acceptance criteria |
 
 The two MCP servers are the part of this that is more than configuration. They

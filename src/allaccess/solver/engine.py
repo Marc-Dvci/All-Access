@@ -52,7 +52,7 @@ from . import infeasibility, objectives
 from .model import Assignment, CandidatePlan, SchedulingProblem
 from .search import PlacementRequest, schedule
 
-SOLVER_VERSION = "productionpulse-cp-1.0.0"
+SOLVER_VERSION = "allaccess-cp-1.0.0"
 MODEL_VERSION = "salt-and-light-day14-1.0.0"
 
 

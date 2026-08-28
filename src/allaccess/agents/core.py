@@ -289,13 +289,13 @@ class GeminiReasoner:
 def build_reasoner(mode: str | None = None) -> Reasoner:
     """The reasoning plane named by the environment or the CLI.
 
-    Defaults to offline. `PP_REASONING_MODE=gemini` (or `--reasoning gemini`)
+    Defaults to offline. `AA_REASONING_MODE=gemini` (or `--reasoning gemini`)
     selects Vertex AI.
     """
-    selected = (mode or os.environ.get("PP_REASONING_MODE", "offline")).lower()
+    selected = (mode or os.environ.get("AA_REASONING_MODE", "offline")).lower()
     if selected == "gemini":
         return GeminiReasoner(
-            model=os.environ.get("PP_GEMINI_MODEL", "gemini-2.5-flash")
+            model=os.environ.get("AA_GEMINI_MODEL", "gemini-2.5-flash")
         )
     return OfflineReasoner()
 

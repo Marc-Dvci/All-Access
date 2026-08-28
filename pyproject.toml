@@ -3,13 +3,13 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "productionpulse"
+name = "allaccess"
 version = "0.1.0"
-description = "ProductionPulse Inclusive - Real-Time Production Decision and Execution Infrastructure (IBM track, Agentic Cinema)"
+description = "All-Access - Real-Time Production Decision and Execution Infrastructure (IBM track, Agentic Cinema)"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
-authors = [{ name = "ProductionPulse Team" }]
+authors = [{ name = "All-Access Team" }]
 
 dependencies = [
   "fastapi>=0.115",
@@ -56,13 +56,13 @@ browser = [
 ]
 
 [project.scripts]
-productionpulse = "productionpulse.cli:app"
+allaccess = "allaccess.cli:app"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-productionpulse = ["web/**/*", "schemas/**/*"]
+allaccess = ["web/**/*", "schemas/**/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -82,12 +82,12 @@ select = ["E", "F", "W", "I"]
 # The screenplay and the production world: scene action lines, dialogue and
 # their translations. Rewrapping a line of a script to satisfy a line-length
 # rule makes the script harder to read and the translations harder to compare.
-"src/productionpulse/production/script.py" = ["E501"]
-"src/productionpulse/production/world.py" = ["E501"]
+"src/allaccess/production/script.py" = ["E501"]
+"src/allaccess/production/world.py" = ["E501"]
 # Role-specific communications are multi-line templates. A `noqa` inside one
 # would be rendered into the message a crew member actually reads.
-"src/productionpulse/agents/communication.py" = ["E501"]
+"src/allaccess/agents/communication.py" = ["E501"]
 # The legacy adapter is deliberately bad code, preserved as the "before" side of
 # the IBM Bob modernization evidence. Linting it clean would destroy the
 # artifact. See bob-evidence/USE_CASES.md#uc-03.
-"src/productionpulse/systems/callsheet_legacy.py" = ["E501", "E741", "F841", "E722", "E711"]
+"src/allaccess/systems/callsheet_legacy.py" = ["E501", "E741", "F841", "E722", "E711"]

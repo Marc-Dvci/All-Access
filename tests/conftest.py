@@ -19,22 +19,22 @@ for path in (ROOT / "src", ROOT):
 
 @pytest.fixture(scope="session")
 def twin():
-    from productionpulse.twin import build_twin
+    from allaccess.twin import build_twin
 
     return build_twin()
 
 
 @pytest.fixture()
 def storm_problem(twin):
-    from productionpulse.disruptions import STORM_SCENARIO, scenario_problem
+    from allaccess.disruptions import STORM_SCENARIO, scenario_problem
 
     return scenario_problem(STORM_SCENARIO, twin=twin)
 
 
 @pytest.fixture()
 def bus():
-    from productionpulse.production import world as w
-    from productionpulse.stream.bus import LocalEventBus
-    from productionpulse.stream.registry import LocalSchemaRegistry
+    from allaccess.production import world as w
+    from allaccess.stream.bus import LocalEventBus
+    from allaccess.stream.registry import LocalSchemaRegistry
 
     return LocalEventBus(LocalSchemaRegistry(), w.PRODUCTION_ID)

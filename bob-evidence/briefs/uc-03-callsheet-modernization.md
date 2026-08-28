@@ -9,7 +9,7 @@
 
 ## 1. Requirement
 
-`src/productionpulse/systems/callsheet_legacy.py` is the integration that
+`src/allaccess/systems/callsheet_legacy.py` is the integration that
 publishes a revised call sheet to the production's call-sheet system. It is
 representative of the integrations real productions actually run: written
 quickly, kept alive because it works most of the time, and never given a
@@ -53,7 +53,7 @@ Each is mechanically checkable. A session is not complete until all pass.
 | 4 | Revision numbering correct | First publish is revision 2 *of* revision 1, asserted in tests |
 | 5 | Typed failures | A rejected command returns a `CommandResult` with status and reason, never `None` |
 | 6 | Stale plan versions rejected | Failure test |
-| 7 | Participates in the hero workflow | `python -m productionpulse.cli hero` → 11/11, connector publishes and acknowledges |
+| 7 | Participates in the hero workflow | `python -m allaccess.cli hero` → 11/11, connector publishes and acknowledges |
 | 8 | No personal data in logs | `privacy.check_no_prohibited_fields` over the emitted lines |
 | 9 | Clean | `pytest -q` and `ruff check src tests` |
 
@@ -64,7 +64,7 @@ appears to require any of them, it does not — raise it instead.
 
 ## 6. Reference target
 
-`src/productionpulse/systems/callsheet_modern.py` exists and meets all nine
+`src/allaccess/systems/callsheet_modern.py` exists and meets all nine
 criteria. It was **written by hand**, and its docstring says so.
 
 Two ways to run this use case, and the ledger must record which:

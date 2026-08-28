@@ -19,7 +19,7 @@ rows on every push.
 ## 1. What is being measured against what
 
 Ground truth lives on the `Scenario` objects in
-`src/productionpulse/disruptions.py`. **Nothing in `src/productionpulse/` reads
+`src/allaccess/disruptions.py`. **Nothing in `src/allaccess/` reads
 those fields.** Two rules keep the harness honest:
 
 1. **No metric is computed from a value the system reported about itself.** The

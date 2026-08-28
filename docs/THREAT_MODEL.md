@@ -1,6 +1,6 @@
 # Threat model
 
-Scope: the ProductionPulse application plane, its agent plane, and the event
+Scope: the All-Access application plane, its agent plane, and the event
 backbone between them. Out of scope: the security of Confluent Cloud, Google
 Cloud, or the downstream production systems this integrates with.
 
@@ -97,7 +97,7 @@ Holding a valid signature does not make someone the right person to sign, and a
 change type absent from the matrix cannot be executed at all — the policy agent
 fails closed.
 
-**Residual.** The signing key is per-process unless `PP_APPROVAL_KEY` is
+**Residual.** The signing key is per-process unless `AA_APPROVAL_KEY` is
 supplied. A deployment must supply it from Secret Manager or approvals stop
 verifying across a restart. `infra/terraform` provisions the secret; it does not
 populate it.

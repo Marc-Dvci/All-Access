@@ -15,8 +15,8 @@ env:
   # Every job runs the offline reasoning plane and the in-process bus. CI has no
   # credentials, and a pipeline that needs them is a pipeline that goes red for
   # reasons unrelated to the code.
-  PP_REASONING_MODE: offline
-  PP_EVENT_BACKBONE: local
+  AA_REASONING_MODE: offline
+  AA_EVENT_BACKBONE: local
 
 jobs:
   quality:
@@ -42,7 +42,7 @@ jobs:
         run: pytest -q
 
       - name: Accessibility audit
-        # 62 static WCAG 2.2 AA checks over the web client. Non-zero on any
+        # 78 static WCAG 2.2 AA checks over the web client. Non-zero on any
         # failure; the artifact is committed so a regression shows as a diff.
         run: |
           python tools/a11y_audit.py
@@ -81,7 +81,7 @@ jobs:
         # command completion, verification blocking on a real missing
         # acceptance, access preservation, hash chain and replay. Exit code is
         # the assertion result.
-        run: python -m productionpulse.cli hero
+        run: python -m allaccess.cli hero
 
       - name: Benchmark smoke
         # 48 scenarios, roughly twenty seconds. The full 1,000-scenario run is
@@ -138,8 +138,18 @@ jobs:
         # target system and calling it ready while verification was blocking
         # the day. This job opens all thirteen views, fails on any console
         # error, uncaught exception or failed request, and exercises the
-        # selects, the keyboard tab pattern and a full re-run.
+        # selects, the keyboard tab pattern and a full re-run. It also plays the
+        # guided demonstration end to end at speed and requires every beat to
+        # reach its view and draw its narration caption — the demonstration is
+        # what a judge watches, and a chapter that silently stopped appearing is
+        # a hole in a three-minute video that nothing else here would notice.
         run: python tools/ui_smoke.py --shots artifacts/screenshots
+
+      - name: The demonstration script matches the demonstration
+        # docs/DEMO_SCRIPT.md is generated from the beats in web/demo.js. A
+        # retimed beat with a stale script is a wrong cue sheet in the hands of
+        # whoever is recording.
+        run: python tools/demo_script.py --check
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -190,11 +200,11 @@ jobs:
           done
 
       - name: Build the container image
-        run: docker build -t productionpulse:ci .
+        run: docker build -t allaccess:ci .
 
       - name: The image serves the application
         run: |
-          docker run -d --name pp -p 8080:8080 productionpulse:ci
+          docker run -d --name pp -p 8080:8080 allaccess:ci
           for attempt in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:8080/healthz > /dev/null; then break; fi
             sleep 2

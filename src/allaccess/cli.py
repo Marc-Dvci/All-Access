@@ -1,6 +1,6 @@
 """Command line interface.
 
-`productionpulse hero` runs the complete hero workflow offline: storm event to
+`allaccess hero` runs the complete hero workflow offline: storm event to
 Confluent, digital-twin scope, parallel expert assessment, deterministic
 planning, robustness simulation, human approval, saga execution across thirteen
 systems, reconciliation, a genuine verification block, resolution, and the
@@ -28,7 +28,7 @@ from .stream.bus import build_bus
 from .systems import build_systems
 from .twin import build_twin, certify_baseline
 
-app = typer.Typer(add_completion=False, help="ProductionPulse Inclusive")
+app = typer.Typer(add_completion=False, help="All-Access")
 console = Console()
 
 

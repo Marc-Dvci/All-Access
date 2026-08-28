@@ -1,11 +1,11 @@
-# Dataset card — the ProductionPulse disruption corpus
+# Dataset card — the All-Access disruption corpus
 
 ## Summary
 
 | | |
 |---|---|
-| **Name** | ProductionPulse disruption corpus |
-| **Location** | `src/productionpulse/disruptions.py` |
+| **Name** | All-Access disruption corpus |
+| **Location** | `src/allaccess/disruptions.py` |
 | **Size** | 1,000 scenarios at the committed seed; `generate(n)` produces any size |
 | **Seed** | 20260314. Same seed, same corpus, on any machine |
 | **Families** | 7 (weather, cast and crew, location, equipment, access and communication, continuity, operational systems) |
@@ -30,7 +30,7 @@ Scenario(
 )
 ```
 
-Nothing in `src/productionpulse/` reads the `expected_*` fields. They exist so
+Nothing in `src/allaccess/` reads the `expected_*` fields. They exist so
 `bench/harness.py` can score against them, which is the only reason the recall
 and precision numbers in `BENCHMARK.md` mean anything.
 

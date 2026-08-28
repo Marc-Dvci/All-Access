@@ -70,8 +70,8 @@ def _worker(args: tuple[dict, int, int, list[int]]) -> list[dict]:
     Windows spawn is slower than rebuilding them.
     """
     config_kwargs, count, seed, indices = args
-    from productionpulse.disruptions import generate
-    from productionpulse.twin import build_twin
+    from allaccess.disruptions import generate
+    from allaccess.twin import build_twin
 
     config = RunConfig(**config_kwargs)
     scenarios = generate(count, seed=seed)
@@ -129,7 +129,7 @@ def _environment(count: int, seed: int, workers: int) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="ProductionPulse benchmark")
+    parser = argparse.ArgumentParser(description="All-Access benchmark")
     parser.add_argument("--count", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=20260314)
     parser.add_argument("--workers", type=int, default=1)

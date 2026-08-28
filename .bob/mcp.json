@@ -23,9 +23,9 @@
       "command": "python",
       "args": ["-m", "tools.mcp_schema_registry"],
       "env": {
-        "PP_SCHEMA_REGISTRY_URL": "${env:PP_SCHEMA_REGISTRY_DEV_URL}",
-        "PP_SCHEMA_REGISTRY_KEY": "${env:PP_SCHEMA_REGISTRY_DEV_KEY}",
-        "PP_SCHEMA_REGISTRY_SECRET": "${env:PP_SCHEMA_REGISTRY_DEV_SECRET}"
+        "AA_SCHEMA_REGISTRY_URL": "${env:AA_SCHEMA_REGISTRY_DEV_URL}",
+        "AA_SCHEMA_REGISTRY_KEY": "${env:AA_SCHEMA_REGISTRY_DEV_KEY}",
+        "AA_SCHEMA_REGISTRY_SECRET": "${env:AA_SCHEMA_REGISTRY_DEV_SECRET}"
       },
       "alwaysAllow": ["list_subjects", "get_schema", "check_compatibility"],
       "disabled": false

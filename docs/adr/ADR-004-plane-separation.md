@@ -25,7 +25,7 @@ and the twin state sequence it was computed against; that guarantee cannot
 survive being computed inside a hosted agent.
 
 **Everything in Cloud Run including the model calls.** Workable — it is what
-`PP_REASONING_MODE=gemini` on Cloud Run actually does. The separate Agent Engine
+`AA_REASONING_MODE=gemini` on Cloud Run actually does. The separate Agent Engine
 deployment exists because the managed runtime provides sessions, tracing and
 evaluation that are worth having for the narration plane specifically.
 

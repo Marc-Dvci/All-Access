@@ -37,7 +37,7 @@ from typing import Any
 
 #: Where the read model lives. The hosted agent is given the deployed service's
 #: URL; locally this is the uvicorn process from `docs/JUDGE.md`.
-API_BASE = os.environ.get("PP_API_BASE", "http://127.0.0.1:8765")
+API_BASE = os.environ.get("AA_API_BASE", "http://127.0.0.1:8765")
 
 _TIMEOUT = 15.0
 
@@ -278,7 +278,7 @@ TOOLS = (
 TOOL_NAMES: frozenset[str] = frozenset(t.__name__ for t in TOOLS)
 
 
-def build_agent(model: str = "gemini-2.5-flash", *, name: str = "productionpulse_reasoning"):
+def build_agent(model: str = "gemini-2.5-flash", *, name: str = "allaccess_reasoning"):
     """Construct the ADK agent. Requires `google-adk`; see the `cloud` extra.
 
     Kept separate from `TOOLS` so the tool surface can be tested, and the
@@ -292,7 +292,7 @@ def build_agent(model: str = "gemini-2.5-flash", *, name: str = "productionpulse
         name=name,
         model=model,
         description=(
-            "Interpretation and explanation plane for ProductionPulse Inclusive. "
+            "Interpretation and explanation plane for All-Access. "
             "Explains deterministic decisions; does not make them."
         ),
         instruction=GeminiReasoner.SYSTEM_INSTRUCTION,

@@ -1,0 +1,206 @@
+/* Guided demonstration overlay.
+ *
+ * Loaded on every page but inert until the demonstration is started, so nothing
+ * here is in the way of a person using the product. Everything is fixed-position
+ * and pointer-events:none except the stop control — the demonstration drives the
+ * real client underneath and must never intercept its clicks.
+ *
+ * These rules are not part of the audited product surface: tools/a11y_audit.py
+ * reads index.html, styles.css and app.js. The overlay is nonetheless built so
+ * that turning it on removes nothing — the page stays operable, focus is never
+ * trapped, and Escape ends it at any point.
+ */
+
+.demo-on { cursor: none; }
+
+/* -- progress ------------------------------------------------------------- */
+
+#demo-progress {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.18);
+  z-index: 9000;
+  pointer-events: none;
+}
+#demo-progress > span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transition: width 200ms linear;
+}
+
+/* -- chapter badge -------------------------------------------------------- */
+
+/* Bottom left, not top right: the app bar's own controls live top right, and a
+   badge sitting on top of the "Run disruption" button in a recording reads as a
+   rendering fault rather than as chrome. */
+#demo-hud {
+  position: fixed;
+  bottom: 18px;
+  left: 18px;
+  z-index: 9002;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.5rem 0.4rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(12, 16, 22, 0.88);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+#demo-hud .h-dot {
+  width: 0.5rem; height: 0.5rem; border-radius: 50%;
+  background: #ff5b5b;
+}
+#demo-hud button {
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: transparent;
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  min-height: 1.7rem;
+}
+#demo-hud button:hover { background: rgba(255, 255, 255, 0.16); }
+
+/* -- caption -------------------------------------------------------------- */
+
+#demo-caption {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  z-index: 9002;
+  width: min(62rem, calc(100vw - 3rem));
+  padding: 0.85rem 1.2rem 0.95rem;
+  border-radius: 14px;
+  background: rgba(12, 16, 22, 0.92);
+  color: #ffffff;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.42);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+#demo-caption.visible { opacity: 1; }
+#demo-caption .c-chapter {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9fc4ff;
+  margin-bottom: 0.2rem;
+}
+#demo-caption .c-line {
+  display: block;
+  font-size: 1.1rem;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+/* -- simulated pointer ---------------------------------------------------- */
+
+#demo-cursor {
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 9003;
+  width: 22px;
+  height: 22px;
+  margin: -3px 0 0 -3px;
+  pointer-events: none;
+  opacity: 0;
+  transition: transform 620ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 200ms ease;
+}
+#demo-cursor.visible { opacity: 1; }
+#demo-cursor svg { display: block; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5)); }
+#demo-cursor .ring {
+  position: absolute;
+  left: -9px; top: -9px;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  opacity: 0;
+  transform: scale(0.4);
+}
+#demo-cursor.click .ring { animation: demo-ping 460ms ease-out; }
+
+@keyframes demo-ping {
+  0%   { opacity: 0.9; transform: scale(0.35); }
+  100% { opacity: 0;   transform: scale(1.25); }
+}
+
+/* -- spotlight ------------------------------------------------------------
+ * One element lit, the rest of the page dimmed by an enormous spread shadow on
+ * a transparent box. Cheaper and steadier under screen capture than an SVG mask,
+ * and it never reflows the page underneath it. */
+
+#demo-spot {
+  position: fixed;
+  z-index: 9001;
+  border-radius: 12px;
+  pointer-events: none;
+  opacity: 0;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 9999px rgba(6, 10, 16, 0.55);
+  transition: opacity 260ms ease, top 420ms ease, left 420ms ease,
+              width 420ms ease, height 420ms ease;
+}
+#demo-spot.visible { opacity: 1; }
+
+/* -- title and end cards --------------------------------------------------- */
+
+#demo-card {
+  position: fixed;
+  inset: 0;
+  z-index: 9004;
+  display: grid;
+  place-items: center;
+  background: rgba(8, 11, 16, 0.94);
+  color: #ffffff;
+  text-align: center;
+  padding: 2rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 320ms ease;
+}
+#demo-card.visible { opacity: 1; }
+#demo-card .k-mark {
+  width: 3.4rem; height: 3.4rem; border-radius: 14px;
+  background: var(--accent); color: #ffffff;
+  display: grid; place-items: center;
+  font-weight: 800; font-size: 1.2rem;
+  margin: 0 auto 1.1rem;
+}
+#demo-card h2 {
+  margin: 0 0 0.6rem;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  text-transform: none;
+}
+#demo-card p { margin: 0 auto; max-width: 44rem; font-size: 1.05rem; color: #cfd6e0; line-height: 1.55; }
+#demo-card .k-stats {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 1.6rem;
+  margin-top: 1.8rem;
+}
+#demo-card .k-stat { min-width: 8rem; }
+#demo-card .k-stat b {
+  display: block; font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+#demo-card .k-stat span { display: block; font-size: 0.82rem; color: #9aa4b2; }
+
+@media (prefers-reduced-motion: reduce) {
+  #demo-cursor, #demo-spot, #demo-caption, #demo-card, #demo-progress > span {
+    transition: none !important;
+  }
+  #demo-cursor.click .ring { animation: none !important; }
+}

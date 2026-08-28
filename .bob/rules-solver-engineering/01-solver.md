@@ -1,7 +1,7 @@
 # Solver Engineering — additional rules
 
 - **You may implement constraints. You may not decide them.**
-  `src/productionpulse/constraints/registry.py` is owned by the production's
+  `src/allaccess/constraints/registry.py` is owned by the production's
   safety lead, UPM and accessibility coordinator. Do not edit it. If a predicate
   needs a constraint that does not exist, raise it in the brief.
 - Never change a constraint's `kind` from `HARD` to `SOFT`. A soft access or

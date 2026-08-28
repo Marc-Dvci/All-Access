@@ -13,7 +13,7 @@ pip install -e ".[dev]"
 ## Minute 1–2 — the closed loop
 
 ```bash
-python -m productionpulse.cli hero
+python -m allaccess.cli hero
 ```
 
 A storm reaches the harbour at 18:30, an hour before the night exterior on the
@@ -30,28 +30,38 @@ Watch for eleven assertions. The three that matter:
   completed successfully.
 - **"every approved access arrangement preserved — 6/6."**
 
-Expect `11/11 assertions passed | 122 events` in under a second.
+Expect `11/11 assertions passed | 131 events` in under a second.
 
 ## Minute 3 — the tests
 
 ```bash
 pytest -q                        # 233 passed
 ruff check src bench tools tests # clean
-python tools/a11y_audit.py       # 62/62
+python tools/a11y_audit.py       # 78/78
 ```
 
 ## Minute 4–6 — the product
 
 ```bash
-uvicorn productionpulse.api:app --port 8765
+uvicorn allaccess.api:app --port 8765
 ```
 
-Open <http://127.0.0.1:8765>. Thirteen views. In priority order:
+**The fastest honest tour is <http://127.0.0.1:8765/?demo=1>.** It plays a
+2 minute 53 second guided walk through the whole workflow, by itself, driving
+this client through this API over a run that starts when you open it — the same
+buttons you would press, in the same order, with the argument narrated in
+captions. Escape stops it and hands the product back. It is the same thing the
+demonstration video records, and `docs/DEMO_SCRIPT.md` is its cue sheet,
+generated from the beats themselves.
 
-1. **Impact map.** ~118 nodes from one storm. Ranked by depth: depth 1 is what
-   the disruption touched directly, depth 5 is what it reaches through four
-   intermediaries. Expand a node to see the path that reached it — an impact
-   analysis you cannot interrogate is an assertion.
+Then open <http://127.0.0.1:8765> and drive it yourself. Thirteen views, in
+priority order:
+
+1. **Impact map.** 119 entities from one storm, drawn as a blast radius:
+   distance from the centre is how many relationships the disruption had to
+   traverse, each wedge is one kind of thing, and the purple marks are approved
+   access arrangements. Expand a band to see the path that reached each one — an
+   impact analysis you cannot interrogate is an assertion.
 2. **Infeasible plan explorer.** The view most systems do not have. Each rejected
    plan carries a *minimal* conflict set, and each constraint names the document
    it came from and the person who owns it.
@@ -65,16 +75,17 @@ Open <http://127.0.0.1:8765>. Thirteen views. In priority order:
    matches live.
 
 If you would rather not open thirteen tabs by hand, this drives all of them in
-Chromium, fails on any console error or failed request, and leaves a screenshot
-of each in `docs/screenshots/`:
+Chromium — plus the whole guided demonstration at speed — fails on any console
+error or failed request, and leaves a screenshot of each in `docs/screenshots/`:
 
 ```bash
 pip install -e ".[browser]" && playwright install chromium
 python tools/ui_smoke.py
 ```
 
-Every view is driven in Chromium on each CI run and every render is asserted,
-so what you open is what the pipeline last proved renders.
+Every view and every demonstration beat is driven in Chromium on each CI run and
+every render is asserted, so what you open is what the pipeline last proved
+renders.
 
 ## Minute 7 — the benchmark
 
@@ -146,13 +157,13 @@ Or break something and watch it fail closed. Take the hero storm and also remove
 the only step-free vehicle:
 
 ```python
-from productionpulse.agents.coordinator import ProductionCoordinator
-from productionpulse.agents.core import build_reasoner
-from productionpulse.disruptions import STORM_SCENARIO, build_source_event, scenario_problem
-from productionpulse.production import world as w
-from productionpulse.stream.bus import build_bus
-from productionpulse.systems import build_systems
-from productionpulse.twin import build_twin
+from allaccess.agents.coordinator import ProductionCoordinator
+from allaccess.agents.core import build_reasoner
+from allaccess.disruptions import STORM_SCENARIO, build_source_event, scenario_problem
+from allaccess.production import world as w
+from allaccess.stream.bus import build_bus
+from allaccess.systems import build_systems
+from allaccess.twin import build_twin
 
 problem = scenario_problem(STORM_SCENARIO, twin=build_twin())
 problem.unavailable["VEH-ACC-1"] = "powered lift failure"   # the only step-free vehicle

@@ -172,7 +172,7 @@ def reset(scenario_id: str | None = None) -> Session:
 
 
 app = FastAPI(
-    title="ProductionPulse Inclusive",
+    title="All-Access",
     description="Real-time production decision and execution infrastructure",
     version="0.1.0",
 )

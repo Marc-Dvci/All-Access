@@ -7,7 +7,7 @@ every piece of creative and production material in the repository.
 
 ## 1. The screenplay
 
-***Salt and Light***, `src/productionpulse/production/script.py`. Written for
+***Salt and Light***, `src/allaccess/production/script.py`. Written for
 this project. 32 scenes across 3 story days, with sluglines, action, dialogue,
 continuity notes, a prop breakdown and per-scene wardrobe and makeup states.
 
@@ -33,7 +33,7 @@ interpreter booking window is the access conflict the hero scenario turns on.
 
 ## 2. The production world
 
-`src/productionpulse/production/world.py`. Invented: 27 crew, 6 performers, 14
+`src/allaccess/production/world.py`. Invented: 27 crew, 6 performers, 14
 locations, 11 permits, 12 equipment packages, 5 vehicles, 5 support resources, 4
 service bookings, 3 vendors, 6 approved access arrangements, and a baseline
 schedule for shooting day 14.
@@ -48,7 +48,7 @@ to have protected anyone.
 
 ## 3. The spatial data
 
-`src/productionpulse/production/spatial.py`. Authored access surveys: route
+`src/allaccess/production/spatial.py`. Authored access surveys: route
 graphs, gradients, clear widths, threshold heights and egress routes for the
 locations, in the form a real access survey produces.
 
@@ -59,7 +59,7 @@ rather than buried in code.
 
 ## 4. The disruption corpus
 
-`src/productionpulse/disruptions.py`. Eight templates expanded into a
+`src/allaccess/disruptions.py`. Eight templates expanded into a
 reproducible 1,000-scenario corpus by seed. Authored; see `dataset_card.md`.
 
 ## 5. Software
@@ -91,7 +91,7 @@ from structured facts, no model call. Every benchmark figure was produced in tha
 configuration, and `environment.reasoning_plane` in `bench/results/summary.json`
 records it.
 
-With `PP_REASONING_MODE=gemini`, Gemini on Vertex AI narrates findings the
+With `AA_REASONING_MODE=gemini`, Gemini on Vertex AI narrates findings the
 deterministic layer has already decided. No model output is committed to this
 repository, and no model output is on the feasibility path.
 

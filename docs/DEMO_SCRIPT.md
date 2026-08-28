@@ -1,183 +1,106 @@
-# Three-minute demonstration — shot list
+# The three-minute demonstration
 
-**Rule for the whole recording: everything on screen is the running system.** No
-slides, no mockups, no cinematic trailer. The brief asks for the agent
-functioning, and a judge can tell the difference in about four seconds.
-
-**Setup**
+**The demonstration runs itself.** Start the server, open one URL, and press
+record. It drives the real client through the real API over a workflow run that
+begins when the demonstration begins — same controls a person uses, same
+endpoints, nothing pre-rendered. Every beat has a fixed duration, so two takes
+are frame-comparable, and there is no click to fumble.
 
 ```bash
-uvicorn productionpulse.api:app --port 8765
+uvicorn allaccess.api:app --port 8765
+# then open, full screen, at 1440x900 or larger:
+http://127.0.0.1:8765/?demo=1
 ```
 
-Second terminal ready with `python -m productionpulse.cli hero`. Browser at
-1440×900, dark theme, zoom 110% so text is readable when the video is scaled.
+Escape stops it at any point. `&speed=12` plays the same beats in about fifteen
+seconds, which is how `tools/ui_smoke.py` checks every one of them in CI.
 
-> **Before recording anything, run `python tools/ui_smoke.py`.** It opens all
-> thirteen views in Chromium and fails on any console error, so a broken view is
-> found before the camera is rolling rather than during a take.
-> `docs/screenshots/` will hold a current image of every view — useful for
-> planning shots without scrubbing the recording. `ACCESSIBILITY.md` §5 has the
-> manual checklist for the things a machine cannot judge.
+**The captions are the narration, burned in.** English subtitles are a
+submission requirement and this satisfies it without an edit pass. If a
+voiceover is recorded, the table below is the read — the timings are the cue
+sheet, and the words are word for word what is on screen.
 
----
+## Before recording
 
-## 0:00–0:12 — Establish the production
+1. `python tools/ui_smoke.py` — thirteen views plus the whole demonstration in a
+   real browser, failing on any console error. A broken view is found before the
+   camera rolls rather than during a take.
+2. Browser at 1440x900 or larger, zoom 100%, full screen. The layout reflows to
+   one column under 60 rem and the demonstration is written for the wide one.
+3. Check `GET /api/about` and say what it says. It reports which reasoning plane
+   and which event backbone are live. Do not claim a Vertex AI or Confluent
+   Cloud run unless one is on screen; "offline reasoning plane" is what the
+   default configuration is, and being caught overstating costs more than the
+   claim is worth.
+4. **Do not narrate the IBM Bob ledger as though sessions have been run.**
+   `bob-evidence/` is a prepared ledger and says so in three places. If Bob is
+   used before recording, show the real session; if not, show `.bob/` and the
+   two working MCP servers and describe them as configuration and tooling,
+   which is what they are.
 
-**Screen:** Production Control Board.
+## Two numbers carry the argument
 
-**Voice:** "Shooting day fourteen of *Salt and Light*. Five scenes, two units,
-three locations, twenty-seven crew, six approved access arrangements. Everything
-is certified ready."
-
-**Show:** the baseline certification badge — twelve checks, zero blocking issues.
-
----
-
-## 0:12–0:28 — The disruption
-
-**Screen:** Disruption Intake. Fire the storm.
-
-**Voice:** "A verified storm reaches the harbour at eighteen thirty. Sixty-eight
-kilometre winds, sea state six — outside every configured safety threshold, an
-hour before the night exterior turns over."
-
-**Show:** the source event landing on the stream, contract-validated, hash-chained.
+**75 of 75** incomplete executions caught before closure, and **2.412** hard
+violations per published plan once the independent recheck is removed. If the
+edit runs long, cut a plan-comparison beat, not these.
 
 ---
 
-## 0:28–0:58 — The consequences nobody would have found by hand
+## The script
 
-**Screen:** Impact Map. This is the money shot; give it the time.
+Generated from `src/allaccess/web/demo.js` by `tools/demo_script.py`.
+Editing this table by hand will be overwritten; change the beat instead.
 
-**Voice:** "The twin traverses the dependency graph. A hundred and eighteen
-affected entities, ranked by depth. Depth one is what the storm touched. Depth
-five is what it reaches through four intermediaries."
 
-**Show — expand three nodes and read the path:**
+Runs **2:53** over 22 beats.
 
-1. The accessible vehicle cannot reach the replacement location before the
-   revised call.
-2. The interpreter booking runs to 23:30 and covers the planned day exactly —
-   any work moved outside it needs an extension with three hours' notice.
-3. The refrigerated storage is at the current base, not the proposed one.
-
-**Voice:** "Every one of those is a consequence for a specific person's approved
-arrangement. A scheduling tool would have shown the replacement location as
-free."
-
----
-
-## 0:58–1:25 — It refuses the obvious answer
-
-**Screen:** Infeasible Plan Explorer.
-
-**Voice:** "The obvious move is the boatshed. It is available. The system will
-not publish it."
-
-**Show:** the rejection, and read the conflict set aloud:
-
-> **C-ACC-001** — Ormsvik boatshed has no step-free route from arrival to the
-> working position and no surveyed step-free alternate position.
-> Source: approved access arrangement ACC-001. Owner: accessibility coordinator.
-> Evidence: spatial twin, main door 140 mm cill.
-
-**Voice:** "A minimal conflict set. It names the rule, the document it came from,
-the person who owns it, and the measurement. Not 'infeasible' — *why*."
+| # | Cue | Chapter | Narration |
+|---|---|---|---|
+| 1 | 0:00 | — | *title or closing card — no narration* |
+| 2 | 0:06 | The day | Shooting day fourteen of Salt and Light. Five scenes, two units, three locations — and every approved access arrangement satisfied. |
+| 3 | 0:17 | The day | Weather and scenes on one axis. The amber bars are exterior work. |
+| 4 | 0:22 | The disruption | A verified storm reaches the harbour at eighteen thirty. Sixty-eight kilometre winds, sea state six. |
+| 5 | 0:29 | The disruption | Source event to verified readiness — the whole loop — in under half a second. Nothing on this screen is a recording. |
+| 6 | 0:40 | Intake | The event arrives typed, contract-validated and hash-chained, carrying its authority — so the system knows whether it may act on it without a human confirming it first. |
+| 7 | 0:48 | Impact | The digital twin traverses the dependency graph. A hundred and nineteen affected entities, across six levels. |
+| 8 | 0:55 | Impact | Distance from the centre is how many relationships the storm had to travel. Each wedge is one kind of thing. |
+| 9 | 1:00 | Impact | The purple rings are approved access arrangements. A scheduling tool would have shown the replacement location as free. |
+| 10 | 1:06 | The refusal | The obvious move is the boatshed. It is available. The system will not publish it. |
+| 11 | 1:13 | The refusal | A minimal conflict set. C-ACC-001: a step-free route to the working position. Owner, the accessibility coordinator. Source, approved arrangement ACC-001. |
+| 12 | 1:21 | The refusal | Not “infeasible”. Why — and whether the rule may be waived. This one may not. |
+| 13 | 1:26 | The measurement | And underneath it, the survey. The main shed door has a hundred and forty millimetre cill against a twenty millimetre limit. A location manager can act on that; nobody can act on “accessibility concern”. |
+| 14 | 1:37 | The options | Three structurally different plans, each rechecked against all thirty-four constraints independently of the search that produced it, before any of them was shown to anyone. |
+| 15 | 1:46 | The options | Objectives trade off against each other. Hard constraints trade off against nothing — which is why the access row reads the same on all three. |
+| 16 | 1:54 | Authority | The system approves nothing. Two named authorities sign, and each signature is bound to the plan hash and to the constraint set in force — single use, and expiring. |
+| 17 | 2:03 | Execution | Nine typed commands through the saga coordinator. Every one completed. Every acknowledgment returned. |
+| 18 | 2:11 | Execution | A system that trusted that would now call the day ready. This one refuses — props has not accepted its task — and there is no override. |
+| 19 | 2:20 | Execution | Across a thousand disruptions, verification caught seventy-five of seventy-five incomplete executions. Twelve point four percent of runs would otherwise have closed early. |
+| 20 | 2:28 | The shift | And for the producer: not the incident, the shift. Which rules removed the most options, who owns each one, and which document it came from. That is a list you can spend money against. |
+| 21 | 2:37 | The evidence | Every screen here is a fold over one event log. Replaying it into a fresh view reproduces live state exactly, and the hash chain is intact. |
+| 22 | 2:45 | — | *title or closing card — no narration* |
 
 ---
 
-## 1:25–1:48 — Plans that are actually different
+## What is on screen during each chapter
 
-**Screen:** Plan Comparison.
+| Chapter | View | What the demonstration points at |
+|---|---|---|
+| The day | Control board | The verdict, then weather and scenes on one axis |
+| The disruption | Control board | The scenario control, the run, then the workflow rail |
+| Intake | Disruption intake | Authority, classification, confidence |
+| Impact | Impact map | The blast-radius diagram, then the primary-band counts |
+| The refusal | Infeasible plans | The verdict, then the conflict set with its owner |
+| The measurement | Spatial survey | The route graph, failing segments in red |
+| The options | Plan comparison | The three plan cards, then the recommended one |
+| Authority | Approval | The signed approvals, hash-bound and expiring |
+| Execution | Execution and verification | The saga flow, the refusal, the counters |
+| The shift | Executive | The constraint-pressure ranking |
+| The evidence | Decision replay | Replay identical, hash chain intact |
 
-**Voice:** "Three structurally different plans, each one proved feasible against
-thirty-four constraints before it was shown. Delay, cost, continuity risk, access
-impact, robustness under a two-hundred-sample simulation, and the approvals each
-one requires."
+## If a beat needs to change
 
-**Show:** the recommended plan — shoot two prepared interiors tonight at the
-accessible location, move the exterior to the next morning's verified weather
-window, keep the child performer's end time, keep the interpreter window, keep
-the accessible vehicle.
-
-**Voice:** "Protecting safety and access produced the stronger operational
-outcome, not a compromise on one."
-
----
-
-## 1:48–2:10 — Human authority
-
-**Screen:** Approval Workspace.
-
-**Voice:** "The system does not approve anything. This is a major schedule change
-and a location change, so it needs the first AD and the UPM. The approval is
-signed, bound to this plan's hash and to the active constraint set, single-use
-and expiring — it cannot be moved to another plan or replayed after the rules
-change."
-
-**Show:** the conflict set sitting above the approve control, then both approvals.
-
----
-
-## 2:10–2:38 — Execution through the stream
-
-**Screen:** Execution Board, then Stream Governance.
-
-**Voice:** "Nine typed commands through the saga coordinator. Schedule updated,
-transport rebooked, interpreter hours extended, an accessible briefing published
-in written and captioned form, equipment reassigned, department queues updated,
-and the call-sheet connector publishes revision two and returns an
-acknowledgment."
-
-**Show:** the lineage trace — weather alert → assessments → plan → approval →
-commands → acknowledgments, derived from the log rather than drawn.
-
----
-
-## 2:38–2:52 — The part most systems get wrong
-
-**Screen:** Verification panel. **Do not rush this.**
-
-**Voice:** "Every command completed. Every acknowledgment returned. A system that
-trusted that would now say the day is ready."
-
-**Show:** the block — **props has not accepted its task.**
-
-**Voice:** "It refuses. There is no override. Across a thousand disruptions,
-twelve point four percent of executions would have been declared complete by a
-system that trusted acknowledgment alone."
-
-**Show:** props accepts; twelve of twelve assertions pass; the board turns ready.
-
----
-
-## 2:52–3:00 — Close on the evidence
-
-**Screen:** split — the benchmark summary and the ablation table.
-
-**Voice:** "A thousand disruptions. Zero hard-constraint violations across
-sixteen hundred published plans. All access arrangements preserved. Remove the
-independent feasibility check and every published plan breaks two hard rules,
-twenty-two percent silently drop an approved arrangement, and it stops failing
-closed entirely."
-
-**Final frame:** the ablation table, held for two seconds.
-
----
-
-## Notes for the edit
-
-- **Subtitle it.** English subtitles are required, and a product that schedules
-  around a deaf performer's interpretation arrangements should not ship an
-  uncaptioned video. Burn them in.
-- **Do not narrate the IBM Bob ledger as though sessions have been run.** They
-  have not. If Bob is used before recording, show the real session; if not, show
-  `.bob/custom_modes.yaml` and the two working MCP servers and describe them as
-  configuration and tooling, which is what they are.
-- Two numbers carry the argument: **0.124** false closure and **2.412** hard
-  violations per plan without validation. If the edit runs long, cut the plan
-  comparison detail, not these.
-- Don't claim a Confluent Cloud or Vertex AI run unless one is on screen. Say
-  "offline reasoning plane" if that is what is running — `GET /api/about` shows
-  it, and being caught overstating costs more than the claim is worth.
+Edit `BEATS` in `src/allaccess/web/demo.js`: `chapter` is the caption's
+kicker, `say` is the narration, `ms` is the whole beat including whatever `run`
+does. Then re-run `python tools/demo_script.py` to regenerate this file and
+`python tools/ui_smoke.py` to confirm every beat still reaches its view and
+draws its caption.

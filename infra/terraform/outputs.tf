@@ -1,5 +1,5 @@
 output "service_url" {
-  description = "Public URL of the ProductionPulse application plane."
+  description = "Public URL of the All-Access application plane."
   value       = google_cloud_run_v2_service.app.uri
 }
 

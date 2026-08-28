@@ -9,7 +9,7 @@ registered instead of guessing at it from a docstring.
 
 **Read-only by construction, not by convention.** There is no `register`, no
 `set_compatibility` and no `delete`. Bob writes contracts by editing
-`src/productionpulse/stream/schemas.py`, which goes through review like any
+`src/allaccess/stream/schemas.py`, which goes through review like any
 other code; it does not mutate a registry directly. `check_compatibility` is the
 one that earns its place: it runs the project's own compatibility rules over a
 proposed schema and reports what would break, which is precisely the check that
@@ -18,7 +18,7 @@ is easy to skip and expensive to skip.
 Which registry it reads depends on the environment, and it says which one in
 every response:
 
-* `PP_SCHEMA_REGISTRY_URL` set -> the hosted Confluent development registry,
+* `AA_SCHEMA_REGISTRY_URL` set -> the hosted Confluent development registry,
   through the same `ConfluentSchemaRegistry` client the runtime uses.
 * unset -> the in-process contracts from `schemas.py`.
 
@@ -39,23 +39,23 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT))
 
-from productionpulse.stream import schemas as sch  # noqa: E402
-from productionpulse.stream.registry import build_registry  # noqa: E402
+from allaccess.stream import schemas as sch  # noqa: E402
+from allaccess.stream.registry import build_registry  # noqa: E402
 from tools.mcp_common import MCPServer  # noqa: E402
 
 server = MCPServer(
-    name="productionpulse-schema-registry",
+    name="allaccess-schema-registry",
     instructions=(
-        "Read-only access to the ProductionPulse event data contracts. Use "
+        "Read-only access to the All-Access event data contracts. Use "
         "check_compatibility before proposing a change to any schema in "
-        "src/productionpulse/stream/schemas.py -- it reports the same verdict "
+        "src/allaccess/stream/schemas.py -- it reports the same verdict "
         "the runtime registry enforces on publish."
     ),
 )
 
 
 def _registry_kind() -> str:
-    return "confluent" if os.getenv("PP_SCHEMA_REGISTRY_URL") else "local"
+    return "confluent" if os.getenv("AA_SCHEMA_REGISTRY_URL") else "local"
 
 
 @server.tool(
@@ -120,7 +120,7 @@ def get_schema(args: dict[str, Any]) -> dict[str, Any]:
         "schema": contract.schema,
         "envelope_schema_note": (
             "Every event also carries the shared envelope; see ENVELOPE_SCHEMA in "
-            "src/productionpulse/stream/schemas.py."
+            "src/allaccess/stream/schemas.py."
         ),
     }
 

@@ -36,10 +36,10 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
 
-from productionpulse.disruptions import generate, scenario_problem  # noqa: E402
-from productionpulse.simulation import robust  # noqa: E402
-from productionpulse.solver import engine  # noqa: E402
-from productionpulse.twin import build_twin  # noqa: E402
+from allaccess.disruptions import generate, scenario_problem  # noqa: E402
+from allaccess.simulation import robust  # noqa: E402
+from allaccess.solver import engine  # noqa: E402
+from allaccess.twin import build_twin  # noqa: E402
 
 #: Buckets for the reliability diagram. Coarse on purpose: a bucket with four
 #: plans in it tells you nothing, and ten buckets over a few hundred plans is

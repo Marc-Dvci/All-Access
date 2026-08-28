@@ -5,7 +5,7 @@ queue bolted to the side of a database — the event log *is* the record, the tw
 is a fold over it, and `verify_replay()` asserts on every benchmark scenario that
 rebuilding from the log reproduces live state exactly.
 
-Implemented in `src/productionpulse/stream/`. 23 data contracts, 49 event types,
+Implemented in `src/allaccess/stream/`. 23 data contracts, 49 event types,
 six domains.
 
 ---
@@ -20,7 +20,7 @@ six domains.
 | Hash chain | same code | same code |
 | Idempotency | same code | same code |
 
-Selected by `PP_EVENT_BACKBONE`; `local` is the default.
+Selected by `AA_EVENT_BACKBONE`; `local` is the default.
 
 The local bus is not a mock. It performs the same contract validation, the same
 compatibility enforcement, the same dead-lettering, the same idempotency
@@ -185,16 +185,16 @@ are invisible however true they turned out to be.
 ## 8. Running against Confluent Cloud
 
 ```bash
-export PP_EVENT_BACKBONE=confluent
-export PP_CONFLUENT_BOOTSTRAP=pkc-xxxxx.region.provider.confluent.cloud:9092
-export PP_CONFLUENT_API_KEY=...        # cluster key
-export PP_CONFLUENT_API_SECRET=...
-export PP_SCHEMA_REGISTRY_URL=https://psrc-xxxxx.region.provider.confluent.cloud
-export PP_SCHEMA_REGISTRY_KEY=...
-export PP_SCHEMA_REGISTRY_SECRET=...
+export AA_EVENT_BACKBONE=confluent
+export AA_CONFLUENT_BOOTSTRAP=pkc-xxxxx.region.provider.confluent.cloud:9092
+export AA_CONFLUENT_API_KEY=...        # cluster key
+export AA_CONFLUENT_API_SECRET=...
+export AA_SCHEMA_REGISTRY_URL=https://psrc-xxxxx.region.provider.confluent.cloud
+export AA_SCHEMA_REGISTRY_KEY=...
+export AA_SCHEMA_REGISTRY_SECRET=...
 
 pip install -e ".[confluent]"
-python -m productionpulse.cli hero
+python -m allaccess.cli hero
 ```
 
 `ConfluentSchemaRegistry.register_all()` registers all 23 subjects and sets their
@@ -204,7 +204,7 @@ looking at.
 
 ## 9. Which backbone is live
 
-`PP_EVENT_BACKBONE` selects it, and `GET /api/about` reports it, so a viewer
+`AA_EVENT_BACKBONE` selects it, and `GET /api/about` reports it, so a viewer
 never has to guess. The two implementations sit behind one interface and are
 exercised by the same tests: the local bus performs the same schema validation,
 the same hash chaining, the same idempotency suppression and the same

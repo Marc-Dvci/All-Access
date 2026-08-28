@@ -1,6 +1,6 @@
 """Typed contracts for every record that crosses an agent, stream or system boundary.
 
-Nothing in ProductionPulse passes free-form text between components. Every source
+Nothing in All-Access passes free-form text between components. Every source
 event, twin fact, constraint, finding, plan, approval, command, acknowledgment and
 verification assertion is a validated model with an explicit schema version.
 Malformed records are rejected at the boundary rather than interpreted by a

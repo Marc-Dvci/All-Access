@@ -49,10 +49,10 @@ SCENARIOS = RESULTS / "scenarios.jsonl"
 A11Y = ROOT / "docs" / "accessibility_audit.json"
 
 server = MCPServer(
-    name="productionpulse-test-results",
+    name="allaccess-test-results",
     instructions=(
         "The committed evidence for every quantitative claim about "
-        "ProductionPulse. Read a number from here before writing it into a "
+        "All-Access. Read a number from here before writing it into a "
         "document. If a figure you want to state is not available from one of "
         "these tools, it has no artifact behind it: either generate the "
         "artifact or drop the claim."

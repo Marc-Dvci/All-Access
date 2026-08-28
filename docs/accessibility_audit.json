@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-08-08T09:10:17+00:00",
+  "generated_at": "2026-08-08T12:51:44+00:00",
   "target": "WCAG 2.2 Level AA",
-  "scope": "src/productionpulse/web/ \u2014 static source audit, no browser",
+  "scope": "src/allaccess/web/ \u2014 static source audit, no browser",
   "not_covered": [
     "Anything requiring a rendered layout or computed style",
     "Screen-reader announcement order and quality",
@@ -9,8 +9,8 @@
     "Contrast of any colour set outside styles.css",
     "1.4.10 Reflow verified visually at 320 CSS pixels"
   ],
-  "total": 62,
-  "passed": 62,
+  "total": 78,
+  "passed": 78,
   "failed": 0,
   "checks": [
     {
@@ -267,7 +267,7 @@
       "level": "AA",
       "description": "body text on the page background (light)",
       "passed": true,
-      "detail": "16.16:1 against a 4.5:1 minimum (#16181c on #f5f4f1)"
+      "detail": "16.58:1 against a 4.5:1 minimum (#16181c on #f6f7f9)"
     },
     {
       "check_id": "C-L-ink-muted-on-surface",
@@ -283,7 +283,7 @@
       "level": "AA",
       "description": "secondary text on the table header (light)",
       "passed": true,
-      "detail": "6.97:1 against a 4.5:1 minimum (#4a4f57 on #edecE8)"
+      "detail": "7.22:1 against a 4.5:1 minimum (#4a4f57 on #eef0f3)"
     },
     {
       "check_id": "C-L-ink-on-surface-2",
@@ -291,7 +291,7 @@
       "level": "AA",
       "description": "text on the table header (light)",
       "passed": true,
-      "detail": "15.03:1 against a 4.5:1 minimum (#16181c on #edecE8)"
+      "detail": "15.57:1 against a 4.5:1 minimum (#16181c on #eef0f3)"
     },
     {
       "check_id": "C-L-accent-ink-on-accent",
@@ -299,7 +299,7 @@
       "level": "AA",
       "description": "text on a primary button and the selected tab (light)",
       "passed": true,
-      "detail": "9.58:1 against a 4.5:1 minimum (#ffffff on #12496b)"
+      "detail": "7.32:1 against a 4.5:1 minimum (#ffffff on #0b4fbd)"
     },
     {
       "check_id": "C-L-ok-on-ok-bg",
@@ -339,7 +339,7 @@
       "level": "AA",
       "description": "a form control boundary (light)",
       "passed": true,
-      "detail": "3.25:1 against a 3.0:1 minimum (#8b8f96 on #ffffff)"
+      "detail": "3.88:1 against a 3.0:1 minimum (#7b828c on #ffffff)"
     },
     {
       "check_id": "C-L-focus-on-surface",
@@ -355,7 +355,7 @@
       "level": "AA",
       "description": "the focus indicator, outer ring on the page (light)",
       "passed": true,
-      "detail": "5.92:1 against a 3.0:1 minimum (#a63a00 on #f5f4f1)"
+      "detail": "6.07:1 against a 3.0:1 minimum (#a63a00 on #f6f7f9)"
     },
     {
       "check_id": "C-L-focus-inner-on-accent",
@@ -363,7 +363,7 @@
       "level": "AA",
       "description": "the focus indicator, inner ring on a selected tab (light)",
       "passed": true,
-      "detail": "9.58:1 against a 3.0:1 minimum (#ffffff on #12496b)"
+      "detail": "7.32:1 against a 3.0:1 minimum (#ffffff on #0b4fbd)"
     },
     {
       "check_id": "C-L-accent-on-surface",
@@ -371,7 +371,71 @@
       "level": "AA",
       "description": "an accent boundary (light)",
       "passed": true,
-      "detail": "9.58:1 against a 3.0:1 minimum (#12496b on #ffffff)"
+      "detail": "7.32:1 against a 3.0:1 minimum (#0b4fbd on #ffffff)"
+    },
+    {
+      "check_id": "C-L-accent-ink-on-graph-1",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "a label on an interior-scene bar or the working position (light)",
+      "passed": true,
+      "detail": "7.32:1 against a 4.5:1 minimum (#ffffff on #0b4fbd)"
+    },
+    {
+      "check_id": "C-L-accent-ink-on-graph-2",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "a label on an exterior-scene bar (light)",
+      "passed": true,
+      "detail": "7.48:1 against a 4.5:1 minimum (#ffffff on #7a4a00)"
+    },
+    {
+      "check_id": "C-L-accent-ink-on-graph-3",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "a label on the arrival point (light)",
+      "passed": true,
+      "detail": "7.99:1 against a 4.5:1 minimum (#ffffff on #1c5c34)"
+    },
+    {
+      "check_id": "C-L-accent-ink-on-bad",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "the label on the disruption source marker (light)",
+      "passed": true,
+      "detail": "8.00:1 against a 4.5:1 minimum (#ffffff on #a01523)"
+    },
+    {
+      "check_id": "C-L-accent-ink-on-ink-muted",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "a label on a neutral weather band (light)",
+      "passed": true,
+      "detail": "8.24:1 against a 4.5:1 minimum (#ffffff on #4a4f57)"
+    },
+    {
+      "check_id": "C-L-graph-4-on-surface",
+      "criterion": "1.4.11 Non-text Contrast",
+      "level": "AA",
+      "description": "the approved-access-arrangement marker (light)",
+      "passed": true,
+      "detail": "7.38:1 against a 3.0:1 minimum (#6b3fa0 on #ffffff)"
+    },
+    {
+      "check_id": "C-L-graph-1-on-surface",
+      "criterion": "1.4.11 Non-text Contrast",
+      "level": "AA",
+      "description": "a chart mark against the card it sits on (light)",
+      "passed": true,
+      "detail": "7.32:1 against a 3.0:1 minimum (#0b4fbd on #ffffff)"
+    },
+    {
+      "check_id": "C-L-graph-2-on-surface",
+      "criterion": "1.4.11 Non-text Contrast",
+      "level": "AA",
+      "description": "a chart mark against the card it sits on (light)",
+      "passed": true,
+      "detail": "7.48:1 against a 3.0:1 minimum (#7a4a00 on #ffffff)"
     },
     {
       "check_id": "I-L-line-on-surface",
@@ -379,7 +443,7 @@
       "level": "informational",
       "description": "a decorative card or table rule (light) \u2014 measured, not enforced; see INFORMATIONAL_PAIRS",
       "passed": true,
-      "detail": "1.73:1 (#c3c5c9 on #ffffff)"
+      "detail": "1.44:1 (#d3d7de on #ffffff)"
     },
     {
       "check_id": "C-D-ink-on-surface",
@@ -387,7 +451,7 @@
       "level": "AA",
       "description": "body text on a card (dark)",
       "passed": true,
-      "detail": "14.87:1 against a 4.5:1 minimum (#f2f3f5 on #1c1f25)"
+      "detail": "15.05:1 against a 4.5:1 minimum (#f2f3f5 on #1a1e25)"
     },
     {
       "check_id": "C-D-ink-on-bg",
@@ -395,7 +459,7 @@
       "level": "AA",
       "description": "body text on the page background (dark)",
       "passed": true,
-      "detail": "16.31:1 against a 4.5:1 minimum (#f2f3f5 on #14161a)"
+      "detail": "16.76:1 against a 4.5:1 minimum (#f2f3f5 on #101318)"
     },
     {
       "check_id": "C-D-ink-muted-on-surface",
@@ -403,7 +467,7 @@
       "level": "AA",
       "description": "secondary text on a card (dark)",
       "passed": true,
-      "detail": "8.85:1 against a 4.5:1 minimum (#b9bec7 on #1c1f25)"
+      "detail": "8.96:1 against a 4.5:1 minimum (#b9bec7 on #1a1e25)"
     },
     {
       "check_id": "C-D-ink-muted-on-surface-2",
@@ -411,7 +475,7 @@
       "level": "AA",
       "description": "secondary text on the table header (dark)",
       "passed": true,
-      "detail": "7.92:1 against a 4.5:1 minimum (#b9bec7 on #242830)"
+      "detail": "7.94:1 against a 4.5:1 minimum (#b9bec7 on #232830)"
     },
     {
       "check_id": "C-D-ink-on-surface-2",
@@ -419,7 +483,7 @@
       "level": "AA",
       "description": "text on the table header (dark)",
       "passed": true,
-      "detail": "13.31:1 against a 4.5:1 minimum (#f2f3f5 on #242830)"
+      "detail": "13.34:1 against a 4.5:1 minimum (#f2f3f5 on #232830)"
     },
     {
       "check_id": "C-D-accent-ink-on-accent",
@@ -427,7 +491,7 @@
       "level": "AA",
       "description": "text on a primary button and the selected tab (dark)",
       "passed": true,
-      "detail": "9.73:1 against a 4.5:1 minimum (#10161c on #8fc4e8)"
+      "detail": "10.77:1 against a 4.5:1 minimum (#0d1218 on #9cc9f0)"
     },
     {
       "check_id": "C-D-ok-on-ok-bg",
@@ -467,7 +531,7 @@
       "level": "AA",
       "description": "a form control boundary (dark)",
       "passed": true,
-      "detail": "3.98:1 against a 3.0:1 minimum (#767d88 on #1c1f25)"
+      "detail": "4.58:1 against a 3.0:1 minimum (#7c8794 on #1a1e25)"
     },
     {
       "check_id": "C-D-focus-on-surface",
@@ -475,7 +539,7 @@
       "level": "AA",
       "description": "the focus indicator, outer ring on a card (dark)",
       "passed": true,
-      "detail": "9.16:1 against a 3.0:1 minimum (#ffb066 on #1c1f25)"
+      "detail": "9.28:1 against a 3.0:1 minimum (#ffb066 on #1a1e25)"
     },
     {
       "check_id": "C-D-focus-on-bg",
@@ -483,7 +547,7 @@
       "level": "AA",
       "description": "the focus indicator, outer ring on the page (dark)",
       "passed": true,
-      "detail": "10.05:1 against a 3.0:1 minimum (#ffb066 on #14161a)"
+      "detail": "10.33:1 against a 3.0:1 minimum (#ffb066 on #101318)"
     },
     {
       "check_id": "C-D-focus-inner-on-accent",
@@ -491,7 +555,7 @@
       "level": "AA",
       "description": "the focus indicator, inner ring on a selected tab (dark)",
       "passed": true,
-      "detail": "9.73:1 against a 3.0:1 minimum (#10161c on #8fc4e8)"
+      "detail": "10.43:1 against a 3.0:1 minimum (#10161c on #9cc9f0)"
     },
     {
       "check_id": "C-D-accent-on-surface",
@@ -499,7 +563,71 @@
       "level": "AA",
       "description": "an accent boundary (dark)",
       "passed": true,
-      "detail": "8.83:1 against a 3.0:1 minimum (#8fc4e8 on #1c1f25)"
+      "detail": "9.57:1 against a 3.0:1 minimum (#9cc9f0 on #1a1e25)"
+    },
+    {
+      "check_id": "C-D-accent-ink-on-graph-1",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "a label on an interior-scene bar or the working position (dark)",
+      "passed": true,
+      "detail": "10.77:1 against a 4.5:1 minimum (#0d1218 on #9cc9f0)"
+    },
+    {
+      "check_id": "C-D-accent-ink-on-graph-2",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "a label on an exterior-scene bar (dark)",
+      "passed": true,
+      "detail": "10.88:1 against a 4.5:1 minimum (#0d1218 on #ecbe6d)"
+    },
+    {
+      "check_id": "C-D-accent-ink-on-graph-3",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "a label on the arrival point (dark)",
+      "passed": true,
+      "detail": "10.47:1 against a 4.5:1 minimum (#0d1218 on #7fd39b)"
+    },
+    {
+      "check_id": "C-D-accent-ink-on-bad",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "the label on the disruption source marker (dark)",
+      "passed": true,
+      "detail": "8.27:1 against a 4.5:1 minimum (#0d1218 on #f2909a)"
+    },
+    {
+      "check_id": "C-D-accent-ink-on-ink-muted",
+      "criterion": "1.4.3 Contrast (Minimum)",
+      "level": "AA",
+      "description": "a label on a neutral weather band (dark)",
+      "passed": true,
+      "detail": "10.08:1 against a 4.5:1 minimum (#0d1218 on #b9bec7)"
+    },
+    {
+      "check_id": "C-D-graph-4-on-surface",
+      "criterion": "1.4.11 Non-text Contrast",
+      "level": "AA",
+      "description": "the approved-access-arrangement marker (dark)",
+      "passed": true,
+      "detail": "7.97:1 against a 3.0:1 minimum (#c4a6ec on #1a1e25)"
+    },
+    {
+      "check_id": "C-D-graph-1-on-surface",
+      "criterion": "1.4.11 Non-text Contrast",
+      "level": "AA",
+      "description": "a chart mark against the card it sits on (dark)",
+      "passed": true,
+      "detail": "9.57:1 against a 3.0:1 minimum (#9cc9f0 on #1a1e25)"
+    },
+    {
+      "check_id": "C-D-graph-2-on-surface",
+      "criterion": "1.4.11 Non-text Contrast",
+      "level": "AA",
+      "description": "a chart mark against the card it sits on (dark)",
+      "passed": true,
+      "detail": "9.67:1 against a 3.0:1 minimum (#ecbe6d on #1a1e25)"
     },
     {
       "check_id": "I-D-line-on-surface",
@@ -507,7 +635,7 @@
       "level": "informational",
       "description": "a decorative card or table rule (dark) \u2014 measured, not enforced; see INFORMATIONAL_PAIRS",
       "passed": true,
-      "detail": "1.86:1 (#454a54 on #1c1f25)"
+      "detail": "1.60:1 (#39404a on #1a1e25)"
     }
   ]
 }

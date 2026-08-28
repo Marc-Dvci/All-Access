@@ -2,7 +2,7 @@
 
 Every measurement in this module compares an observation the system produced
 against a fact the system could not see. The ground truth lives on the
-`Scenario` in `productionpulse.disruptions`; nothing in `src/productionpulse`
+`Scenario` in `allaccess.disruptions`; nothing in `src/allaccess`
 reads those fields.
 
 Two rules kept this honest, and both are worth stating because they are easy to
@@ -30,19 +30,19 @@ from dataclasses import asdict, dataclass, field
 from datetime import timedelta
 from typing import Any, Iterator
 
-from productionpulse.agents.coordinator import ProductionCoordinator, problem_blast
-from productionpulse.agents.core import build_reasoner
-from productionpulse.agents.experts import REQUIRED_ASSESSMENTS
-from productionpulse.constraints.registry import CONSTRAINTS, evaluate
-from productionpulse.contracts import Authority, Classification, EventType, TargetSystem
-from productionpulse.disruptions import Scenario, build_source_event, scenario_problem
-from productionpulse.execution import privacy
-from productionpulse.production import world as w
-from productionpulse.solver import engine
-from productionpulse.stream import governance
-from productionpulse.stream.bus import build_bus
-from productionpulse.systems import build_systems
-from productionpulse.twin import build_twin
+from allaccess.agents.coordinator import ProductionCoordinator, problem_blast
+from allaccess.agents.core import build_reasoner
+from allaccess.agents.experts import REQUIRED_ASSESSMENTS
+from allaccess.constraints.registry import CONSTRAINTS, evaluate
+from allaccess.contracts import Authority, Classification, EventType, TargetSystem
+from allaccess.disruptions import Scenario, build_source_event, scenario_problem
+from allaccess.execution import privacy
+from allaccess.production import world as w
+from allaccess.solver import engine
+from allaccess.stream import governance
+from allaccess.stream.bus import build_bus
+from allaccess.systems import build_systems
+from allaccess.twin import build_twin
 
 #: Every constraint id the registry knows. Anything an agent cites that is not
 #: in here is a fabricated constraint, and is counted as one.

@@ -27,10 +27,10 @@ terraform -chdir=infra/terraform apply \
   -var project_id="$PROJECT" -target=google_artifact_registry_repository.images
 
 # 2. Build and push.
-REPO="$REGION-docker.pkg.dev/$PROJECT/productionpulse-images"
+REPO="$REGION-docker.pkg.dev/$PROJECT/allaccess-images"
 gcloud auth configure-docker "$REGION-docker.pkg.dev"
-docker build -t "$REPO/productionpulse:latest" .
-docker push "$REPO/productionpulse:latest"
+docker build -t "$REPO/allaccess:latest" .
+docker push "$REPO/allaccess:latest"
 
 # 3. Deploy.
 terraform -chdir=infra/terraform apply -var project_id="$PROJECT"
@@ -45,7 +45,7 @@ terraform -chdir=infra/terraform apply -var project_id="$PROJECT" -var enable_ge
 
 # Confluent. Creates six empty secrets, then populate each one:
 terraform -chdir=infra/terraform apply -var project_id="$PROJECT" -var enable_confluent=true
-printf %s "$CONFLUENT_API_KEY" | gcloud secrets versions add productionpulse-confluent-api-key --data-file=-
+printf %s "$CONFLUENT_API_KEY" | gcloud secrets versions add allaccess-confluent-api-key --data-file=-
 ```
 
 Credentials are never Terraform variables. A value passed as a variable is

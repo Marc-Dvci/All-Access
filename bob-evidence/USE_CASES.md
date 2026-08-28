@@ -33,7 +33,7 @@ consult the registered schema instead of reasoning about it from memory.
 - A contract test covers a payload with and without the new field.
 - `pytest -q` and `ruff check src tests` are clean.
 
-**Scope.** `src/productionpulse/stream/schemas.py`, `tests/test_stream.py`. Not
+**Scope.** `src/allaccess/stream/schemas.py`, `tests/test_stream.py`. Not
 the solver, not the registry of constraints.
 
 ---
@@ -57,7 +57,7 @@ mechanical to write and tedious to write well.
   model; it does not decide what the rules are.
 - `pytest -q` clean.
 
-**Scope.** `src/productionpulse/solver/predicates.py`, `tests/test_constraints.py`,
+**Scope.** `src/allaccess/solver/predicates.py`, `tests/test_constraints.py`,
 `tests/test_solver.py`.
 
 ---
@@ -69,7 +69,7 @@ mechanical to write and tedious to write well.
 modernized into a typed, idempotent, event-driven connector that participates in
 the hero workflow.
 
-**Before state.** `src/productionpulse/systems/callsheet_legacy.py`, preserved
+**Before state.** `src/allaccess/systems/callsheet_legacy.py`, preserved
 and excluded from lint (see the per-file ignore in `pyproject.toml`, which cites
 this section). Eight documented defects:
 
@@ -86,7 +86,7 @@ this section). Eight documented defects:
 Defect 7 is a real bug, found while writing the before-state, and it is left in
 because a modernization that does not have to find anything proves nothing.
 
-**Reference target.** `src/productionpulse/systems/callsheet_modern.py`, written
+**Reference target.** `src/allaccess/systems/callsheet_modern.py`, written
 by hand. It is the acceptance bar, not a Bob output — its docstring says so.
 
 **Acceptance criteria.**
@@ -96,7 +96,7 @@ by hand. It is the acceptance bar, not a Bob output — its docstring says so.
   input, so the change is provably behaviour preserving except where a defect
   was deliberately fixed.
 - The connector publishes the revised call sheet and returns an acknowledgment
-  event inside the hero workflow (`python -m productionpulse.cli hero`, 11/11).
+  event inside the hero workflow (`python -m allaccess.cli hero`, 11/11).
 - Failure tests: rejected command, duplicate command, stale plan version.
 - No personal data in any log line, checked by
   `privacy.check_no_prohibited_fields`.
@@ -105,7 +105,7 @@ by hand. It is the acceptance bar, not a Bob output — its docstring says so.
 review criteria, written in advance. Populated with the session outcome when one
 runs.
 
-**Scope.** `src/productionpulse/systems/`, `tests/test_callsheet_migration.py`.
+**Scope.** `src/allaccess/systems/`, `tests/test_callsheet_migration.py`.
 
 ---
 
@@ -125,7 +125,7 @@ guards it, and file findings.
 **Known ground truth for grading the session.** The approval is HMAC-signed over
 the plan hash and the constraint-set hash, single-use, and expiring; authority is
 checked separately in the policy path. A review that misses the per-process
-signing-key default (`PP_APPROVAL_KEY` unset ⇒ approvals stop verifying across a
+signing-key default (`AA_APPROVAL_KEY` unset ⇒ approvals stop verifying across a
 restart) has missed the real one. Recorded here so the session can be judged
 rather than admired.
 
@@ -147,7 +147,7 @@ declared-but-not-injected rather than counting them as passes.
 - A fault that is not applicable to a scenario is recorded as `None`, never
   scored as a pass. The existing code does this; preserve it.
 
-**Scope.** `bench/harness.py`, `src/productionpulse/disruptions.py`.
+**Scope.** `bench/harness.py`, `src/allaccess/disruptions.py`.
 
 ---
 

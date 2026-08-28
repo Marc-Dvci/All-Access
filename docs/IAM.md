@@ -83,7 +83,7 @@ in `THREAT_MODEL.md` §4.
 
 ### 2.1 The application plane
 
-One dedicated service account, `productionpulse-app`, created by Terraform. It
+One dedicated service account, `allaccess-app`, created by Terraform. It
 holds:
 
 | Grant | When | Why |
@@ -106,7 +106,7 @@ output, and both get shared.
 
 ```bash
 printf %s "$CONFLUENT_API_KEY" | \
-  gcloud secrets versions add productionpulse-confluent-api-key --data-file=-
+  gcloud secrets versions add allaccess-confluent-api-key --data-file=-
 ```
 
 ### 2.3 The reasoning plane

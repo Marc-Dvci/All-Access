@@ -1,4 +1,4 @@
-# IBM Bob custom modes for ProductionPulse Inclusive.
+# IBM Bob custom modes for All-Access.
 #
 # Each mode is scoped to the part of the system it is competent to change, with
 # file permissions that make the scope real rather than advisory. Bob is the
@@ -45,7 +45,7 @@ customModes:
     groups:
       - read
       - - edit
-        - fileRegex: ^(src/productionpulse/stream/|tests/test_stream\.py|docs/CONFLUENT\.md)
+        - fileRegex: ^(src/allaccess/stream/|tests/test_stream\.py|docs/CONFLUENT\.md)
           description: Stream contracts, registry and their tests
     customInstructions: >-
       Every event type must resolve to a registered contract; assert_all_governed()
@@ -65,10 +65,10 @@ customModes:
     groups:
       - read
       - - edit
-        - fileRegex: ^(src/productionpulse/systems/|tests/test_callsheet_migration\.py)
+        - fileRegex: ^(src/allaccess/systems/|tests/test_callsheet_migration\.py)
           description: Downstream system adapters and their tests
     customInstructions: >-
-      Do not modify src/productionpulse/systems/callsheet_legacy.py. It is the
+      Do not modify src/allaccess/systems/callsheet_legacy.py. It is the
       preserved "before" artifact and the modernization evidence depends on it
       staying broken. Before changing behaviour, write a parity test that pins
       the intended semantics; then fix defects one at a time, each with a test
@@ -86,11 +86,11 @@ customModes:
     groups:
       - read
       - - edit
-        - fileRegex: ^(src/productionpulse/solver/|tests/test_solver\.py|bench/)
+        - fileRegex: ^(src/allaccess/solver/|tests/test_solver\.py|bench/)
           description: Solver implementation, benchmarks and tests
     customInstructions: >-
       You may implement constraints. You may not decide them: never edit
-      src/productionpulse/constraints/registry.py, and never change a
+      src/allaccess/constraints/registry.py, and never change a
       constraint's kind from hard to soft. A predicate that cannot decide must
       report a violation rather than pass — failing closed is the only safe
       default when the subject is a person's approved access arrangement or a

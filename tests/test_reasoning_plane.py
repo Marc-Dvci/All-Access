@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import pytest
 
-from productionpulse.agents.core import (
+from allaccess.agents.core import (
     GeminiReasoner,
     OfflineReasoner,
     build_reasoner,
@@ -169,12 +169,12 @@ def test_degradation_is_never_silent() -> None:
 
 
 def test_offline_is_the_default_plane(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("PP_REASONING_MODE", raising=False)
+    monkeypatch.delenv("AA_REASONING_MODE", raising=False)
     assert isinstance(build_reasoner(), OfflineReasoner)
 
 
 def test_gemini_is_selected_explicitly(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("PP_REASONING_MODE", "gemini")
+    monkeypatch.setenv("AA_REASONING_MODE", "gemini")
     reasoner = build_reasoner()
     assert reasoner.plane == "gemini"
     assert isinstance(reasoner, GeminiReasoner)

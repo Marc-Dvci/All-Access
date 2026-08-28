@@ -3,19 +3,19 @@
   "specVersion": "1.5",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-08-06T13:38:24+00:00",
+    "timestamp": "2026-08-28T17:59:40+00:00",
     "tools": [
       {
-        "vendor": "ProductionPulse",
+        "vendor": "All-Access",
         "name": "tools/generate_sbom.py"
       }
     ],
     "component": {
       "type": "application",
-      "bom-ref": "productionpulse",
-      "name": "productionpulse",
+      "bom-ref": "allaccess",
+      "name": "allaccess",
       "version": "0.1.0",
-      "description": "ProductionPulse Inclusive -- real-time production decision and execution infrastructure",
+      "description": "All-Access -- real-time production decision and execution infrastructure",
       "licenses": [
         {
           "license": {
@@ -26,20 +26,110 @@
     },
     "properties": [
       {
-        "name": "productionpulse:python",
-        "value": "3.12.10"
+        "name": "allaccess:python",
+        "value": "3.10.7"
       },
       {
-        "name": "productionpulse:platform",
-        "value": "Windows-11-10.0.26200-SP0"
+        "name": "allaccess:platform",
+        "value": "Windows-10-10.0.26200-SP0"
       },
       {
-        "name": "productionpulse:content-digest",
-        "value": "2d93e5ad010f79ac8dcd82d3f177685d47b64822b8eab76381abf1d702e14142"
+        "name": "allaccess:content-digest",
+        "value": "f25c62c87c1fed84e9fdc28899ae7c7cc7f6a842c1daed8d9366651d130fb25f"
       }
     ]
   },
   "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/aiohappyeyeballs@2.7.1",
+      "name": "aiohappyeyeballs",
+      "version": "2.7.1",
+      "purl": "pkg:pypi/aiohappyeyeballs@2.7.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "PSF-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/aiohttp@3.14.3",
+      "name": "aiohttp",
+      "version": "3.14.3",
+      "purl": "pkg:pypi/aiohttp@3.14.3",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0 AND MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/aiosignal@1.4.0",
+      "name": "aiosignal",
+      "version": "1.4.0",
+      "purl": "pkg:pypi/aiosignal@1.4.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/aiosqlite@0.22.1",
+      "name": "aiosqlite",
+      "version": "0.22.1",
+      "purl": "pkg:pypi/aiosqlite@0.22.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT License"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/allaccess@0.1.0",
+      "name": "allaccess",
+      "version": "0.1.0",
+      "purl": "pkg:pypi/allaccess@0.1.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache License"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/allaccess@0.1.0",
+      "name": "allaccess",
+      "version": "0.1.0",
+      "purl": "pkg:pypi/allaccess@0.1.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache License"
+          }
+        }
+      ]
+    },
     {
       "type": "library",
       "bom-ref": "pkg:pypi/annotated-doc@0.0.5",
@@ -87,6 +177,21 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:pypi/async-timeout@5.0.1",
+      "name": "async-timeout",
+      "version": "5.0.1",
+      "purl": "pkg:pypi/async-timeout@5.0.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache 2"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:pypi/attrs@26.1.0",
       "name": "attrs",
       "version": "26.1.0",
@@ -102,6 +207,36 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:pypi/authlib@1.7.2",
+      "name": "Authlib",
+      "version": "1.7.2",
+      "purl": "pkg:pypi/authlib@1.7.2",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/backports.asyncio.runner@1.2.0",
+      "name": "backports.asyncio.runner",
+      "version": "1.2.0",
+      "purl": "pkg:pypi/backports.asyncio.runner@1.2.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "PSF-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:pypi/certifi@2026.7.22",
       "name": "certifi",
       "version": "2026.7.22",
@@ -111,6 +246,36 @@
         {
           "license": {
             "name": "MPL-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/cffi@2.1.1",
+      "name": "cffi",
+      "version": "2.1.1",
+      "purl": "pkg:pypi/cffi@2.1.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT-0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/charset-normalizer@3.4.9",
+      "name": "charset-normalizer",
+      "version": "3.4.9",
+      "purl": "pkg:pypi/charset-normalizer@3.4.9",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
           }
         }
       ]
@@ -147,15 +312,45 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/confluent-kafka@2.15.0",
-      "name": "confluent-kafka",
-      "version": "2.15.0",
-      "purl": "pkg:pypi/confluent-kafka@2.15.0",
+      "bom-ref": "pkg:pypi/cryptography@50.0.0",
+      "name": "cryptography",
+      "version": "50.0.0",
+      "purl": "pkg:pypi/cryptography@50.0.0",
       "scope": "required",
       "licenses": [
         {
           "license": {
-            "name": "Apache Software License"
+            "name": "Apache-2.0 OR BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/distro@1.9.0",
+      "name": "distro",
+      "version": "1.9.0",
+      "purl": "pkg:pypi/distro@1.9.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache License, Version 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/exceptiongroup@1.3.1",
+      "name": "exceptiongroup",
+      "version": "1.3.1",
+      "purl": "pkg:pypi/exceptiongroup@1.3.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT License"
           }
         }
       ]
@@ -171,6 +366,96 @@
         {
           "license": {
             "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/frozenlist@1.8.0",
+      "name": "frozenlist",
+      "version": "1.8.0",
+      "purl": "pkg:pypi/frozenlist@1.8.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/google-adk@2.6.3",
+      "name": "google-adk",
+      "version": "2.6.3",
+      "purl": "pkg:pypi/google-adk@2.6.3",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache Software License"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/google-auth@2.56.3",
+      "name": "google-auth",
+      "version": "2.56.3",
+      "purl": "pkg:pypi/google-auth@2.56.3",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/google-genai@2.17.0",
+      "name": "google-genai",
+      "version": "2.17.0",
+      "purl": "pkg:pypi/google-genai@2.17.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/graphviz@0.21",
+      "name": "graphviz",
+      "version": "0.21",
+      "purl": "pkg:pypi/graphviz@0.21",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/greenlet@3.5.4",
+      "name": "greenlet",
+      "version": "3.5.4",
+      "purl": "pkg:pypi/greenlet@3.5.4",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT AND PSF-2.0"
           }
         }
       ]
@@ -282,6 +567,21 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:pypi/joserfc@1.7.4",
+      "name": "joserfc",
+      "version": "1.7.4",
+      "purl": "pkg:pypi/joserfc@1.7.4",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:pypi/jsonschema@4.26.0",
       "name": "jsonschema",
       "version": "4.26.0",
@@ -357,25 +657,85 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/numpy@2.5.1",
-      "name": "numpy",
-      "version": "2.5.1",
-      "purl": "pkg:pypi/numpy@2.5.1",
+      "bom-ref": "pkg:pypi/multidict@6.7.1",
+      "name": "multidict",
+      "version": "6.7.1",
+      "purl": "pkg:pypi/multidict@6.7.1",
       "scope": "required",
       "licenses": [
         {
           "license": {
-            "name": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0"
+            "name": "Apache License 2.0"
           }
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/packaging@26.2",
+      "bom-ref": "pkg:pypi/numpy@2.2.6",
+      "name": "numpy",
+      "version": "2.2.6",
+      "purl": "pkg:pypi/numpy@2.2.6",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Copyright (c) 2005-2024, NumPy Developers."
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/opentelemetry-api@1.42.1",
+      "name": "opentelemetry-api",
+      "version": "1.42.1",
+      "purl": "pkg:pypi/opentelemetry-api@1.42.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/opentelemetry-sdk@1.42.1",
+      "name": "opentelemetry-sdk",
+      "version": "1.42.1",
+      "purl": "pkg:pypi/opentelemetry-sdk@1.42.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/opentelemetry-semantic-conventions@0.63b1",
+      "name": "opentelemetry-semantic-conventions",
+      "version": "0.63b1",
+      "purl": "pkg:pypi/opentelemetry-semantic-conventions@0.63b1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/packaging@26.3",
       "name": "packaging",
-      "version": "26.2",
-      "purl": "pkg:pypi/packaging@26.2",
+      "version": "26.3",
+      "purl": "pkg:pypi/packaging@26.3",
       "scope": "excluded",
       "licenses": [
         {
@@ -387,15 +747,30 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/pip@26.2",
+      "bom-ref": "pkg:pypi/pip@26.2.1",
       "name": "pip",
-      "version": "26.2",
-      "purl": "pkg:pypi/pip@26.2",
+      "version": "26.2.1",
+      "purl": "pkg:pypi/pip@26.2.1",
       "scope": "excluded",
       "licenses": [
         {
           "license": {
             "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/playwright@1.62.0",
+      "name": "playwright",
+      "version": "1.62.0",
+      "purl": "pkg:pypi/playwright@1.62.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
           }
         }
       ]
@@ -417,6 +792,66 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:pypi/propcache@0.5.2",
+      "name": "propcache",
+      "version": "0.5.2",
+      "purl": "pkg:pypi/propcache@0.5.2",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyasn1@0.6.4",
+      "name": "pyasn1",
+      "version": "0.6.4",
+      "purl": "pkg:pypi/pyasn1@0.6.4",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-2-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyasn1_modules@0.4.2",
+      "name": "pyasn1_modules",
+      "version": "0.4.2",
+      "purl": "pkg:pypi/pyasn1_modules@0.4.2",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pycparser@3.0",
+      "name": "pycparser",
+      "version": "3.0",
+      "purl": "pkg:pypi/pycparser@3.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:pypi/pydantic@2.13.4",
       "name": "pydantic",
       "version": "2.13.4",
@@ -432,10 +867,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/pydantic-settings@2.14.2",
+      "bom-ref": "pkg:pypi/pydantic-settings@2.15.0",
       "name": "pydantic-settings",
-      "version": "2.14.2",
-      "purl": "pkg:pypi/pydantic-settings@2.14.2",
+      "version": "2.15.0",
+      "purl": "pkg:pypi/pydantic-settings@2.15.0",
       "scope": "required",
       "licenses": [
         {
@@ -451,6 +886,21 @@
       "name": "pydantic_core",
       "version": "2.46.4",
       "purl": "pkg:pypi/pydantic_core@2.46.4",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyee@13.0.1",
+      "name": "pyee",
+      "version": "13.0.1",
+      "purl": "pkg:pypi/pyee@13.0.1",
       "scope": "required",
       "licenses": [
         {
@@ -567,6 +1017,21 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:pypi/requests@2.34.2",
+      "name": "requests",
+      "version": "2.34.2",
+      "purl": "pkg:pypi/requests@2.34.2",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:pypi/rich@15.0.0",
       "name": "rich",
       "version": "15.0.0",
@@ -582,10 +1047,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/rpds-py@2026.6.3",
+      "bom-ref": "pkg:pypi/rpds-py@0.30.0",
       "name": "rpds-py",
-      "version": "2026.6.3",
-      "purl": "pkg:pypi/rpds-py@2026.6.3",
+      "version": "0.30.0",
+      "purl": "pkg:pypi/rpds-py@0.30.0",
       "scope": "required",
       "licenses": [
         {
@@ -597,15 +1062,30 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/ruff@0.16.1",
+      "bom-ref": "pkg:pypi/ruff@0.16.2",
       "name": "ruff",
-      "version": "0.16.1",
-      "purl": "pkg:pypi/ruff@0.16.1",
+      "version": "0.16.2",
+      "purl": "pkg:pypi/ruff@0.16.2",
       "scope": "excluded",
       "licenses": [
         {
           "license": {
             "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/setuptools@63.2.0",
+      "name": "setuptools",
+      "version": "63.2.0",
+      "purl": "pkg:pypi/setuptools@63.2.0",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT License"
           }
         }
       ]
@@ -627,10 +1107,25 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/starlette@1.3.1",
-      "name": "starlette",
+      "bom-ref": "pkg:pypi/sniffio@1.3.1",
+      "name": "sniffio",
       "version": "1.3.1",
-      "purl": "pkg:pypi/starlette@1.3.1",
+      "purl": "pkg:pypi/sniffio@1.3.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT OR Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/starlette@1.5.0",
+      "name": "starlette",
+      "version": "1.5.0",
+      "purl": "pkg:pypi/starlette@1.5.0",
       "scope": "required",
       "licenses": [
         {
@@ -642,10 +1137,40 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/typer@0.27.0",
+      "bom-ref": "pkg:pypi/tenacity@9.1.4",
+      "name": "tenacity",
+      "version": "9.1.4",
+      "purl": "pkg:pypi/tenacity@9.1.4",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/tomli@2.4.1",
+      "name": "tomli",
+      "version": "2.4.1",
+      "purl": "pkg:pypi/tomli@2.4.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/typer@0.27.1",
       "name": "typer",
-      "version": "0.27.0",
-      "purl": "pkg:pypi/typer@0.27.0",
+      "version": "0.27.1",
+      "purl": "pkg:pypi/typer@0.27.1",
       "scope": "required",
       "licenses": [
         {
@@ -687,6 +1212,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:pypi/tzdata@2026.3",
+      "name": "tzdata",
+      "version": "2026.3",
+      "purl": "pkg:pypi/tzdata@2026.3",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/tzlocal@5.4.4",
+      "name": "tzlocal",
+      "version": "5.4.4",
+      "purl": "pkg:pypi/tzlocal@5.4.4",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/urllib3@2.7.0",
+      "name": "urllib3",
+      "version": "2.7.0",
+      "purl": "pkg:pypi/urllib3@2.7.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:pypi/uvicorn@0.52.1",
       "name": "uvicorn",
       "version": "0.52.1",
@@ -696,6 +1266,21 @@
         {
           "license": {
             "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/watchdog@6.0.0",
+      "name": "watchdog",
+      "version": "6.0.0",
+      "purl": "pkg:pypi/watchdog@6.0.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
           }
         }
       ]
@@ -717,15 +1302,30 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/websockets@17.0.1",
+      "bom-ref": "pkg:pypi/websockets@15.0.1",
       "name": "websockets",
-      "version": "17.0.1",
-      "purl": "pkg:pypi/websockets@17.0.1",
+      "version": "15.0.1",
+      "purl": "pkg:pypi/websockets@15.0.1",
       "scope": "required",
       "licenses": [
         {
           "license": {
             "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/yarl@1.24.5",
+      "name": "yarl",
+      "version": "1.24.5",
+      "purl": "pkg:pypi/yarl@1.24.5",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
           }
         }
       ]

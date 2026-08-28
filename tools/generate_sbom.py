@@ -98,7 +98,7 @@ def _components() -> list[dict[str, Any]]:
         if licence == "unknown":
             component["licenses"] = []
             component["properties"] = [
-                {"name": "productionpulse:licence", "value": "not declared by the package"}
+                {"name": "allaccess:licence", "value": "not declared by the package"}
             ]
         else:
             component["licenses"] = [{"license": {"name": licence}}]
@@ -122,22 +122,22 @@ def build(timestamp: str | None = None) -> dict[str, Any]:
         "version": 1,
         "metadata": {
             "timestamp": timestamp or datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            "tools": [{"vendor": "ProductionPulse", "name": "tools/generate_sbom.py"}],
+            "tools": [{"vendor": "All-Access", "name": "tools/generate_sbom.py"}],
             "component": {
                 "type": "application",
-                "bom-ref": "productionpulse",
-                "name": "productionpulse",
+                "bom-ref": "allaccess",
+                "name": "allaccess",
                 "version": _self_version(),
                 "description": (
-                    "ProductionPulse Inclusive -- real-time production decision "
+                    "All-Access -- real-time production decision "
                     "and execution infrastructure"
                 ),
                 "licenses": [{"license": {"id": "Apache-2.0"}}],
             },
             "properties": [
-                {"name": "productionpulse:python", "value": platform.python_version()},
-                {"name": "productionpulse:platform", "value": platform.platform()},
-                {"name": "productionpulse:content-digest", "value": digest},
+                {"name": "allaccess:python", "value": platform.python_version()},
+                {"name": "allaccess:platform", "value": platform.platform()},
+                {"name": "allaccess:content-digest", "value": digest},
             ],
         },
         "components": components,
@@ -146,7 +146,7 @@ def build(timestamp: str | None = None) -> dict[str, Any]:
 
 def _self_version() -> str:
     try:
-        return metadata.version("productionpulse")
+        return metadata.version("allaccess")
     except metadata.PackageNotFoundError:
         # Not pip-installed in this environment; read the declared version.
         text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
@@ -197,13 +197,13 @@ def declared_runtime_dependencies() -> set[str]:
 
 def _digest_of(document: dict[str, Any]) -> str:
     for prop in document.get("metadata", {}).get("properties", []):
-        if prop.get("name") == "productionpulse:content-digest":
+        if prop.get("name") == "allaccess:content-digest":
             return str(prop.get("value"))
     return ""
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="CycloneDX SBOM for ProductionPulse")
+    parser = argparse.ArgumentParser(description="CycloneDX SBOM for All-Access")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--check", action="store_true",
                         help="verify the committed SBOM covers every declared dependency")

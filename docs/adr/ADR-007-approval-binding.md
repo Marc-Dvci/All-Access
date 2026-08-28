@@ -32,7 +32,7 @@ constraint-set hash closes that.
 
 ## Consequences
 
-- Approvals stop verifying across a restart unless `PP_APPROVAL_KEY` is supplied
+- Approvals stop verifying across a restart unless `AA_APPROVAL_KEY` is supplied
   from Secret Manager. Terraform provisions the secret; it does not populate it.
   This is the finding UC-04 in `bob-evidence/USE_CASES.md` names as the one a
   security review ought to catch.

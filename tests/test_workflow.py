@@ -9,28 +9,28 @@ from __future__ import annotations
 
 import pytest
 
-from productionpulse.agents.coordinator import ProductionCoordinator
-from productionpulse.agents.core import OfflineReasoner
-from productionpulse.constraints.registry import active_constraints, constraint_set_hash
-from productionpulse.contracts import (
+from allaccess.agents.coordinator import ProductionCoordinator
+from allaccess.agents.core import OfflineReasoner
+from allaccess.constraints.registry import active_constraints, constraint_set_hash
+from allaccess.contracts import (
     DISRUPTION_TRANSITIONS,
     DisruptionState,
     Role,
     TargetSystem,
 )
-from productionpulse.disruptions import (
+from allaccess.disruptions import (
     STORM_SCENARIO,
     build_source_event,
     family_counts,
     generate,
     scenario_problem,
 )
-from productionpulse.execution import privacy
-from productionpulse.execution.approvals import ApprovalError, ApprovalLedger
-from productionpulse.production import world as w
-from productionpulse.stream import governance
-from productionpulse.systems import build_systems
-from productionpulse.twin import blast_radius, build_twin, certify_baseline
+from allaccess.execution import privacy
+from allaccess.execution.approvals import ApprovalError, ApprovalLedger
+from allaccess.production import world as w
+from allaccess.stream import governance
+from allaccess.systems import build_systems
+from allaccess.twin import blast_radius, build_twin, certify_baseline
 
 # ---------------------------------------------------------------------------
 # Twin
@@ -127,7 +127,7 @@ def test_access_requirement_visibility_is_per_requirement() -> None:
 
 def test_no_prohibited_field_exists_anywhere() -> None:
     """The published figure for this is zero. This is what makes it checkable."""
-    from productionpulse.production import world as world_module
+    from allaccess.production import world as world_module
 
     payloads = [
         {"requirement": r.requirement, "mechanism": r.mechanism,
@@ -172,7 +172,7 @@ def test_crew_view_is_minimal() -> None:
 
 @pytest.fixture()
 def approved(storm_problem):
-    from productionpulse.solver import engine
+    from allaccess.solver import engine
 
     outcome = engine.solve(storm_problem, "DISR-A")
     plan = outcome.plans[0]
@@ -231,7 +231,7 @@ def test_approval_requires_a_rationale(approved) -> None:
 
 
 def test_infeasible_plan_cannot_be_routed_for_approval(storm_problem) -> None:
-    from productionpulse.solver import engine
+    from allaccess.solver import engine
 
     outcome = engine.solve(storm_problem, "DISR-B")
     rejected = outcome.rejected[0]
@@ -265,8 +265,8 @@ def test_closed_is_terminal() -> None:
 
 @pytest.fixture(scope="module")
 def hero_run():
-    from productionpulse.stream.bus import LocalEventBus
-    from productionpulse.stream.registry import LocalSchemaRegistry
+    from allaccess.stream.bus import LocalEventBus
+    from allaccess.stream.registry import LocalSchemaRegistry
 
     twin = build_twin()
     problem = scenario_problem(STORM_SCENARIO, twin=twin)
@@ -288,7 +288,7 @@ def test_disruption_reaches_ready_and_closed(hero_run) -> None:
 
 
 def test_required_assessments_all_completed(hero_run) -> None:
-    from productionpulse.agents.experts import REQUIRED_ASSESSMENTS
+    from allaccess.agents.experts import REQUIRED_ASSESSMENTS
 
     _bus, _systems, _coordinator, outcome, _source = hero_run
     producers = {f.producer for f in outcome.findings}
@@ -368,7 +368,7 @@ def test_communication_cap_respected(hero_run) -> None:
 
 def test_replaying_the_command_set_books_nothing_twice(hero_run) -> None:
     """A duplicated approval must not book two vehicles."""
-    from productionpulse.execution import commands as command_builder
+    from allaccess.execution import commands as command_builder
 
     _bus, systems, coordinator, outcome, _source = hero_run
     connector = systems[TargetSystem.CALL_SHEET]
@@ -437,7 +437,7 @@ def test_department_readiness_is_keyed_by_department(hero_run) -> None:
 
 def test_readiness_is_never_claimed_for_a_department_with_no_tasks() -> None:
     """`issued == accepted` is True at 0 == 0. The domain rule is not."""
-    from productionpulse.stream.views import DepartmentReadiness
+    from allaccess.stream.views import DepartmentReadiness
 
     assert DepartmentReadiness("props").ready is False
     assert DepartmentReadiness("props", tasks_issued=2, tasks_accepted=1).ready is False
@@ -467,8 +467,8 @@ def test_board_shows_the_department_verification_blocked_on() -> None:
     board has to name props specifically while verification is blocking on it.
     Against the old read model this sees no `props` key and fails.
     """
-    from productionpulse.stream.bus import LocalEventBus
-    from productionpulse.stream.registry import LocalSchemaRegistry
+    from allaccess.stream.bus import LocalEventBus
+    from allaccess.stream.registry import LocalSchemaRegistry
 
     problem = scenario_problem(STORM_SCENARIO, twin=build_twin())
     bus = LocalEventBus(LocalSchemaRegistry(), w.PRODUCTION_ID)
@@ -489,7 +489,7 @@ def test_board_shows_the_department_verification_blocked_on() -> None:
 
 def test_department_readiness_survives_replay(hero_run) -> None:
     """Readiness is a fold, so replaying the log must rebuild it identically."""
-    from productionpulse.stream.views import MaterializedViews
+    from allaccess.stream.views import MaterializedViews
 
     bus, _systems, coordinator, _outcome, _source = hero_run
     rebuilt = MaterializedViews().apply_all(bus.all_events())
@@ -509,7 +509,7 @@ def test_readiness_is_published_only_when_it_changes(hero_run) -> None:
     should not exist. Seven spurious entries per disruption in a dead-letter
     queue is how a queue stops being read.
     """
-    from productionpulse.contracts import EventType
+    from allaccess.contracts import EventType
 
     bus, _systems, coordinator, _outcome, _source = hero_run
     readiness = [
@@ -536,8 +536,8 @@ def test_a_clean_run_dead_letters_nothing() -> None:
     which legitimately puts duplicates on that bus. Asserting an empty queue
     against shared state would pass or fail on test ordering.
     """
-    from productionpulse.stream.bus import LocalEventBus
-    from productionpulse.stream.registry import LocalSchemaRegistry
+    from allaccess.stream.bus import LocalEventBus
+    from allaccess.stream.registry import LocalSchemaRegistry
 
     bus = LocalEventBus(LocalSchemaRegistry(), w.PRODUCTION_ID)
     coordinator = ProductionCoordinator(

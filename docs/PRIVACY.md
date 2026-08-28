@@ -1,6 +1,6 @@
 # Privacy and data minimisation
 
-Implemented in `src/productionpulse/execution/privacy.py`. Measured by the
+Implemented in `src/allaccess/execution/privacy.py`. Measured by the
 `inclusion_and_privacy` block of `bench/results/summary.json`. Every claim below
 either names the code that enforces it or the artifact that measures it.
 
@@ -12,7 +12,7 @@ A production system that schedules around people's access requirements has to
 know something about those people. The question is *what*, and this system's
 answer is: **the operational fact, never the reason for it.**
 
-`AccessRequirement` in `src/productionpulse/production/world.py` carries a
+`AccessRequirement` in `src/allaccess/production/world.py` carries a
 practical arrangement, its approving role, its mechanism, and the roles allowed
 to see it. It has no field for a diagnosis, a condition, a category of
 impairment, or an explanation. There is nowhere in the schema to put one, which

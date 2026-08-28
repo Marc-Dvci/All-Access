@@ -1,4 +1,4 @@
-"""Deploy the ProductionPulse reasoning plane to Vertex AI Agent Engine.
+"""Deploy the All-Access reasoning plane to Vertex AI Agent Engine.
 
     python tools/deploy_agent_engine.py --dry-run          # validate, no cloud calls
     python tools/deploy_agent_engine.py --project my-proj --location us-central1
@@ -75,18 +75,18 @@ _TOOL_DENYLIST: frozenset[str] = frozenset({
 
 DEFAULT_LOCATION = "us-central1"
 DEFAULT_MODEL = "gemini-2.5-flash"
-DISPLAY_NAME = "productionpulse-reasoning"
+DISPLAY_NAME = "allaccess-reasoning"
 
 
 def agent_manifest(project: str, location: str, model: str) -> dict[str, Any]:
     """The deployment descriptor. Pure data, so `--dry-run` can check it."""
-    from productionpulse.agents.adk_tools import TOOL_NAMES
-    from productionpulse.agents.core import GeminiReasoner
+    from allaccess.agents.adk_tools import TOOL_NAMES
+    from allaccess.agents.core import GeminiReasoner
 
     return {
         "display_name": DISPLAY_NAME,
         "description": (
-            "Interpretation and explanation plane for ProductionPulse Inclusive. "
+            "Interpretation and explanation plane for All-Access. "
             "Explains deterministic decisions; does not make them."
         ),
         "project": project,
@@ -105,17 +105,17 @@ def agent_manifest(project: str, location: str, model: str) -> dict[str, Any]:
             "google-genai>=1.0.0",
             "pydantic>=2.7",
         ],
-        "extra_packages": ["src/productionpulse"],
+        "extra_packages": ["src/allaccess"],
         "env_vars": {
             # The hosted agent runs the same code with the same switch. It is
             # given no Confluent credentials: the deployed plane narrates, and
             # publishing is done by the application plane.
-            "PP_REASONING_MODE": "gemini",
-            "PP_GEMINI_MODEL": model,
+            "AA_REASONING_MODE": "gemini",
+            "AA_GEMINI_MODEL": model,
         },
         "labels": {
             "component": "reasoning-plane",
-            "project": "productionpulse",
+            "project": "allaccess",
             "track": "ibm",
         },
     }
@@ -123,7 +123,7 @@ def agent_manifest(project: str, location: str, model: str) -> dict[str, Any]:
 
 def validate(manifest: dict[str, Any]) -> list[str]:
     """Everything that can be checked without a cloud project. Empty means valid."""
-    from productionpulse.agents import adk_tools
+    from allaccess.agents import adk_tools
 
     problems: list[str] = []
 
@@ -196,7 +196,7 @@ def _init(project: str, location: str) -> None:  # pragma: no cover - needs clou
 
 
 def deploy(manifest: dict[str, Any]) -> str:  # pragma: no cover - needs cloud
-    from productionpulse.agents.adk_tools import build_agent
+    from allaccess.agents.adk_tools import build_agent
 
     _init(manifest["project"], manifest["location"])
     agent_engines = _agent_engines()
@@ -218,11 +218,11 @@ def deploy(manifest: dict[str, Any]) -> str:  # pragma: no cover - needs cloud
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Deploy the ProductionPulse reasoning plane")
+    parser = argparse.ArgumentParser(description="Deploy the All-Access reasoning plane")
     parser.add_argument("--project", default=os.environ.get("GOOGLE_CLOUD_PROJECT", ""))
     parser.add_argument("--location",
                         default=os.environ.get("GOOGLE_CLOUD_LOCATION", DEFAULT_LOCATION))
-    parser.add_argument("--model", default=os.environ.get("PP_GEMINI_MODEL", DEFAULT_MODEL))
+    parser.add_argument("--model", default=os.environ.get("AA_GEMINI_MODEL", DEFAULT_MODEL))
     parser.add_argument("--dry-run", action="store_true",
                         help="validate the manifest and exit; no cloud calls")
     parser.add_argument("--list", action="store_true", help="list deployed agent engines")
@@ -268,7 +268,7 @@ def main(argv: list[str] | None = None) -> int:
     resource_name = deploy(manifest)  # pragma: no cover - needs cloud
     print(f"deployed: {resource_name}")  # pragma: no cover
     print(  # pragma: no cover
-        "Set PP_AGENT_ENGINE_RESOURCE to this value, and PP_REASONING_MODE=gemini, "
+        "Set AA_AGENT_ENGINE_RESOURCE to this value, and AA_REASONING_MODE=gemini, "
         "to route narration through the hosted plane."
     )
     return 0  # pragma: no cover

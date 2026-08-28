@@ -10,10 +10,10 @@ from __future__ import annotations
 
 import pytest
 
-from productionpulse.constraints.registry import evaluate
-from productionpulse.disruptions import STORM_SCENARIO, scenario_problem
-from productionpulse.solver import engine, infeasibility, objectives
-from productionpulse.solver.model import (
+from allaccess.constraints.registry import evaluate
+from allaccess.disruptions import STORM_SCENARIO, scenario_problem
+from allaccess.solver import engine, infeasibility, objectives
+from allaccess.solver.model import (
     CandidatePlan,
     baseline_assignments,
     build_problem,
@@ -100,7 +100,7 @@ def test_every_rejected_plan_has_a_conflict_set(storm_outcome) -> None:
 def test_conflict_sets_are_minimal(storm_outcome) -> None:
     """Removing the conflict set must actually make the plan feasible again."""
     problem, outcome = storm_outcome
-    from productionpulse.constraints.registry import active_constraints
+    from allaccess.constraints.registry import active_constraints
 
     for plan in outcome.rejected:
         conflict = plan.conflicts[0]
@@ -161,7 +161,7 @@ def test_pareto_front_contains_no_dominated_plan(storm_outcome) -> None:
 
 def test_objectives_exclude_safety_and_access() -> None:
     """Structural guarantee: there is no objective that could trade them away."""
-    from productionpulse.contracts import PlanObjectives
+    from allaccess.contracts import PlanObjectives
 
     labels = set(PlanObjectives.labels())
     for forbidden in ("safety", "access", "accessibility", "arrangement"):
@@ -169,7 +169,7 @@ def test_objectives_exclude_safety_and_access() -> None:
 
 
 def test_scalarisation_is_only_for_ordering(storm_outcome) -> None:
-    from productionpulse.constraints.registry import SOFT_WEIGHTS
+    from allaccess.constraints.registry import SOFT_WEIGHTS
 
     _problem, outcome = storm_outcome
     scores = [
@@ -194,8 +194,8 @@ def test_quickxplain_finds_a_genuine_conflict() -> None:
 
 
 def test_search_reports_why_a_scene_will_not_fit() -> None:
-    from productionpulse.production import world as w
-    from productionpulse.solver.search import PlacementRequest, schedule
+    from allaccess.production import world as w
+    from allaccess.solver.search import PlacementRequest, schedule
 
     problem = build_problem(now=w.at(22, 0))
     request = PlacementRequest(

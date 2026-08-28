@@ -1,5 +1,5 @@
 /**
- * ProductionPulse Inclusive — application plane on Google Cloud.
+ * All-Access — application plane on Google Cloud.
  *
  * What this provisions: an Artifact Registry repository, a Cloud Run service
  * running the container from Dockerfile, a dedicated service account with the
@@ -37,7 +37,7 @@ provider "google" {
 }
 
 locals {
-  service_name = "productionpulse"
+  service_name = "allaccess"
 
   # Enabled only for what is used at runtime. Artifact Registry and Cloud Run
   # are always needed; the other two follow the feature flags.
@@ -66,7 +66,7 @@ resource "google_project_service" "required" {
 resource "google_artifact_registry_repository" "images" {
   location      = var.region
   repository_id = "${local.service_name}-images"
-  description   = "Container images for the ProductionPulse application plane"
+  description   = "Container images for the All-Access application plane"
   format        = "DOCKER"
 
   depends_on = [google_project_service.required]
@@ -78,7 +78,7 @@ resource "google_artifact_registry_repository" "images" {
 
 resource "google_service_account" "app" {
   account_id   = "${local.service_name}-app"
-  display_name = "ProductionPulse application plane"
+  display_name = "All-Access application plane"
   description  = "Runs the Cloud Run service. Reads its own secrets; nothing else."
 }
 
@@ -111,7 +111,7 @@ resource "google_secret_manager_secret_iam_member" "app_access" {
 # credential into a variable puts it in the state file and in the plan output,
 # and both get shared. Populate with:
 #
-#   printf %s "$KEY" | gcloud secrets versions add productionpulse-confluent-api-key --data-file=-
+#   printf %s "$KEY" | gcloud secrets versions add allaccess-confluent-api-key --data-file=-
 
 resource "google_secret_manager_secret" "runtime" {
   for_each = toset(var.enable_confluent ? [
@@ -167,12 +167,12 @@ resource "google_cloud_run_v2_service" "app" {
       }
 
       env {
-        name  = "PP_REASONING_MODE"
+        name  = "AA_REASONING_MODE"
         value = var.enable_gemini ? "gemini" : "offline"
       }
 
       env {
-        name  = "PP_EVENT_BACKBONE"
+        name  = "AA_EVENT_BACKBONE"
         value = var.enable_confluent ? "confluent" : "local"
       }
 
@@ -190,8 +190,8 @@ resource "google_cloud_run_v2_service" "app" {
         for_each = google_secret_manager_secret.runtime
 
         content {
-          # confluent-api-key -> PP_CONFLUENT_API_KEY
-          name = "PP_${upper(replace(env.key, "-", "_"))}"
+          # confluent-api-key -> AA_CONFLUENT_API_KEY
+          name = "AA_${upper(replace(env.key, "-", "_"))}"
 
           value_source {
             secret_key_ref {

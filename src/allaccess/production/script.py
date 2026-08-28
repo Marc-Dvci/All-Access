@@ -62,7 +62,7 @@ class Scene:
 
 TITLE = "Salt and Light"
 FORM = "Short film"
-WRITER = "ProductionPulse demonstration — original work, written for this project"
+WRITER = "All-Access demonstration — original work, written for this project"
 LOGLINE = (
     "On the last working weekend of a failing harbour, a deaf teenager and the "
     "grandfather who never learned to sign have to sell the boat that is the only "

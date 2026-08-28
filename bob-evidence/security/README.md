@@ -9,7 +9,7 @@ Findings from IBM Bob **Security Review** mode sessions, one file per session.
 The threat model those sessions will be reviewed against is
 `../../docs/THREAT_MODEL.md`. UC-04 in `../USE_CASES.md` carries the brief and,
 deliberately, a known ground-truth finding — the per-process approval signing key
-when `PP_APPROVAL_KEY` is unset — so a session's output can be judged rather than
+when `AA_APPROVAL_KEY` is unset — so a session's output can be judged rather than
 admired.
 
 ## Format

@@ -5,7 +5,7 @@ invented harbour, invented vendors. No real person, company, location or union
 agreement is represented. The working-hour numbers, turnaround rules and
 child-performer limits are *configured policy values for this fictional
 production*, not a claim about any real jurisdiction's law or any real
-collective agreement. ProductionPulse enforces whatever is configured; it does
+collective agreement. All-Access enforces whatever is configured; it does
 not decide what the rules should be. See docs/PRIVACY.md §4 and §13.4 of the
 plan.
 

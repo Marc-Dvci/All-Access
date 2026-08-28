@@ -1,9 +1,9 @@
-# ProductionPulse Inclusive — application plane.
+# All-Access — application plane.
 #
 # Serves the FastAPI application and the web client. The image carries the
 # offline reasoning plane and the in-process event bus, so a container with no
 # credentials at all still runs the full closed loop and the demonstration — the
-# `PP_*` variables below switch it onto Confluent Cloud and Vertex AI without a
+# `AA_*` variables below switch it onto Confluent Cloud and Vertex AI without a
 # rebuild.
 #
 # Multi-stage so the runtime layer has no build toolchain in it, and non-root
@@ -34,8 +34,8 @@ ENV PYTHONUNBUFFERED=1 \
     PATH="/opt/venv/bin:$PATH" \
     # Defaults are the fully offline plane. Both are overridden by environment
     # at deploy time; neither carries a credential.
-    PP_REASONING_MODE=offline \
-    PP_EVENT_BACKBONE=local \
+    AA_REASONING_MODE=offline \
+    AA_EVENT_BACKBONE=local \
     PORT=8080
 
 COPY --from=build /opt/venv /opt/venv
@@ -62,4 +62,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
 urllib.request.urlopen(f\"http://127.0.0.1:{os.environ.get('PORT','8080')}/healthz\",timeout=4)"
 
 # Shell form so $PORT is expanded — Cloud Run assigns it and does not promise 8080.
-CMD exec uvicorn productionpulse.api:app --host 0.0.0.0 --port ${PORT}
+CMD exec uvicorn allaccess.api:app --host 0.0.0.0 --port ${PORT}

@@ -3,7 +3,7 @@
     python tools/a11y_audit.py                # human readable, non-zero on failure
     python tools/a11y_audit.py --json docs/accessibility_audit.json
 
-This is a static audit of `src/productionpulse/web/`. It parses the markup and
+This is a static audit of `src/allaccess/web/`. It parses the markup and
 the stylesheet and checks the WCAG 2.2 AA success criteria that are decidable
 from source. It does **not** run a browser, and it therefore cannot check
 anything that depends on rendering, computed layout or assistive-technology
@@ -31,7 +31,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
-WEB = ROOT / "src" / "productionpulse" / "web"
+WEB = ROOT / "src" / "allaccess" / "web"
 
 
 @dataclass
@@ -109,6 +109,22 @@ CONTRAST_PAIRS: tuple[tuple[str, str, float, str], ...] = (
     ("focus", "bg", 3.0, "the focus indicator, outer ring on the page"),
     ("focus-inner", "accent", 3.0, "the focus indicator, inner ring on a selected tab"),
     ("accent", "surface", 3.0, "an accent boundary"),
+
+    # Text printed on a graphic fill: a scene bar's time range, a weather band's
+    # condition, a route node's identifier, the disruption source marker. These
+    # were missing, and their absence let a real AA failure ship: the diagram
+    # labels were literal `#ffffff`, which measures around 1.5:1 against the dark
+    # palette's graph colours, because the dark palette lightens them. An audit
+    # that reads tokens cannot see a colour that was not a token, so the fix was
+    # to make them tokens and then check them here.
+    ("accent-ink", "graph-1", 4.5, "a label on an interior-scene bar or the working position"),
+    ("accent-ink", "graph-2", 4.5, "a label on an exterior-scene bar"),
+    ("accent-ink", "graph-3", 4.5, "a label on the arrival point"),
+    ("accent-ink", "bad", 4.5, "the label on the disruption source marker"),
+    ("accent-ink", "ink-muted", 4.5, "a label on a neutral weather band"),
+    ("graph-4", "surface", 3.0, "the approved-access-arrangement marker"),
+    ("graph-1", "surface", 3.0, "a chart mark against the card it sits on"),
+    ("graph-2", "surface", 3.0, "a chart mark against the card it sits on"),
 )
 
 #: Checked and reported, but not required to reach 3:1.
@@ -321,7 +337,7 @@ def main(argv: list[str] | None = None) -> int:
     artifact: dict[str, Any] = {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "target": "WCAG 2.2 Level AA",
-        "scope": "src/productionpulse/web/ — static source audit, no browser",
+        "scope": "src/allaccess/web/ — static source audit, no browser",
         "not_covered": [
             "Anything requiring a rendered layout or computed style",
             "Screen-reader announcement order and quality",

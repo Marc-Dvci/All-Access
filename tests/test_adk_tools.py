@@ -16,7 +16,7 @@ import json
 
 import pytest
 
-from productionpulse.agents import adk_tools
+from allaccess.agents import adk_tools
 
 #: Captured before any fixture routes `_get` at the test application, so the
 #: unreachable-application test below exercises the real network path however
@@ -29,7 +29,7 @@ def live_tools():
     """Point the tools at the real app instead of a network address."""
     from fastapi.testclient import TestClient
 
-    from productionpulse.api import app
+    from allaccess.api import app
 
     client = TestClient(app)
     original = adk_tools._get  # noqa: SLF001
@@ -125,7 +125,7 @@ def test_conflict_sets_carry_the_measurement_not_a_category(live_tools) -> None:
 
 def test_access_arrangements_never_carry_a_reason(live_tools) -> None:
     """The one disclosure this system must not make, checked at the tool boundary."""
-    from productionpulse.execution.privacy import check_no_prohibited_fields
+    from allaccess.execution.privacy import check_no_prohibited_fields
 
     result = live_tools.describe_access_arrangements()
     assert result["arrangements"], "no access arrangements reached the tool"
@@ -134,7 +134,7 @@ def test_access_arrangements_never_carry_a_reason(live_tools) -> None:
 
 
 def test_no_tool_leaks_a_prohibited_field(live_tools) -> None:
-    from productionpulse.execution.privacy import check_no_prohibited_fields
+    from allaccess.execution.privacy import check_no_prohibited_fields
 
     payloads = []
     for tool in live_tools.TOOLS:
@@ -166,7 +166,7 @@ adk = pytest.importorskip("google.adk", reason="google-adk is in the `cloud` ext
 
 def test_the_agent_is_built_with_exactly_the_approved_tools() -> None:
     agent = adk_tools.build_agent()
-    assert agent.name == "productionpulse_reasoning"
+    assert agent.name == "allaccess_reasoning"
     assert {t.__name__ for t in agent.tools} == set(adk_tools.TOOL_NAMES)
 
 
