@@ -1,8 +1,10 @@
 # All-Access
 
-**Every production disruption becomes a provably feasible, human-approved
-recovery plan — and the system proves the plan actually happened everywhere it
-was supposed to.**
+**A shoot day isn't recovered until it's recovered for everyone.**
+
+All-Access turns every production disruption into a provably feasible,
+human-approved recovery plan that can never trade away an approved access
+arrangement — and proves the plan reached every department.
 
 Agentic Cinema · IBM track · Apache-2.0
 
