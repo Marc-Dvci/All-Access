@@ -1,8 +1,9 @@
 # All-Access — automated three-minute demo
 
-A deterministic, narrated walkthrough of the real product. Playwright drives the
+A deterministic, narrated walkthrough of the **real public Cloud Run deployment**
+(<https://all-access-1022938933263.europe-west1.run.app>). Playwright drives the
 product's own guided demonstration (the same code a visitor runs at `/?demo=1`)
-against a running server; the product renders every caption, cursor move,
+against the live service; the product renders every caption, cursor move,
 spotlight and diagram itself. Nothing on the product screen is mocked or added
 in post — the storm, the impact traversal, the refusal with its named conflict
 set, the survey measurement, the three plans, the signed approval and the

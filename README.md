@@ -8,6 +8,10 @@ arrangement — and proves the plan reached every department.
 
 Agentic Cinema · IBM track · Apache-2.0
 
+**Live on Google Cloud:** <https://all-access-1022938933263.europe-west1.run.app>
+· watch it play itself at
+[`/?demo=1`](https://all-access-1022938933263.europe-west1.run.app/?demo=1)
+
 ---
 
 A film set changes constantly. Weather closes an exterior, a performer is

@@ -28,7 +28,10 @@ from ui_smoke import free_port, start_server  # noqa: E402
 
 VIEWPORT = (1600, 900)
 TAIL_SECONDS = 2.2
-URL_ARG = sys.argv[1] if len(sys.argv) > 1 else None
+# The public deployment is the canonical target. Pass "local" to spin up a
+# throwaway server, or pass any other URL to record that instead.
+DEFAULT_URL = "https://all-access-1022938933263.europe-west1.run.app/"
+URL_ARG = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_URL
 
 
 def probe_duration(path: pathlib.Path) -> float:
@@ -128,7 +131,7 @@ def main() -> None:
 
     proc = None
     url = URL_ARG
-    if url is None:
+    if url == "local":
         port = free_port()
         proc = start_server(port)
         url = f"http://127.0.0.1:{port}/"
