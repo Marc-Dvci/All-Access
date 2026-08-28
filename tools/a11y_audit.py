@@ -26,7 +26,6 @@ import json
 import re
 import sys
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -335,7 +334,6 @@ def main(argv: list[str] | None = None) -> int:
     failed = [c for c in checks if not c.passed]
 
     artifact: dict[str, Any] = {
-        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "target": "WCAG 2.2 Level AA",
         "scope": "src/allaccess/web/ — static source audit, no browser",
         "not_covered": [
