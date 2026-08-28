@@ -1,0 +1,21 @@
+# Upload for Cloud Build. Keep only what the Dockerfile needs
+# (pyproject, README, LICENSE, src/, bench/results, docs/).
+.git/
+.github/
+.venv/
+.venv-mcp/
+.audit-venv/
+.tmp-audit-venv/
+.tools/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+node_modules/
+var/
+demo_video/
+.env
+.env.*
+*.pem
+*-key.json
