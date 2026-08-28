@@ -278,7 +278,7 @@ TOOLS = (
 TOOL_NAMES: frozenset[str] = frozenset(t.__name__ for t in TOOLS)
 
 
-def build_agent(model: str = "gemini-2.5-flash", *, name: str = "allaccess_reasoning"):
+def build_agent(model: str = "gemini-3.7-flash", *, name: str = "allaccess_reasoning"):
     """Construct the ADK agent. Requires `google-adk`; see the `cloud` extra.
 
     Kept separate from `TOOLS` so the tool surface can be tested, and the

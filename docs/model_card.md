@@ -25,7 +25,7 @@ deterministic. Every figure in `BENCHMARK.md` was produced in this mode, and
 
 ### `gemini`
 
-`AA_REASONING_MODE=gemini`, Gemini on Vertex AI, default `gemini-2.5-flash`,
+`AA_REASONING_MODE=gemini`, Gemini on Vertex AI, default `gemini-3.7-flash`,
 temperature 0.2, 300 output tokens.
 
 **System instruction, in full**, because it is the control and a control you

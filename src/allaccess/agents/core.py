@@ -203,7 +203,7 @@ class GeminiReasoner:
         "were given; anything else will be rejected automatically and discarded."
     )
 
-    def __init__(self, model: str = "gemini-2.5-flash", project: str | None = None,
+    def __init__(self, model: str = "gemini-3.7-flash", project: str | None = None,
                  location: str = "us-central1") -> None:
         self.model = model
         self.project = project or os.environ.get("GOOGLE_CLOUD_PROJECT", "")
@@ -295,7 +295,7 @@ def build_reasoner(mode: str | None = None) -> Reasoner:
     selected = (mode or os.environ.get("AA_REASONING_MODE", "offline")).lower()
     if selected == "gemini":
         return GeminiReasoner(
-            model=os.environ.get("AA_GEMINI_MODEL", "gemini-2.5-flash")
+            model=os.environ.get("AA_GEMINI_MODEL", "gemini-3.7-flash")
         )
     return OfflineReasoner()
 

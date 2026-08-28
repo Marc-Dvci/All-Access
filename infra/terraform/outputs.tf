@@ -16,9 +16,9 @@ output "image_repository" {
 output "runtime_plane" {
   description = "Which planes this deployment is wired to, as deployed."
   value = {
-    reasoning       = var.enable_gemini ? "gemini (Vertex AI)" : "offline"
-    event_backbone  = var.enable_confluent ? "confluent cloud" : "in-process bus"
-    public          = var.allow_unauthenticated
+    reasoning      = var.enable_gemini ? "gemini (Vertex AI)" : "offline"
+    event_backbone = var.enable_confluent ? "confluent cloud" : "in-process bus"
+    public         = var.allow_unauthenticated
   }
 }
 

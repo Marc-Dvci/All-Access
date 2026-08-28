@@ -74,7 +74,7 @@ _TOOL_DENYLIST: frozenset[str] = frozenset({
 })
 
 DEFAULT_LOCATION = "us-central1"
-DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_MODEL = "gemini-3.7-flash"
 DISPLAY_NAME = "allaccess-reasoning"
 
 

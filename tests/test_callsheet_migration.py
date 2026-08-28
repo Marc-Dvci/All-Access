@@ -17,15 +17,19 @@ import pytest
 from allaccess.contracts import Command, CommandStatus, TargetSystem
 from allaccess.production import world as w
 from allaccess.systems import callsheet_legacy as legacy
+from allaccess.systems.callsheet_bob import (
+    CONNECTOR_VERSION as BOB_CONNECTOR_VERSION,
+)
+from allaccess.systems.callsheet_bob import (
+    CallSheetConnector as BobConnector,
+)
+from allaccess.systems.callsheet_bob import (
+    CallSheetRevision as BobRevision,
+)
 from allaccess.systems.callsheet_modern import (
     CONNECTOR_VERSION,
     CallSheetConnector,
     CallSheetRevision,
-)
-from allaccess.systems.callsheet_bob import (
-    CONNECTOR_VERSION as BOB_CONNECTOR_VERSION,
-    CallSheetConnector as BobConnector,
-    CallSheetRevision as BobRevision,
 )
 
 

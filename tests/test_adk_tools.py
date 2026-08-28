@@ -76,7 +76,7 @@ def test_every_tool_is_declarable_by_adk() -> None:
 def test_the_manifest_deploys_the_tools_that_exist() -> None:
     from tools.deploy_agent_engine import agent_manifest, validate
 
-    manifest = agent_manifest("DRY-RUN", "us-central1", "gemini-2.5-flash")
+    manifest = agent_manifest("DRY-RUN", "us-central1", "gemini-3.7-flash")
     assert validate(manifest) == []
     assert set(manifest["tools"]) == set(adk_tools.TOOL_NAMES)
 
@@ -85,7 +85,7 @@ def test_validate_rejects_a_tool_the_agent_does_not_have() -> None:
     """The check fails when it should, not only when nothing is wrong."""
     from tools.deploy_agent_engine import agent_manifest, validate
 
-    manifest = agent_manifest("DRY-RUN", "us-central1", "gemini-2.5-flash")
+    manifest = agent_manifest("DRY-RUN", "us-central1", "gemini-3.7-flash")
     manifest["tools"] = sorted(set(manifest["tools"]) | {"approve_plan"})
     problems = validate(manifest)
     assert any("denylist" in p for p in problems)
