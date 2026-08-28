@@ -1,0 +1,208 @@
+{
+  "total": 172.278,
+  "voice": "en-US-AndrewMultilingualNeural",
+  "rate": "+9%",
+  "beats": 22,
+  "durations_ms": [
+    12854,
+    7790,
+    4214,
+    6782,
+    7238,
+    9326,
+    7190,
+    5750,
+    7046,
+    5318,
+    9878,
+    5366,
+    10694,
+    8390,
+    8078,
+    9974,
+    6038,
+    7262,
+    10238,
+    10478,
+    9374,
+    3000
+  ],
+  "timeline": [
+    {
+      "i": 0,
+      "at": 0.0,
+      "chapter": "",
+      "say": "When a shoot falls apart, the fastest fix often quietly drops someone \u2014 a step-free route, an interpreter. All-Access recovers the day without trading those away, and proves the plan reached everyone.",
+      "dur": 12.854,
+      "speech": 12.504
+    },
+    {
+      "i": 1,
+      "at": 12.854,
+      "chapter": "The day",
+      "say": "Day fourteen of Salt and Light. Five scenes, three locations \u2014 every approved access arrangement satisfied.",
+      "dur": 7.79,
+      "speech": 7.44
+    },
+    {
+      "i": 2,
+      "at": 20.644,
+      "chapter": "The day",
+      "say": "Weather and scenes on one axis. The amber bars are exterior work.",
+      "dur": 4.214,
+      "speech": 3.864
+    },
+    {
+      "i": 3,
+      "at": 24.858,
+      "chapter": "The disruption",
+      "say": "A verified storm reaches the harbour at eighteen thirty. Sixty-eight kilometre winds, sea state six.",
+      "dur": 6.782,
+      "speech": 6.432
+    },
+    {
+      "i": 4,
+      "at": 31.64,
+      "chapter": "The disruption",
+      "say": "Source event to verified readiness \u2014 the whole loop \u2014 in under half a second. Nothing on this screen is a recording.",
+      "dur": 7.238,
+      "speech": 6.888
+    },
+    {
+      "i": 5,
+      "at": 38.878,
+      "chapter": "Intake",
+      "say": "The event arrives typed, contract-validated and hash-chained, carrying the authority that says whether the system may act without a human first.",
+      "dur": 9.326,
+      "speech": 8.976
+    },
+    {
+      "i": 6,
+      "at": 48.204,
+      "chapter": "Impact",
+      "say": "The digital twin traverses the dependency graph \u2014 a hundred and nineteen affected entities across six levels.",
+      "dur": 7.19,
+      "speech": 6.84
+    },
+    {
+      "i": 7,
+      "at": 55.394,
+      "chapter": "Impact",
+      "say": "Distance from the centre is how far the storm had to travel. Each wedge is one kind of thing.",
+      "dur": 5.75,
+      "speech": 5.4
+    },
+    {
+      "i": 8,
+      "at": 61.144,
+      "chapter": "Impact",
+      "say": "The purple rings are approved access arrangements. A scheduling tool would have shown the replacement location as free.",
+      "dur": 7.046,
+      "speech": 6.696
+    },
+    {
+      "i": 9,
+      "at": 68.19,
+      "chapter": "The refusal",
+      "say": "The obvious move is the boatshed. It is available. The system will not publish it.",
+      "dur": 5.318,
+      "speech": 4.968
+    },
+    {
+      "i": 10,
+      "at": 73.508,
+      "chapter": "The refusal",
+      "say": "A minimal conflict set: C-ACC-001, a step-free route to the working position \u2014 with the owner and the approved arrangement it comes from.",
+      "dur": 9.878,
+      "speech": 9.528
+    },
+    {
+      "i": 11,
+      "at": 83.386,
+      "chapter": "The refusal",
+      "say": "Not \u201cinfeasible\u201d. Why \u2014 and whether the rule may be waived. This one may not.",
+      "dur": 5.366,
+      "speech": 5.016
+    },
+    {
+      "i": 12,
+      "at": 88.752,
+      "chapter": "The measurement",
+      "say": "Underneath it, the survey: the shed door's cill is a hundred and forty millimetres against a twenty limit. A location manager can act on that \u2014 not on 'accessibility concern'.",
+      "dur": 10.694,
+      "speech": 10.344
+    },
+    {
+      "i": 13,
+      "at": 99.446,
+      "chapter": "The options",
+      "say": "Three structurally different plans, each rechecked against all thirty-four constraints independently, before any was shown to anyone.",
+      "dur": 8.39,
+      "speech": 8.04
+    },
+    {
+      "i": 14,
+      "at": 107.836,
+      "chapter": "The options",
+      "say": "Objectives trade off. Hard constraints trade off against nothing \u2014 which is why the access row reads the same on all three.",
+      "dur": 8.078,
+      "speech": 7.728
+    },
+    {
+      "i": 15,
+      "at": 115.914,
+      "chapter": "Authority",
+      "say": "The system approves nothing. Two named authorities sign, and each signature is bound to the plan hash and the constraints in force \u2014 single use, expiring.",
+      "dur": 9.974,
+      "speech": 9.624
+    },
+    {
+      "i": 16,
+      "at": 125.888,
+      "chapter": "Execution",
+      "say": "Nine typed commands through the saga coordinator. Every one completed. Every acknowledgment returned.",
+      "dur": 6.038,
+      "speech": 5.688
+    },
+    {
+      "i": 17,
+      "at": 131.926,
+      "chapter": "Execution",
+      "say": "A system that trusted that would call the day ready. This one refuses \u2014 props hasn't accepted \u2014 and there is no override.",
+      "dur": 7.262,
+      "speech": 6.912
+    },
+    {
+      "i": 18,
+      "at": 139.188,
+      "chapter": "Execution",
+      "say": "Across a thousand disruptions, verification caught seventy-five of seventy-five incomplete executions \u2014 twelve percent of runs that would otherwise have closed early.",
+      "dur": 10.238,
+      "speech": 9.888
+    },
+    {
+      "i": 19,
+      "at": 149.426,
+      "chapter": "The shift",
+      "say": "For the producer, not the incident but the shift: which rules removed the most options, who owns them, and where they came from \u2014 a list you can spend money against.",
+      "dur": 10.478,
+      "speech": 10.128
+    },
+    {
+      "i": 20,
+      "at": 159.904,
+      "chapter": "The evidence",
+      "say": "Every screen is a fold over one event log. Replay it into a fresh view and it reproduces live state exactly, hash chain intact.",
+      "dur": 9.374,
+      "speech": 9.024
+    },
+    {
+      "i": 21,
+      "at": 169.278,
+      "chapter": "",
+      "say": "",
+      "dur": 3.0,
+      "speech": 0.0
+    }
+  ]
+}

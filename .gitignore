@@ -39,3 +39,11 @@ Thumbs.db
 #                         benchmark was run in.
 # docs/accessibility_audit.json   the 62-check audit artifact.
 bench/results/smoke/
+
+# demo_video intermediates (kept: *.mp4, narration.wav, timing.json, *.srt, *.py, README)
+demo_video/_raw/
+demo_video/_frames/
+demo_video/speech/
+demo_video/_narration_padded.wav
+demo_video/_narration_raw.mp3
+demo_video/narration.mp3

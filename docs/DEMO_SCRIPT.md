@@ -52,32 +52,32 @@ Generated from `src/allaccess/web/demo.js` by `tools/demo_script.py`.
 Editing this table by hand will be overwritten; change the beat instead.
 
 
-Runs **2:53** over 22 beats.
+Runs **2:59** over 22 beats.
 
 | # | Cue | Chapter | Narration |
 |---|---|---|---|
-| 1 | 0:00 | — | *title or closing card — no narration* |
-| 2 | 0:06 | The day | Shooting day fourteen of Salt and Light. Five scenes, two units, three locations — and every approved access arrangement satisfied. |
-| 3 | 0:17 | The day | Weather and scenes on one axis. The amber bars are exterior work. |
-| 4 | 0:22 | The disruption | A verified storm reaches the harbour at eighteen thirty. Sixty-eight kilometre winds, sea state six. |
-| 5 | 0:29 | The disruption | Source event to verified readiness — the whole loop — in under half a second. Nothing on this screen is a recording. |
-| 6 | 0:40 | Intake | The event arrives typed, contract-validated and hash-chained, carrying its authority — so the system knows whether it may act on it without a human confirming it first. |
-| 7 | 0:48 | Impact | The digital twin traverses the dependency graph. A hundred and nineteen affected entities, across six levels. |
-| 8 | 0:55 | Impact | Distance from the centre is how many relationships the storm had to travel. Each wedge is one kind of thing. |
-| 9 | 1:00 | Impact | The purple rings are approved access arrangements. A scheduling tool would have shown the replacement location as free. |
-| 10 | 1:06 | The refusal | The obvious move is the boatshed. It is available. The system will not publish it. |
-| 11 | 1:13 | The refusal | A minimal conflict set. C-ACC-001: a step-free route to the working position. Owner, the accessibility coordinator. Source, approved arrangement ACC-001. |
-| 12 | 1:21 | The refusal | Not “infeasible”. Why — and whether the rule may be waived. This one may not. |
-| 13 | 1:26 | The measurement | And underneath it, the survey. The main shed door has a hundred and forty millimetre cill against a twenty millimetre limit. A location manager can act on that; nobody can act on “accessibility concern”. |
-| 14 | 1:37 | The options | Three structurally different plans, each rechecked against all thirty-four constraints independently of the search that produced it, before any of them was shown to anyone. |
-| 15 | 1:46 | The options | Objectives trade off against each other. Hard constraints trade off against nothing — which is why the access row reads the same on all three. |
-| 16 | 1:54 | Authority | The system approves nothing. Two named authorities sign, and each signature is bound to the plan hash and to the constraint set in force — single use, and expiring. |
-| 17 | 2:03 | Execution | Nine typed commands through the saga coordinator. Every one completed. Every acknowledgment returned. |
-| 18 | 2:11 | Execution | A system that trusted that would now call the day ready. This one refuses — props has not accepted its task — and there is no override. |
-| 19 | 2:20 | Execution | Across a thousand disruptions, verification caught seventy-five of seventy-five incomplete executions. Twelve point four percent of runs would otherwise have closed early. |
-| 20 | 2:28 | The shift | And for the producer: not the incident, the shift. Which rules removed the most options, who owns each one, and which document it came from. That is a list you can spend money against. |
-| 21 | 2:37 | The evidence | Every screen here is a fold over one event log. Replaying it into a fresh view reproduces live state exactly, and the hash chain is intact. |
-| 22 | 2:45 | — | *title or closing card — no narration* |
+| 1 | 0:00 | — | When a shoot falls apart, the fastest fix often quietly drops someone — a step-free route, an interpreter. All-Access recovers the day without trading those away, and proves the plan reached everyone. |
+| 2 | 0:12 | The day | Day fourteen of Salt and Light. Five scenes, three locations — every approved access arrangement satisfied. |
+| 3 | 0:23 | The day | Weather and scenes on one axis. The amber bars are exterior work. |
+| 4 | 0:28 | The disruption | A verified storm reaches the harbour at eighteen thirty. Sixty-eight kilometre winds, sea state six. |
+| 5 | 0:35 | The disruption | Source event to verified readiness — the whole loop — in under half a second. Nothing on this screen is a recording. |
+| 6 | 0:46 | Intake | The event arrives typed, contract-validated and hash-chained, carrying the authority that says whether the system may act without a human first. |
+| 7 | 0:54 | Impact | The digital twin traverses the dependency graph — a hundred and nineteen affected entities across six levels. |
+| 8 | 1:01 | Impact | Distance from the centre is how far the storm had to travel. Each wedge is one kind of thing. |
+| 9 | 1:06 | Impact | The purple rings are approved access arrangements. A scheduling tool would have shown the replacement location as free. |
+| 10 | 1:12 | The refusal | The obvious move is the boatshed. It is available. The system will not publish it. |
+| 11 | 1:19 | The refusal | A minimal conflict set: C-ACC-001, a step-free route to the working position — with the owner and the approved arrangement it comes from. |
+| 12 | 1:27 | The refusal | Not “infeasible”. Why — and whether the rule may be waived. This one may not. |
+| 13 | 1:32 | The measurement | Underneath it, the survey: the shed door's cill is a hundred and forty millimetres against a twenty limit. A location manager can act on that — not on 'accessibility concern'. |
+| 14 | 1:43 | The options | Three structurally different plans, each rechecked against all thirty-four constraints independently, before any was shown to anyone. |
+| 15 | 1:52 | The options | Objectives trade off. Hard constraints trade off against nothing — which is why the access row reads the same on all three. |
+| 16 | 2:00 | Authority | The system approves nothing. Two named authorities sign, and each signature is bound to the plan hash and the constraints in force — single use, expiring. |
+| 17 | 2:09 | Execution | Nine typed commands through the saga coordinator. Every one completed. Every acknowledgment returned. |
+| 18 | 2:17 | Execution | A system that trusted that would call the day ready. This one refuses — props hasn't accepted — and there is no override. |
+| 19 | 2:26 | Execution | Across a thousand disruptions, verification caught seventy-five of seventy-five incomplete executions — twelve percent of runs that would otherwise have closed early. |
+| 20 | 2:34 | The shift | For the producer, not the incident but the shift: which rules removed the most options, who owns them, and where they came from — a list you can spend money against. |
+| 21 | 2:43 | The evidence | Every screen is a fold over one event log. Replay it into a fresh view and it reproduces live state exactly, hash chain intact. |
+| 22 | 2:51 | — | *title or closing card — no narration* |
 
 ---
 

@@ -223,15 +223,19 @@
 
   var BEATS = [
     {
-      chapter: "", say: "", ms: 6000,
+      chapter: "",
+      say: "When a shoot falls apart, the fastest fix often quietly drops someone " +
+           "— a step-free route, an interpreter. All-Access recovers the day without " +
+           "trading those away, and proves the plan reached everyone.",
+      ms: 12000,
       run: async function () {
         showCard([
-          node("div", "k-mark", "PP"),
+          node("div", "k-mark", "AA"),
           node("h2", null, "All-Access"),
           node("p", null,
-            "Every production disruption becomes a provably feasible, " +
-            "human-approved recovery plan — and the system proves the plan " +
-            "actually happened everywhere it was supposed to."),
+            "The production control system that recovers a disrupted shoot day " +
+            "without ever dropping an approved access arrangement — and proves the " +
+            "plan reached every department."),
           node("p", null, "Agentic Cinema · IBM track")
         ]);
       }
@@ -239,8 +243,8 @@
 
     {
       chapter: "The day", ms: 11000,
-      say: "Shooting day fourteen of Salt and Light. Five scenes, two units, " +
-           "three locations — and every approved access arrangement satisfied.",
+      say: "Day fourteen of Salt and Light. Five scenes, three locations — " +
+           "every approved access arrangement satisfied.",
       run: async function () {
         hideCard();
         await wait(300);
@@ -286,8 +290,8 @@
     {
       chapter: "Intake", ms: 8000,
       say: "The event arrives typed, contract-validated and hash-chained, " +
-           "carrying its authority — so the system knows whether it may act on " +
-           "it without a human confirming it first.",
+           "carrying the authority that says whether the system may act " +
+           "without a human first.",
       run: async function () {
         await goto("intake");
         await spot(panel("intake") + ".cards");
@@ -296,8 +300,8 @@
 
     {
       chapter: "Impact", ms: 7000,
-      say: "The digital twin traverses the dependency graph. A hundred and " +
-           "nineteen affected entities, across six levels.",
+      say: "The digital twin traverses the dependency graph — a hundred and " +
+           "nineteen affected entities across six levels.",
       run: async function () {
         await goto("impact");
         await spot(panel("impact") + "figure.figure");
@@ -305,8 +309,8 @@
     },
     {
       chapter: "Impact", ms: 5000,
-      say: "Distance from the centre is how many relationships the storm had to " +
-           "travel. Each wedge is one kind of thing.",
+      say: "Distance from the centre is how far the storm had to travel. " +
+           "Each wedge is one kind of thing.",
       run: async function () { await wait(200); }
     },
     {
@@ -329,9 +333,8 @@
     },
     {
       chapter: "The refusal", ms: 8000,
-      say: "A minimal conflict set. C-ACC-001: a step-free route to the working " +
-           "position. Owner, the accessibility coordinator. Source, approved " +
-           "arrangement ACC-001.",
+      say: "A minimal conflict set: C-ACC-001, a step-free route to the working " +
+           "position — with the owner and the approved arrangement it comes from.",
       run: async function () {
         await spot(first([panel("rejected") + "details", panel("rejected") + ".headline"]));
       }
@@ -345,9 +348,9 @@
 
     {
       chapter: "The measurement", ms: 11000,
-      say: "And underneath it, the survey. The main shed door has a hundred and " +
-           "forty millimetre cill against a twenty millimetre limit. A location " +
-           "manager can act on that; nobody can act on “accessibility concern”.",
+      say: "Underneath it, the survey: the shed door's cill is a hundred and forty " +
+           "millimetres against a twenty limit. A location manager can act on that " +
+           "— not on 'accessibility concern'.",
       run: async function () {
         await goto("spatial");
         await spot(panel("spatial") + "figure.figure");
@@ -357,8 +360,7 @@
     {
       chapter: "The options", ms: 9000,
       say: "Three structurally different plans, each rechecked against all " +
-           "thirty-four constraints independently of the search that produced " +
-           "it, before any of them was shown to anyone.",
+           "thirty-four constraints independently, before any was shown to anyone.",
       run: async function () {
         await goto("plans");
         await spot(panel("plans") + ".plangrid");
@@ -366,9 +368,8 @@
     },
     {
       chapter: "The options", ms: 8000,
-      say: "Objectives trade off against each other. Hard constraints trade off " +
-           "against nothing — which is why the access row reads the same on all " +
-           "three.",
+      say: "Objectives trade off. Hard constraints trade off against nothing — " +
+           "which is why the access row reads the same on all three.",
       run: async function () {
         await spot(first([panel("plans") + ".plancard.chosen", panel("plans") + ".plangrid"]));
       }
@@ -377,8 +378,8 @@
     {
       chapter: "Authority", ms: 9000,
       say: "The system approves nothing. Two named authorities sign, and each " +
-           "signature is bound to the plan hash and to the constraint set in " +
-           "force — single use, and expiring.",
+           "signature is bound to the plan hash and the constraints in force " +
+           "— single use, expiring.",
       run: async function () {
         await goto("approval");
         await spot(first([panel("approval") + ".table-scroll", panel("approval") + ".headline"]));
@@ -396,8 +397,8 @@
     },
     {
       chapter: "Execution", ms: 9000,
-      say: "A system that trusted that would now call the day ready. This one " +
-           "refuses — props has not accepted its task — and there is no override.",
+      say: "A system that trusted that would call the day ready. This one refuses " +
+           "— props hasn't accepted — and there is no override.",
       run: async function () {
         await spot(panel("execution") + ".headline");
       }
@@ -405,7 +406,7 @@
     {
       chapter: "Execution", ms: 8000,
       say: "Across a thousand disruptions, verification caught seventy-five of " +
-           "seventy-five incomplete executions. Twelve point four percent of runs " +
+           "seventy-five incomplete executions — twelve percent of runs that " +
            "would otherwise have closed early.",
       run: async function () {
         await spot(panel("execution") + ".cards");
@@ -414,9 +415,9 @@
 
     {
       chapter: "The shift", ms: 9000,
-      say: "And for the producer: not the incident, the shift. Which rules removed " +
-           "the most options, who owns each one, and which document it came from. " +
-           "That is a list you can spend money against.",
+      say: "For the producer, not the incident but the shift: which rules removed " +
+           "the most options, who owns them, and where they came from — a list " +
+           "you can spend money against.",
       run: async function () {
         await goto("executive");
         await spot(first([panel("executive") + ".panel", panel("executive") + ".cards"]));
@@ -425,8 +426,8 @@
 
     {
       chapter: "The evidence", ms: 8000,
-      say: "Every screen here is a fold over one event log. Replaying it into a " +
-           "fresh view reproduces live state exactly, and the hash chain is intact.",
+      say: "Every screen is a fold over one event log. Replay it into a fresh view " +
+           "and it reproduces live state exactly, hash chain intact.",
       run: async function () {
         await goto("replay");
         await spot(panel("replay") + ".cards");
@@ -475,8 +476,11 @@
         try { await beat.run(); } catch (err) { /* a beat never stops the run */ }
       }
       if (cancelled) return;
+      // A recording pipeline may inject per-beat target durations (window.__AA_TIMING)
+      // so the beats pace to a narration track; absent it, the authored ms is used.
+      var target = (window.__AA_TIMING && window.__AA_TIMING[i]) || beat.ms;
       var spent = (Date.now() - started) * speed;
-      await wait(Math.max(400, beat.ms - spent));
+      await wait(Math.max(400, target - spent));
     }
     ui.progressFill.style.width = "100%";
     await wait(600);
