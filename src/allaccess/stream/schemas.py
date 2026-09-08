@@ -78,7 +78,7 @@ TS = {"type": "string", "format": "date-time"}
 #: a person's. The contracts below make this a required field on an approval,
 #: so the distinction is enforced at the stream boundary rather than described
 #: in a document.
-APPROVAL_CHANNELS: tuple[str, ...] = ("human", "stand_in")
+APPROVAL_CHANNELS: tuple[str, ...] = ("human", "judge", "stand_in")
 
 
 def _envelope_schema() -> dict[str, Any]:
@@ -363,10 +363,17 @@ CONTRACTS: tuple[DataContract, ...] = (
             # no consumer of this stream has to guess whether a person was
             # there — including the interface, the audit export and the replay.
             ("channel_declared",
-             "payload.get('approval_channel') in ('human', 'stand_in')"),
+             "payload.get('approval_channel') in ('human', 'judge', 'stand_in')"),
             ("stand_in_does_not_wear_a_name",
              "payload.get('approval_channel') != 'stand_in' "
              "or payload['actor'].startswith('STAND-IN/')"),
+            # The same rule for the other identity that is not a person on this
+            # production. An evaluation session may sign for every authority,
+            # which is a real weakening of separation of duty, so it is refused
+            # the one thing that would hide it: a crew member's identifier.
+            ("evaluation_identity_does_not_wear_a_name",
+             "payload.get('approval_channel') != 'judge' "
+             "or payload['actor'].startswith('JUDGE/')"),
         ),
         tags=("decision", "audit"),
     ),
@@ -646,7 +653,7 @@ CONTRACTS: tuple[DataContract, ...] = (
              "or len(payload.get('reason') or '') > 0"),
             ("routing_declares_its_channel",
              "payload['stage'] != 'approval_requested' "
-             "or payload.get('approval_channel') in ('human', 'stand_in')"),
+             "or payload.get('approval_channel') in ('human', 'judge', 'stand_in')"),
         ),
         tags=("decision",),
     ),

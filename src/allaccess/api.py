@@ -27,11 +27,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from . import identity
 from .agents.coordinator import DisruptionOutcome, ProductionCoordinator, problem_blast
 from .agents.core import build_reasoner
 from .constraints.registry import CONSTRAINTS, active_constraints, constraint_set_hash
@@ -158,7 +159,7 @@ class Session:
     """
 
     def __init__(self, scenario: Scenario = STORM_SCENARIO, *, scenarios: int = 200,
-                 approval: str | None = None) -> None:
+                 approval: str | None = None, plane: str | None = None) -> None:
         self.scenario = scenario
         self.twin = build_twin()
         self.baseline = certify_baseline(self.twin)
@@ -166,8 +167,14 @@ class Session:
         self.systems = build_systems(w.PRODUCTION_ID, hold_department="props")
         self.problem = scenario_problem(scenario, twin=self.twin)
         self.source = build_source_event(self.bus, scenario)
+        # The plane is a property of the run, not of the process. An
+        # evaluation session is entitled to Gemini and starts its disruption on
+        # it; everyone else gets the offline plane the benchmark was measured
+        # on. `/api/about` reports which one this run actually used, so nobody
+        # has to infer it from a badge.
+        self.plane = plane or os.environ.get("AA_REASONING_MODE", "offline")
         self.coordinator = ProductionCoordinator(
-            self.bus, self.systems, reasoner=build_reasoner()
+            self.bus, self.systems, reasoner=build_reasoner(self.plane)
         )
         self.blast = problem_blast(self.problem, self.source)
         self.started_at = datetime.now()
@@ -245,14 +252,14 @@ def session() -> Session:
         return _session
 
 
-def reset(scenario_id: str | None = None) -> Session:
+def reset(scenario_id: str | None = None, *, plane: str | None = None) -> Session:
     """Start a new disruption. The judge reset path — see docs/JUDGE.md."""
     global _session
     scenario = LIBRARY.get(scenario_id or "", STORM_SCENARIO)
     with _lock:
         if _session is not None:
             _session.release()
-        _session = Session(scenario)
+        _session = Session(scenario, plane=plane)
         return _session
 
 
@@ -622,16 +629,140 @@ def spatial(location_id: str) -> dict[str, Any]:
     }
 
 
+# ---------------------------------------------------------------------------
+# Identity
+# ---------------------------------------------------------------------------
+#
+# The role a request signs under is established here and nowhere else. Before
+# this existed the browser named its own role and its own actor, which meant the
+# approval gate proved that *an approval was recorded*, not that a first AD
+# recorded it — the gap `docs/IAM.md` §4 used to lead with. Everything below the
+# gate was already sound; what it rested on was not.
+#
+# `identity.py` holds the providers and the token. This holds the two rules that
+# make them load-bearing: read the principal from the request, and never read a
+# role from a body.
+
+SESSION_COOKIE = "aa_session"
+
+
+def principal(request: Request) -> identity.Principal | None:
+    """Who this request is, or `None`.
+
+    Order matters. A deployment behind Identity-Aware Proxy answers from the
+    proxy's verified assertion and ignores any cookie the client happens to
+    carry, so a stale session cannot outlive an access revocation upstream.
+    """
+    from_proxy = identity.iap_principal(request.headers)
+    if from_proxy is not None:
+        return from_proxy
+    return identity.verify(request.cookies.get(SESSION_COOKIE))
+
+
+def _signed_in(request: Request) -> identity.Principal:
+    who = principal(request)
+    if who is None:
+        raise HTTPException(
+            401,
+            "nobody is signed in. The approval gate takes the authority from the "
+            "session, not from the request, so a decision needs an identity first.",
+        )
+    return who
+
+
+def _set_session(response: Response, request: Request, who: identity.Principal) -> None:
+    response.set_cookie(
+        SESSION_COOKIE,
+        identity.mint(who),
+        max_age=int(identity.SESSION_TTL.total_seconds()),
+        httponly=True,
+        samesite="lax",
+        # The token is a bearer credential; on a TLS deployment it never travels
+        # in the clear. Local evaluation over http still has to work.
+        secure=request.url.scheme == "https",
+        path="/",
+    )
+
+
+class SignIn(BaseModel):
+    """Either a person and their access code, or the evaluation key."""
+
+    person_id: str | None = None
+    access_code: str | None = None
+    judge_key: str | None = None
+
+
+@app.get("/api/identity")
+def whoami(request: Request) -> dict[str, Any]:
+    """Who is signed in, what they may do, and how this deployment authenticates.
+
+    The directory is returned so the sign-in screen can be built from the
+    production's own crew list rather than from a hardcoded menu. Access codes
+    appear in it only where the deployment publishes them — the hosted
+    demonstration does, deliberately, and says so on the screen.
+    """
+    who = principal(request)
+    published = identity.codes_are_published()
+    return {
+        "principal": who.public() if who else None,
+        "providers": identity.providers(),
+        "directory": [
+            {
+                "person_id": e.person_id,
+                "name": e.name,
+                "title": e.title,
+                "role": e.role.value,
+                "signs": e.signs,
+                "access_code": identity.access_code(e.person_id) if published else None,
+            }
+            for e in identity.directory()
+        ],
+    }
+
+
+@app.post("/api/identity/session")
+def sign_in(body: SignIn, request: Request, response: Response) -> dict[str, Any]:
+    """Establish a session. One of two credentials, never a role by itself."""
+    try:
+        if body.judge_key:
+            who = identity.judge_sign_in(body.judge_key)
+        elif body.person_id:
+            who = identity.sign_in(body.person_id, body.access_code or "")
+        else:
+            raise identity.IdentityError(
+                "a sign-in needs either a person and their access code, or the "
+                "evaluation key"
+            )
+    except identity.IdentityError as exc:
+        # 401 rather than 400: this is a failed authentication, and a client that
+        # cannot tell the two apart retries a bad credential as if it were a bad
+        # request.
+        raise HTTPException(401, str(exc)) from exc
+    _set_session(response, request, who)
+    return {"principal": who.public()}
+
+
+@app.delete("/api/identity/session")
+def sign_out(response: Response) -> dict[str, Any]:
+    response.delete_cookie(SESSION_COOKIE, path="/")
+    return {"signed_out": True}
+
+
 class PlanChoice(BaseModel):
     plan_id: str
 
 
 class RoleSignature(BaseModel):
+    """Which of the plan's required authorities this signature covers.
+
+    There is deliberately no `actor` field. It used to be here, defaulting to
+    the crew member who holds the role, and it was the whole gap: a body that
+    names its own signer proves nothing about who signed. The actor is now read
+    off the session — `identity.Principal.actor` — and a request cannot reach
+    this endpoint without one.
+    """
+
     role: str
-    #: Who is signing. Defaults to the crew member who holds the role on this
-    #: production; a deployment behind an identity provider passes the
-    #: authenticated subject instead. See docs/IAM.md.
-    actor: str | None = None
     rationale: str | None = None
 
 
@@ -662,7 +793,7 @@ def _gate(s: "Session") -> HumanApprovalGateway:
 
 
 @app.get("/api/approval")
-def approval() -> dict[str, Any]:
+def approval(request: Request) -> dict[str, Any]:
     """§14.7 — the approval workspace, and the gate the workflow waits at.
 
     Two shapes, one endpoint. While the workflow is stopped it returns what it
@@ -672,10 +803,11 @@ def approval() -> dict[str, Any]:
     """
     s = session()
     gateway = s.gateway
+    who = principal(request)
     selected = s.outcome.selected
     pending: dict[str, Any] | None = None
     if s.awaiting and isinstance(gateway, HumanApprovalGateway):
-        request = gateway.request
+        gate_request = gateway.request
         signed = {r.value for r in gateway.signed_roles}
         pending = {
             "waiting_on": gateway.waiting_on,
@@ -688,17 +820,26 @@ def approval() -> dict[str, Any]:
                 )
             ],
             "pareto_front": list(gateway.pareto),
-            "chosen_plan_id": request.plan_id if request else None,
-            "plan_hash": request.plan_hash if request else None,
-            "constraint_hash": request.constraint_hash if request else None,
-            "expires_at": _dt(request.expires_at) if request else None,
+            "chosen_plan_id": gate_request.plan_id if gate_request else None,
+            "plan_hash": gate_request.plan_hash if gate_request else None,
+            "constraint_hash": gate_request.constraint_hash if gate_request else None,
+            "expires_at": _dt(gate_request.expires_at) if gate_request else None,
+            # `holders` is the directory, `you_may_sign` is this session. The
+            # screen draws a signature button from the second and never from
+            # the first: an authority with nobody signed in to hold it is a row
+            # that says so, not a button that works.
             "roles": [
                 {
                     "role": role.value,
                     "signed": role.value in signed,
                     "authority": _authority_for(role),
+                    "holders": [
+                        {"person_id": e.person_id, "name": e.name, "title": e.title}
+                        for e in identity.directory() if e.role is role
+                    ],
+                    "you_may_sign": bool(who and who.may_sign(role)),
                 }
-                for role in (request.required_roles if request else ())
+                for role in (gate_request.required_roles if gate_request else ())
             ],
         }
     if selected is None:
@@ -708,9 +849,11 @@ def approval() -> dict[str, Any]:
             "channel": gateway.channel,
             "awaiting": s.awaiting,
             "pending": pending,
+            "principal": who.public() if who else None,
         }
     return {
         "channel": gateway.channel,
+        "principal": who.public() if who else None,
         "awaiting": s.awaiting,
         "pending": pending,
         "selected": _plan_row(selected, s.outcome),
@@ -726,6 +869,14 @@ def approval() -> dict[str, Any]:
                 "constraint_hash": a.constraint_hash,
                 "expires_at": _dt(a.expires_at),
                 "signature": a.signature,
+                # Read off the actor rather than off the gateway, because one
+                # gate can collect signatures from more than one kind of
+                # identity. See execution/approvals.Signature.
+                "channel": (
+                    "stand_in" if a.actor.startswith("STAND-IN/")
+                    else "judge" if a.actor.startswith("JUDGE/")
+                    else "human"
+                ),
             }
             for a in s.outcome.disruption.approvals
         ],
@@ -742,10 +893,25 @@ def approval() -> dict[str, Any]:
 
 
 @app.post("/api/approval/select")
-def approval_select(choice: PlanChoice) -> dict[str, Any]:
-    """Choose the plan to route for signature."""
+def approval_select(choice: PlanChoice, request: Request) -> dict[str, Any]:
+    """Choose the plan to route for signature.
+
+    Routing is not approving, and the two are separated here as they are in
+    `IAM.md` §1.1: an authority the plan requires may route it, and so may the
+    production coordinator, who can never sign it. A signed-in reader who holds
+    neither is refused.
+    """
     s = session()
     gateway = _gate(s)
+    who = _signed_in(request)
+    offered = next((p for p in gateway.offered if p.plan_id == choice.plan_id), None)
+    if offered is not None and not who.may_route(offered.required_approvals):
+        raise HTTPException(
+            403,
+            f"{who.name} holds no authority this plan requires "
+            f"({', '.join(r.value for r in offered.required_approvals)}) and is not "
+            "the production coordinator",
+        )
     try:
         plan = gateway.choose(choice.plan_id)
     except ApprovalError as exc:
@@ -758,27 +924,42 @@ def approval_select(choice: PlanChoice) -> dict[str, Any]:
 
 
 @app.post("/api/approval/sign")
-def approval_sign(signature: RoleSignature) -> dict[str, Any]:
-    """Put one authority's name to the selected plan."""
+def approval_sign(signature: RoleSignature, request: Request) -> dict[str, Any]:
+    """Put one authority's name to the selected plan.
+
+    Three checks, in the order that matters. The request must carry a session;
+    that session must hold the authority it is signing for; and the plan must
+    require that authority. The first two are new and are what make the third
+    mean anything — the gateway has always refused a role the plan does not
+    need, and it has never been able to tell who was asking.
+    """
     s = session()
     gateway = _gate(s)
+    who = _signed_in(request)
     try:
         role = Role(signature.role)
     except ValueError as exc:
         raise HTTPException(400, f"unknown role {signature.role!r}") from exc
-    authority = _authority_for(role)
-    actor = signature.actor or authority["person_id"]
+    if not who.may_sign(role):
+        raise HTTPException(
+            403,
+            f"{who.name} does not hold {role.value} on this production. "
+            "Sign in as an authority the plan requires; a session cannot widen "
+            "the authorities it was issued with.",
+        )
+    actor = who.actor(role)
     rationale = signature.rationale or (
-        f"Reviewed at the approval workspace as {authority['title']} and approved "
-        f"for execution."
+        f"Reviewed at the approval workspace by {who.name} ({who.title}) and "
+        f"approved for execution."
     )
     try:
-        gateway.endorse(role, actor, rationale)
+        gateway.endorse(role, actor, rationale, channel=who.channel)
     except ApprovalError as exc:
         raise HTTPException(409, str(exc)) from exc
     return {
         "role": role.value,
         "actor": actor,
+        "signed_by": who.public(),
         "signed": [r.value for r in gateway.signed_roles],
         "outstanding": [
             r.value for r in (gateway.request.required_roles if gateway.request else ())
@@ -788,12 +969,23 @@ def approval_sign(signature: RoleSignature) -> dict[str, Any]:
 
 
 @app.post("/api/approval/refuse")
-def approval_refuse(refusal: Refusal) -> dict[str, Any]:
+def approval_refuse(refusal: Refusal, request: Request) -> dict[str, Any]:
     """Decline. The disruption is abandoned and nothing is executed."""
     s = session()
     gateway = _gate(s)
-    gateway.refuse(refusal.reason)
-    return {"refused": refusal.reason}
+    who = _signed_in(request)
+    required = tuple(
+        gateway.request.required_roles if gateway.request
+        else {r for plan in gateway.offered for r in plan.required_approvals}
+    )
+    if not who.may_route(required):
+        raise HTTPException(
+            403,
+            f"{who.name} holds no authority over this decision and cannot decline it",
+        )
+    reason = f"{refusal.reason} — {who.name}, {who.title}"
+    gateway.refuse(reason)
+    return {"refused": reason, "declined_by": who.public()}
 
 
 @app.get("/api/execution")
@@ -1130,11 +1322,19 @@ class NewDisruption(BaseModel):
 
 
 @app.post("/api/disruptions")
-def new_disruption(request: NewDisruption) -> dict[str, Any]:
-    """Start a different disruption from the scenario library."""
-    if request.scenario_id not in LIBRARY:
-        raise HTTPException(404, f"unknown scenario {request.scenario_id}")
-    s = reset(request.scenario_id)
+def new_disruption(body: NewDisruption, request: Request) -> dict[str, Any]:
+    """Start a different disruption from the scenario library.
+
+    The run takes the reasoning plane the caller is entitled to. An evaluation
+    session gets Gemini on Vertex AI; everybody else gets the deterministic
+    plane every committed benchmark figure was measured on. Both produce the
+    same decisions — `bench/reasoning_plane.py` is the proof — so this changes
+    the language of the findings and the cost of the run, and nothing else.
+    """
+    if body.scenario_id not in LIBRARY:
+        raise HTTPException(404, f"unknown scenario {body.scenario_id}")
+    who = principal(request)
+    s = reset(body.scenario_id, plane=(who.plane if who else None))
     return {
         "scenario_id": s.scenario.scenario_id,
         "title": s.scenario.title,
@@ -1146,6 +1346,7 @@ def new_disruption(request: NewDisruption) -> dict[str, Any]:
         # says so in the status line rather than reporting a run that finished.
         "awaiting_approval": s.awaiting,
         "approval_channel": s.gateway.channel,
+        "reasoning_plane": s.coordinator.reasoner.plane,
     }
 
 
@@ -1155,12 +1356,19 @@ def healthz() -> dict[str, Any]:
 
 
 @app.get("/api/about")
-def about() -> dict[str, Any]:
+def about(request: Request) -> dict[str, Any]:
     """What is running, so a judge never has to guess which plane is live."""
     s = session()
+    who = principal(request)
     return {
         "production": w.PRODUCTION_TITLE,
         "reasoning_plane": s.coordinator.reasoner.plane,
+        # A Gemini plane that failed every call still calls itself Gemini, so
+        # the degraded flag travels with the name. `/api/findings` carries the
+        # full call ledger behind it.
+        "reasoning_degraded": bool(getattr(s.coordinator.reasoner, "degraded", False)),
+        "authentication": identity.providers(),
+        "signed_in_as": who.public() if who else None,
         "event_backbone": s.bus.name,
         "schema_registry": s.bus.registry.name,
         "constraints": len(CONSTRAINTS),

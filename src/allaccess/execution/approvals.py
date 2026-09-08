@@ -200,10 +200,18 @@ class ApprovalLedger:
 
 @dataclass(frozen=True)
 class Signature:
-    """One named person putting their authority behind one role on one plan."""
+    """One named person putting their authority behind one role on one plan.
+
+    `channel` is how *this* signature was obtained, and it is per-signature
+    rather than per-gateway because one gateway can collect signatures from
+    more than one kind of identity: a production authority signing at the
+    workspace, and an evaluation identity signing on the judging link. A
+    channel read off the gateway would have called both of those `human`.
+    """
 
     actor: str
     rationale: str
+    channel: str = "human"
 
 
 class ApprovalGateway(Protocol):
@@ -258,6 +266,7 @@ class StandInApprover:
 
     def sign(self, request: ApprovalRequest, role: Role) -> Signature | None:
         return Signature(
+            channel=self.channel,
             actor=f"STAND-IN/{role.value}",
             rationale=(
                 f"Unattended run: {request.summary}. No person reviewed this plan. "
@@ -354,7 +363,8 @@ class HumanApprovalGateway:
             self._state.notify_all()
             return plan
 
-    def endorse(self, role: Role, actor: str, rationale: str) -> Signature:
+    def endorse(self, role: Role, actor: str, rationale: str,
+                channel: str = "human") -> Signature:
         with self._state:
             if self.request is None:
                 raise ApprovalError("no plan has been selected for approval yet")
@@ -364,7 +374,7 @@ class HumanApprovalGateway:
                 )
             if not rationale.strip():
                 raise ApprovalError("an approval requires a rationale")
-            signature = Signature(actor=actor, rationale=rationale)
+            signature = Signature(actor=actor, rationale=rationale, channel=channel)
             self._signatures[role] = signature
             self._state.notify_all()
             return signature

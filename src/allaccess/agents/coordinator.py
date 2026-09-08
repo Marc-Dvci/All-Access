@@ -376,6 +376,9 @@ class ProductionCoordinator:
                 )
                 return outcome
             actor = signature.actor
+            # The channel of this signature, not of the gateway that collected
+            # it. See `execution/approvals.Signature`.
+            channel = getattr(signature, "channel", None) or gateway.channel
             approval = self.approvals.grant(
                 request.request_id, actor, role,
                 rationale=signature.rationale,
@@ -398,11 +401,11 @@ class ProductionCoordinator:
                     # itself so it survives into the replay, the audit export
                     # and anything downstream that reads the log rather than
                     # the screen.
-                    "approval_channel": gateway.channel,
+                    "approval_channel": channel,
                 },
                 producer="production_coordinator", actor=actor,
                 authority=(
-                    Authority.AUTHORITATIVE if gateway.channel == "human"
+                    Authority.AUTHORITATIVE if channel in ("human", "judge")
                     else Authority.INFERRED
                 ),
                 disruption_id=disruption_id, plan_id=selected.plan_id, causation_id=cause,

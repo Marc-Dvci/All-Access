@@ -15,7 +15,7 @@ import time
 import pytest
 from fastapi.testclient import TestClient
 
-from allaccess import api
+from allaccess import api, identity
 from allaccess.contracts import DisruptionState, EventType, Role
 from allaccess.execution.approvals import (
     ApprovalError,
@@ -33,6 +33,25 @@ def client(monkeypatch: pytest.MonkeyPatch):
     session = api._session  # noqa: SLF001
     if session is not None:
         session.release()
+
+
+def as_person(client, person_id: str) -> None:
+    """Sign the client in as one member of the production directory.
+
+    Every write below goes through this, because there is no other way in. The
+    client keeps the cookie, so signing in again as somebody else is how a
+    second authority signs — which is exactly what happens at the workspace when
+    the plan needs two.
+    """
+    response = client.post("/api/identity/session", json={
+        "person_id": person_id, "access_code": identity.access_code(person_id),
+    })
+    assert response.status_code == 200, response.text
+
+
+def _holder(role: str) -> str:
+    """Whoever holds this authority on the production."""
+    return next(e.person_id for e in identity.directory() if e.role.value == role)
 
 
 def _settle(client, tries: int = 300):
@@ -78,17 +97,27 @@ def test_the_web_session_stops_and_waits_for_a_person(client) -> None:
 
 
 def test_only_plans_that_were_offered_can_be_chosen(client) -> None:
+    as_person(client, _holder(Role.UPM.value))
     response = client.post("/api/approval/select", json={"plan_id": "PLAN-NOT-OFFERED"})
     assert response.status_code == 409
 
 
 def test_signing_needs_a_plan_first(client) -> None:
+    as_person(client, _holder(Role.UPM.value))
     response = client.post("/api/approval/sign", json={"role": Role.UPM.value})
     assert response.status_code == 409
 
 
 def test_an_unrequired_authority_cannot_sign(client) -> None:
+    """Holding the authority is not the same as the plan needing it.
+
+    The signer here is a real, signed-in authority on this production with a
+    session that genuinely holds the role. The refusal comes from the plan, and
+    it has to, because an authority who may sign *something* is the ordinary
+    case rather than the attack.
+    """
     pending = _pending(client)
+    as_person(client, _holder(Role.UPM.value))
     client.post(
         "/api/approval/select", json={"plan_id": pending["offered"][0]["plan_id"]},
     )
@@ -100,9 +129,13 @@ def test_an_unrequired_authority_cannot_sign(client) -> None:
         time.sleep(0.02)
     required = {row["role"] for row in roles or ()}
     assert required
-    spare = next(r for r in Role if r.value not in required)
+    spare = next(
+        e for e in identity.directory()
+        if e.signs and e.role.value not in required
+    )
+    as_person(client, spare.person_id)
 
-    response = client.post("/api/approval/sign", json={"role": spare.value})
+    response = client.post("/api/approval/sign", json={"role": spare.role.value})
     assert response.status_code == 409
 
 
@@ -115,6 +148,7 @@ def test_a_signed_plan_executes_and_the_events_name_the_channel(client) -> None:
     pending = _pending(client)
     front = [p for p in pending["offered"] if p["plan_id"] in pending["pareto_front"]]
     chosen = front[0]["plan_id"]
+    as_person(client, _holder(Role.UPM.value))
     client.post("/api/approval/select", json={"plan_id": chosen})
 
     signed = []
@@ -124,7 +158,13 @@ def test_a_signed_plan_executes_and_the_events_name_the_channel(client) -> None:
             break
         waiting = (state["pending"] or {}).get("waiting_on")
         if waiting and waiting != "selection":
-            client.post("/api/approval/sign", json={"role": waiting})
+            # Each authority signs from its own session. One session cannot
+            # cover two of them, which is what makes a two-signature plan a
+            # two-person decision rather than two clicks.
+            as_person(client, _holder(waiting))
+            assert client.post(
+                "/api/approval/sign", json={"role": waiting}
+            ).status_code == 200
             signed.append(waiting)
         else:
             time.sleep(0.02)
@@ -149,6 +189,7 @@ def test_a_signed_plan_executes_and_the_events_name_the_channel(client) -> None:
 
 def test_a_refusal_abandons_the_day_and_issues_nothing(client) -> None:
     pending = _pending(client)
+    as_person(client, _holder(Role.UPM.value))
     client.post(
         "/api/approval/select", json={"plan_id": pending["offered"][0]["plan_id"]},
     )
