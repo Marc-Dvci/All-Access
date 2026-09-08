@@ -37,6 +37,11 @@ ENV PYTHONUNBUFFERED=1 \
     AA_REASONING_MODE=offline \
     AA_EVENT_BACKBONE=local \
     AA_STREAM_MODE=local \
+    # Identity comes from the production's own directory, with this deployment's
+    # access codes published on the sign-in screen. A deployment in front of a
+    # real production sets AA_AUTH_MODE=iap and supplies AA_AUTH_KEY from Secret
+    # Manager; see docs/IAM.md.
+    AA_AUTH_MODE=demo \
     PORT=8080
 
 COPY --from=build /opt/venv /opt/venv

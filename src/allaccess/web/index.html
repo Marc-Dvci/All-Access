@@ -42,6 +42,11 @@
     </span>
   </div>
   <div class="masthead-controls">
+    <!-- Who this browser is signed in as. Filled by the client from
+         /api/identity; empty until then, never a guess. Deliberately not a
+         live region: there is exactly one of those on this page, and a sign-in
+         is announced through it like every other status change. -->
+    <div class="whoami" id="whoami"></div>
     <div class="field">
       <label for="scenario-select">Disruption</label>
       <select id="scenario-select"></select>

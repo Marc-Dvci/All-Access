@@ -29,7 +29,7 @@
   "use strict";
 
   var state = { view: "board", loaded: {}, crewPerson: null, spatialLocation: null,
-                notice: null };
+                notice: null, identity: null };
 
   var SVGNS = "http://www.w3.org/2000/svg";
 
@@ -94,6 +94,77 @@
       });
     });
   }
+
+  function del(path) {
+    return fetch(path, { method: "DELETE" }).then(function (r) {
+      if (!r.ok) throw new Error(path + " returned " + r.status);
+      return r.json();
+    });
+  }
+
+  // -- identity -----------------------------------------------------------
+  //
+  // The approval gate takes the authority from the session, so this client
+  // cannot send one. It signs in, reads back what the session holds, and draws
+  // a signature button only where the server says the session may sign — and
+  // the server refuses anyway if it draws one it should not have. A control the
+  // client alone decides to hide is not a control.
+
+  function refreshIdentity() {
+    return get("/api/identity").then(function (d) {
+      state.identity = d;
+      renderWhoami();
+      return d;
+    }).catch(function () { return null; });
+  }
+
+  function principal() {
+    return (state.identity && state.identity.principal) || null;
+  }
+
+  function signInAs(personId, code) {
+    return post("/api/identity/session", { person_id: personId, access_code: code })
+      .then(refreshIdentity);
+  }
+
+  function signInWithKey(key) {
+    return post("/api/identity/session", { judge_key: key }).then(refreshIdentity);
+  }
+
+  /** The identity chip in the masthead. Always visible, because "who am I
+   *  signed in as" is the question every other screen depends on. */
+  function renderWhoami() {
+    var box = document.getElementById("whoami");
+    if (!box) return;
+    clear(box);
+    var who = principal();
+    if (!who) {
+      box.appendChild(el("span", { class: "who-anon",
+        text: "Not signed in — read only" }));
+      return;
+    }
+    var judge = who.channel === "judge";
+    box.appendChild(el("span", { class: "who-name" }, [
+      el("strong", { text: who.name }),
+      el("span", { class: "note", text: " " + (who.title || "") })
+    ]));
+    if (judge) {
+      box.appendChild(chip(
+        who.plane === "gemini" ? "evaluation · Gemini plane" : "evaluation session",
+        who.plane === "gemini" ? "ok" : "quiet"));
+    }
+    var out = el("button", { type: "button", class: "button small", text: "Sign out" });
+    out.addEventListener("click", function () {
+      signOut().then(function () {
+        state.loaded = {};
+        announce("Signed out.");
+        show(state.view);
+      });
+    });
+    box.appendChild(out);
+  }
+
+  function signOut() { return del("/api/identity/session").then(refreshIdentity); }
 
   function num(value, digits) {
     if (value === null || value === undefined) return "—";
@@ -1252,9 +1323,159 @@
     return button;
   }
 
+  /** Who this session is, and how to become somebody who can decide.
+   *
+   *  This panel is the answer to the one thing a signed approval could never
+   *  establish about itself: that the person who produced it holds the
+   *  authority it claims. It is drawn inside the approval workspace rather than
+   *  on a login wall because reading this product needs no identity at all.
+   *  Only deciding does.
+   */
+  function identityPanel() {
+    var who = principal();
+    var providers = (state.identity && state.identity.providers) || {};
+    var listed = (state.identity && state.identity.directory) || [];
+
+    if (who) {
+      var judge = who.channel === "judge";
+      return el("div", { class: "panel signin" }, [
+        el("h2", { text: "Signed in as " + who.name }),
+        pairs([
+          ["Identity", who.subject],
+          ["On this production", who.title || "—"],
+          ["May sign for", who.roles.length
+            ? who.roles.map(words).join(", ")
+            : "nothing — this session may read only"],
+          ["Established by", words(who.provider)],
+          ["Reasoning plane", who.plane === "gemini"
+            ? "Gemini on Vertex AI, for disruptions this session starts"
+            : "deterministic (offline)"]
+        ]),
+        el("p", { class: "evidence", text: judge
+          ? "This is the evaluation identity. It holds every approving authority, " +
+            "so one person can take a two-signature plan through the gate alone. " +
+            "That is a real weakening of separation of duty, and it is why every " +
+            "approval it produces is recorded as JUDGE/role on the judge channel " +
+            "rather than under a crew member name. A production identity holds " +
+            "exactly the one authority the directory gives it."
+          : "This session holds one authority, because that is what the production " +
+            "directory gives this person. A plan that needs two signatures needs a " +
+            "second person to sign in: the server reads the role off the session, " +
+            "and there is no request that can widen it." })
+      ]);
+    }
+
+    var rows = listed.map(function (row) {
+      var action;
+      if (row.access_code) {
+        action = el("button", {
+          type: "button", class: "button primary small",
+          "data-person": row.person_id,
+          text: "Sign in as " + row.name.split(" ")[0]
+        });
+        action.addEventListener("click", function () {
+          action.disabled = true;
+          signInAs(row.person_id, row.access_code).then(function () {
+            state.loaded = {};
+            state.notice = row.name + " signed in.";
+            show("approval");
+          }).catch(function (err) {
+            action.disabled = false;
+            announce("That sign-in was refused: " + err.message);
+          });
+        });
+      } else {
+        var field = el("input", { type: "text", class: "codefield",
+                                  "aria-label": "Access code for " + row.name });
+        var go = el("button", { type: "button", class: "button primary small",
+                                text: "Sign in" });
+        go.addEventListener("click", function () {
+          signInAs(row.person_id, field.value).then(function () {
+            state.loaded = {};
+            show("approval");
+          }).catch(function (err) {
+            announce("That sign-in was refused: " + err.message);
+          });
+        });
+        action = el("span", { class: "codepair" }, [field, go]);
+      }
+      return el("li", { class: "signrow" }, [
+        el("span", { class: "signwho" }, [
+          el("strong", { text: row.name }),
+          el("span", { class: "note", text: " " + row.title + " · " +
+                       (row.signs ? "approves " + words(row.role)
+                                  : "routes only, approves nothing") })
+        ]),
+        row.access_code ? el("code", { class: "code-hint", text: row.access_code }) : null,
+        action
+      ]);
+    });
+
+    return el("div", { class: "panel signin" }, [
+      el("h2", { text: "Sign in to decide" }),
+      el("p", { text:
+        "Everything on this screen is readable without an identity. Nothing on it " +
+        "can be decided without one: the approval gate takes the role from the " +
+        "session, so no request can name its own signer." }),
+      providers.codes_published ? el("p", { class: "evidence", text:
+        "This is the public demonstration, so the production access codes are " +
+        "printed here on purpose — a demonstration whose credentials are secret " +
+        "is one nobody can run. What they exercise is real either way: the server " +
+        "decides which authority a session holds, and a session holding the " +
+        "location manager cannot sign as the UPM whatever it sends. A production " +
+        "deployment sets AA_AUTH_MODE=iap and takes the identity from " +
+        "Identity-Aware Proxy instead. Nothing below the sign-in changes." })
+        : null,
+      el("ul", { class: "plain" }, rows)
+    ]);
+  }
+
+  /** Hand the gate to somebody who holds this authority.
+   *
+   *  On the published-code demonstration this is one click; on a closed
+   *  deployment it is the sentence naming whose signature is outstanding.
+   *  Either way the switch is a real sign-in — the session is replaced rather
+   *  than widened, which is why the person who routed a plan does not
+   *  accumulate the right to sign it.
+   */
+  function switchAction(row, holders) {
+    var listed = (state.identity && state.identity.directory) || [];
+    var target = null;
+    listed.forEach(function (entry) {
+      if (!target && entry.role === row.role && entry.access_code) target = entry;
+    });
+    if (!target) {
+      return el("span", { class: "note", text:
+        "waiting on " + holders.map(function (h) { return h.name; }).join(" or ") +
+        " — sign in as one of them" });
+    }
+    return gateAction("Sign in as " + target.name, "primary", function () {
+      return signInAs(target.person_id, target.access_code).then(function () {
+        state.loaded = {};
+        state.notice = target.name + " signed in. The signature is theirs to give.";
+        show("approval");
+      });
+    });
+  }
+
+  /** May this session take this plan to signature?
+   *
+   *  The same rule the server applies, computed here only to decide what to
+   *  draw. The server checks it again and refuses regardless — a control the
+   *  client alone withholds is a suggestion. */
+  function mayRoute(plan) {
+    var who = principal();
+    if (!who) return false;
+    if (who.roles.indexOf("production_coordinator") >= 0) return true;
+    return (plan.required_approvals || []).some(function (role) {
+      return who.roles.indexOf(role) >= 0;
+    });
+  }
+
   /** One plan, offered for signature rather than reported after it. */
   function offerCard(plan, onFront) {
     var kept = plan.access.filter(function (a) { return a.satisfied; }).length;
+    var who = principal();
     return el("div", { class: "plancard" }, [
       el("div", { class: "p-head" }, [
         el("span", { class: "p-title", text: plan.label }),
@@ -1268,11 +1489,20 @@
         ["Access arrangements", kept + " of " + plan.access.length + " preserved"],
         ["Needs", plan.required_approvals.map(words).join(" and ") || "no approval"]
       ]),
-      gateAction("Take this plan to signature", "primary", function () {
-        return post("/api/approval/select", { plan_id: plan.plan_id }).then(function () {
-          return afterDecision("selection", plan.label + " selected. It now needs signing.");
-        });
-      })
+      mayRoute(plan)
+        ? gateAction("Take this plan to signature", "primary", function () {
+            return post("/api/approval/select", { plan_id: plan.plan_id })
+              .then(function () {
+                return afterDecision("selection",
+                  plan.label + " selected. It now needs signing.");
+              });
+          })
+        : el("p", { class: "note", text: who
+            ? "This plan needs " +
+              (plan.required_approvals.map(words).join(" and ") || "no authority") +
+              ". Your session holds " + (who.roles.map(words).join(", ") || "no authority") +
+              ", so it is not yours to route."
+            : "Sign in above as an authority this plan requires to route it." })
     ]);
   }
 
@@ -1298,6 +1528,10 @@
     if (g.refused) {
       root.appendChild(headline("bad", "Declined.", g.refused));
     }
+
+    // Before the plans, because the plans are not the question until there is
+    // somebody entitled to answer it.
+    root.appendChild(identityPanel());
 
     if (choosing) {
       root.appendChild(el("h2", { text: "Choose the plan to authorise" }));
@@ -1352,20 +1586,31 @@
     root.appendChild(el("div", { class: "panel" }, [
       el("ul", { class: "plain" }, g.roles.map(function (row) {
         var due = row.role === g.waiting_on;
+        var holders = (row.holders && row.holders.length)
+          ? row.holders : [row.authority];
         return el("li", { class: "signrow" }, [
           el("span", { class: "signwho" }, [
-            el("strong", { text: row.authority.name }),
-            el("span", { class: "note", text: " " + row.authority.title +
-                         " · " + row.authority.person_id })
+            el("strong", { text: holders.map(function (h) { return h.name; }).join(" or ") }),
+            el("span", { class: "note", text: " " + holders[0].title +
+                         " · " + words(row.role) })
           ]),
+          // `you_may_sign` is the server's answer about this session, not this
+          // client's guess. Where it is false the button is a sign-in rather
+          // than a signature, and the server refuses the signature anyway.
           row.signed ? chip("signed", "ok")
-            : (due ? gateAction("Sign as " + row.authority.name, "primary", function () {
-                return post("/api/approval/sign", { role: row.role }).then(function () {
-                  return afterDecision(row.role,
-                    row.authority.name + " signed as " + words(row.role) + ".");
-                });
-              })
-            : chip("queued", "quiet"))
+            : !due ? chip("queued", "quiet")
+            : row.you_may_sign
+              ? gateAction(
+                  "Sign as " + (principal() ? principal().name : holders[0].name),
+                  "primary",
+                  function () {
+                    return post("/api/approval/sign", { role: row.role })
+                      .then(function (r) {
+                        return afterDecision(row.role,
+                          r.actor + " signed as " + words(row.role) + ".");
+                      });
+                  })
+              : switchAction(row, holders)
         ]);
       }))
     ]));
@@ -1387,7 +1632,12 @@
   }
 
   renderers.approval = function (root) {
-    return get("/api/approval").then(function (d) {
+    // The session is re-read every time this view is drawn rather than cached
+    // at boot, because it changes underneath the view: a signature hands the
+    // gate to the next authority, and that authority is a different person.
+    return refreshIdentity().then(function () {
+      return get("/api/approval");
+    }).then(function (d) {
       clear(root);
       if (d.awaiting && d.pending && d.pending.waiting_on) {
         return renderGate(root, d);
@@ -1932,11 +2182,13 @@
       var open = !!(d.awaiting && d.pending && d.pending.waiting_on);
       bar.hidden = !open;
       if (!open) return;
-      line.textContent = d.pending.waiting_on === "selection"
+      var anonymous = !d.principal;
+      line.textContent = (d.pending.waiting_on === "selection"
         ? "Stopped at the approval gate. " + d.pending.offered.length +
           " feasible plans, none authorised — nothing has been executed."
         : "Stopped at the approval gate, waiting for " + words(d.pending.waiting_on) +
-          " to sign — nothing has been executed.";
+          " to sign — nothing has been executed.")
+        + (anonymous ? " Sign in as an authority to answer it." : "");
     }).catch(function () { bar.hidden = true; });
   }
 
@@ -2025,9 +2277,14 @@
         state.crewPerson = null;
         state.spatialLocation = null;
         state.notice = d.title + " — " + d.feasible_plans + " feasible plan(s), " +
-                       d.rejected_plans + " rejected, " + d.events + " events." +
+                       d.rejected_plans + " rejected, " + d.events + " events, " +
+                       "reasoning plane: " + d.reasoning_plane + "." +
                        (d.awaiting_approval ? " Waiting for your approval." : "");
         announce(state.notice);
+        // The plane can change between runs — an evaluation session starts its
+        // disruptions on Gemini — so the footer is redrawn rather than left
+        // reporting the plane the process booted on.
+        refreshAbout();
         show(state.view);
       }).catch(function (err) {
         announce("Could not run that disruption: " + err.message);
@@ -2044,16 +2301,100 @@
     });
   }
 
+  /** The judging link: `?judge=<key>`.
+   *
+   *  Exchanged for a session immediately and then stripped from the address
+   *  bar, because a bearer key left in a URL is a bearer key in a screenshot,
+   *  a bookmark and a referrer header. The session cookie it becomes is
+   *  HttpOnly and expiring.
+   */
+  function claimJudgeLink() {
+    var params = new URLSearchParams(window.location.search);
+    var key = params.get("judge");
+    if (!key) return Promise.resolve(null);
+    params.delete("judge");
+    var rest = params.toString();
+    window.history.replaceState({}, "",
+      window.location.pathname + (rest ? "?" + rest : "") + window.location.hash);
+    return signInWithKey(key).then(function () {
+      var who = principal();
+      announce(who
+        ? "Evaluation session opened. Reasoning plane: " + who.plane + "."
+        : "Evaluation session opened.");
+      return who ? freshDisruptionForEvaluation(who) : null;
+    }).catch(function (err) {
+      announce("That evaluation link was refused: " + err.message);
+      return null;
+    });
+  }
+
+  /** Land an evaluation session on an open gate, on the plane it is entitled to.
+   *
+   *  Two things can be wrong when a judging link is opened. One process holds
+   *  one production, so whoever was here last may have taken it past the
+   *  approval gate already — and the gate is the single thing this product
+   *  exists to show. And the run in the process may be on the offline plane,
+   *  which is what a public visitor starts, so signing it would be signing
+   *  somebody else's run.
+   *
+   *  Either way the answer is the same: start a fresh disruption. For an
+   *  evaluation session that puts Vertex AI behind the eleven specialist
+   *  agents, which costs about fifteen seconds, and the status line says so
+   *  while it happens.
+   *
+   *  Only for the judging link. Doing it on every visit would let a public URL
+   *  restart the workflow under whoever is already reading it.
+   */
+  function freshDisruptionForEvaluation(who) {
+    return Promise.all([get("/api/approval"), get("/api/about")]).then(function (both) {
+      var settled = !both[0].awaiting;
+      var wrongPlane = both[1].reasoning_plane !== who.plane;
+      if (!settled && !wrongPlane) return who;
+      announce("Starting a fresh disruption on the " + who.plane +
+               " reasoning plane. This takes a few seconds…");
+      return post("/api/disruptions", { scenario_id: "SC-STORM-001" })
+        .then(function (run) {
+          state.loaded = {};
+          state.notice = run.title + " — " + run.feasible_plans +
+            " feasible plan(s), " + run.rejected_plans + " rejected, " +
+            "reasoning plane: " + run.reasoning_plane +
+            ". Waiting for your approval.";
+          return who;
+        })
+        .catch(function () { return who; });
+    }).catch(function () { return who; });
+  }
+
+  /** The footer says what is actually running, and is redrawn when that changes.
+   *
+   *  It reports the plane the *live run* used rather than the one this session
+   *  is entitled to, because those are different questions and only the first
+   *  one is about the decisions on screen. */
+  function refreshAbout() {
+    return get("/api/about").then(function (d) {
+      var who = principal();
+      var entitled = who && who.plane === "gemini" && d.reasoning_plane !== "gemini";
+      document.getElementById("about-line").textContent =
+        d.production + " — reasoning plane: " + d.reasoning_plane +
+        (d.reasoning_degraded ? " (degraded, see the assessment view)" : "") +
+        ", event backbone: " + d.event_backbone +
+        ", authentication: " + d.authentication.mode +
+        ", " + d.constraints + " constraints (hash " +
+        d.constraint_hash.slice(0, 12) + ")." +
+        (entitled
+          ? " This session is entitled to the Gemini plane: run a disruption to" +
+            " put Vertex AI behind the eleven specialist agents."
+          : "");
+      return d;
+    }).catch(function () { return null; });
+  }
+
   function boot() {
     wireTabs();
     wireControls();
-    get("/api/about").then(function (d) {
-      document.getElementById("about-line").textContent =
-        d.production + " — reasoning plane: " + d.reasoning_plane +
-        ", event backbone: " + d.event_backbone +
-        ", " + d.constraints + " constraints (hash " + d.constraint_hash.slice(0, 12) + ").";
-    });
-    show("board");
+    claimJudgeLink().then(refreshIdentity).then(refreshAbout).then(function () {
+      show("board");
+    }).catch(function () { show("board"); });
   }
 
   // The guided demo drives this client rather than a copy of it, so it needs

@@ -52,7 +52,7 @@ Generated from `src/allaccess/web/demo.js` by `tools/demo_script.py`.
 Editing this table by hand will be overwritten; change the beat instead.
 
 
-Runs **1:56** over 11 beats.
+Runs **2:00** over 11 beats.
 
 | # | Cue | Chapter | Narration |
 |---|---|---|---|
@@ -65,8 +65,8 @@ Runs **1:56** over 11 beats.
 | 7 | 1:03 | A reason you can act on | And it does not just say no. It shows exactly why — the only route in has a step at the door — so a location manager can fix it. Not a vague note nobody can act on. |
 | 8 | 1:15 | The options | Instead, it offers plans that all keep every access arrangement intact — because an access need is never something to trade away for a faster day. |
 | 9 | 1:25 | The judgment stays human | All-Access never decides on its own. It stops here, with nothing issued, and stays stopped until the people responsible sign for it by name. |
-| 10 | 1:36 | Everyone, or no one | Then it makes sure the new plan actually reaches every department — and it will not call the day ready until everyone has it. |
-| 11 | 1:46 | — | All-Access. Recover any disruption — without ever leaving someone behind. For every production, and every person on it. |
+| 10 | 1:40 | Everyone, or no one | Then it makes sure the new plan actually reaches every department — and it will not call the day ready until everyone has it. |
+| 11 | 1:50 | — | All-Access. Recover any disruption — without ever leaving someone behind. For every production, and every person on it. |
 
 ---
 

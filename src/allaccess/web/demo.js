@@ -351,7 +351,10 @@
       say: "All-Access never decides on its own. It stops here, with nothing " +
            "issued, and stays stopped until the people responsible sign for it " +
            "by name.",
-      ms: 11000,
+      // Longer than the sentence needs, because this beat performs what it
+      // narrates: a sign-in, a plan chosen, and one signature per authority,
+      // each from the session of the person it belongs to.
+      ms: 15000,
       // This beat does the thing it narrates. The workflow really is stopped
       // inside the coordinator when the demonstration arrives, and it is these
       // clicks that release it: choose a plan, then sign for each authority the
@@ -364,6 +367,22 @@
         await spot(panel("approval") + ".headline");
         await wait(700);
 
+        // Nobody is signed in when the demonstration arrives, and the gate
+        // takes the authority from the session rather than from the request.
+        // So the first click here is a real sign-in as a named person on this
+        // production, through the same panel a visitor uses. It is also why the
+        // signature loop below is allowed twice the clicks: each signature
+        // belongs to a different person, and the session is replaced rather
+        // than widened between them.
+        var enter = pick(panel("approval") + ".signin .button.primary");
+        if (enter) {
+          await spot(enter, 14);
+          await click(enter);
+          await until(function () {
+            return pick(panel("approval") + ".plancard .button.primary");
+          }, 15000);
+        }
+
         var choose = pick(panel("approval") + ".plancard .button.primary");
         if (choose) {
           await click(choose);
@@ -373,12 +392,21 @@
           }, 20000);
         }
 
-        for (var attempt = 0; attempt < 6; attempt++) {
-          var sign = pick(panel("approval") + ".signrow .button.primary");
-          if (!sign) break;
+        // A click hands the gate to the next authority and redraws the panel,
+        // so a button already pressed is disabled while that happens. Selecting
+        // past the disabled ones is what keeps this loop from spending its
+        // attempts clicking the button it just used.
+        var live = panel("approval") + ".signrow .button.primary:not([disabled])";
+        for (var attempt = 0; attempt < 12; attempt++) {
+          var sign = pick(live);
+          if (!sign) {
+            await wait(420);
+            sign = pick(live);
+            if (!sign) break;
+          }
           await spot(sign, 14);
           await click(sign);
-          await wait(260);
+          await wait(320);
         }
         await spot(first([panel("approval") + ".headline",
                           panel("approval") + ".table-scroll"]));

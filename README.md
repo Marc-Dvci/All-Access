@@ -12,6 +12,13 @@ Agentic Cinema · IBM track · Apache-2.0
 · watch it play itself at
 [`/?demo=1`](https://all-access-1022938933263.europe-west1.run.app/?demo=1)
 
+The hosted URL runs the deterministic reasoning plane, which costs nothing and
+is the plane every benchmark figure below was measured on. The judging link on
+the submission form is the same product with an evaluation identity: it may sign
+for every authority — recorded as `JUDGE/<role>` so the ledger says so — and the
+disruptions it starts run the eleven specialist agents on Gemini on Vertex AI.
+[`docs/JUDGE.md`](docs/JUDGE.md) opens with it.
+
 ---
 
 A film set changes constantly. Weather closes an exterior, a performer is
@@ -98,18 +105,29 @@ python -m venv .venv && .venv/Scripts/activate      # or source .venv/bin/activa
 pip install -e ".[dev]"
 
 python -m allaccess.cli hero        # the closed loop, 11 assertions
-pytest -q                                 # 233 tests
+pytest -q                                 # 275 tests
 python -m bench.run_benchmark --smoke     # 48 scenarios, ~20 s
 python tools/a11y_audit.py                # 78 WCAG 2.2 AA checks
 
 uvicorn allaccess.api:app --port 8765     # then open http://127.0.0.1:8765
 ```
 
-The application stops at the approval gate and executes nothing until you choose
-a plan and sign for each required authority. That is the product, not a
-demonstration mode: `AA_APPROVAL_MODE=stand_in` is the unattended path the
-benchmark and the tests use, and every approval it produces is labelled
-`stand_in` in the event log, in the API and on the screen.
+The application stops at the approval gate and executes nothing until a named
+authority signs in, chooses a plan and signs for each role that plan requires.
+That is the product, not a demonstration mode: `AA_APPROVAL_MODE=stand_in` is the
+unattended path the benchmark and the tests use, and every approval it produces
+is labelled `stand_in` in the event log, in the API and on the screen.
+
+**The role is a claim, not a parameter.** `POST /api/approval/sign` reads the
+authority off the session and the actor off the session's subject; there is no
+field in the request that names either, and an anonymous caller gets `401` at
+every endpoint that changes anything. The public deployment establishes identity
+from the production's own crew directory and publishes its access codes on the
+sign-in screen on purpose — a demonstration whose credentials are secret is one
+nobody can run — while `AA_AUTH_MODE=iap` takes the same directory and reads the
+subject from a verified Identity-Aware Proxy assertion instead. Reading the
+product needs no identity at all; only deciding does.
+[`docs/IAM.md`](docs/IAM.md) §0.
 
 **Watch it instead of reading about it:** <http://127.0.0.1:8765/?demo=1>
 
@@ -173,6 +191,12 @@ arrangements were preserved, and that a full replay reproduces live state.
         │  robust simulation · independent validator│
         └─────────────────────┬─────────────────────┘
                               │  plan + feasibility proof
+        ┌─────────────────────▼─────────────────────┐
+        │  Identity  ·  directory / IAP / evaluation │
+        │  the authority is read from the session,   │
+        │  never from the request                    │
+        └─────────────────────┬─────────────────────┘
+                              │  a principal, and the authorities it holds
         ┌─────────────────────▼─────────────────────┐
         │  Human approval  ·  THE WORKFLOW STOPS    │
         │  signed · hash-bound · single-use · expiring
@@ -238,8 +262,8 @@ detail a fluent paragraph carries convincingly and a reader cannot verify.
 | [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) | The guided demonstration and its cue sheet, generated from the beats |
 | [`docs/CONFLUENT.md`](docs/CONFLUENT.md) | Contracts, governance, lineage, replay |
 | [`docs/PRIVACY.md`](docs/PRIVACY.md) | Minimum-necessary disclosure |
-| [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) | Assets, boundaries, eight threats |
-| [`docs/IAM.md`](docs/IAM.md) | Production authority and cloud IAM, kept separate |
+| [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) | Assets, boundaries, ten threats |
+| [`docs/IAM.md`](docs/IAM.md) | Identity, production authority and cloud IAM, kept separate |
 | [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md) | WCAG 2.2 AA, 78 checks, behaviour verified in a browser |
 | [`docs/MEDIA_RIGHTS.md`](docs/MEDIA_RIGHTS.md) | Provenance of every creative asset |
 | [`docs/model_card.md`](docs/model_card.md), [`docs/dataset_card.md`](docs/dataset_card.md) | Reasoning plane and corpus |

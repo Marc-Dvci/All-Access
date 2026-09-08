@@ -1,7 +1,68 @@
 # Judge mode — ten minutes, offline, no credentials
 
-Everything here runs with no network, no cloud project and no API key. If any of
+Everything below runs with no network, no cloud project and no API key. If any of
 it fails, that is a real result and worth telling us about.
+
+---
+
+## The judging link, first
+
+The hosted product has two modes, and what separates them is a session rather
+than a build.
+
+**Anyone** can open <https://all-access-1022938933263.europe-west1.run.app>, read
+all thirteen views, run any disruption in the library, and sign in as a named
+authority on this production to take a plan through the approval gate. Those runs
+use the deterministic reasoning plane — the one every committed benchmark figure
+was measured on, which costs nothing and cannot be exhausted by a public URL.
+
+**The judging link is the same product with an evaluation identity.** It is the
+URL on the submission form, and opening it does three things:
+
+1. Exchanges the key in it for a session, then strips the key from the address
+   bar — a bearer credential in a URL is a bearer credential in a screenshot.
+2. Grants that session **every approving authority**, so one person can take a
+   two-signature plan through the gate alone. Recorded as `JUDGE/<role>` on the
+   `judge` channel, never under a crew member's name; the data contract refuses
+   it at the stream boundary if it tries.
+3. Entitles it to **Gemini on Vertex AI**. Every disruption started from that
+   session runs the eleven specialist agents on `gemini-3.7-flash` rather than
+   the offline plane. Press **Run disruption** and read the footer: the plane it
+   reports is read off the run that just happened, not off a badge.
+
+The two planes produce identical decisions and different language — that is what
+`bench/reasoning_plane.py` exists to check — so what the judging link changes is
+what a human is given to read and what a run costs. Nothing about what the
+constraint engine is permitted to publish.
+
+If the link has expired or its key has been rotated, everything below still runs,
+and so does every view on the public URL.
+
+## Where the identity is
+
+`docs/IAM.md` §0. The short version: `POST /api/approval/sign` reads the role off
+the session and the actor off the session's subject, and there is no field in the
+request that names either. `tests/test_identity.py` is seventeen tests written
+against the failure rather than the feature — the anonymous caller at all three
+write endpoints, the session that tries to widen itself, the edited token, the
+expired session, the client that names its own actor, the coordinator who may
+route and may never sign.
+
+Two checks, a minute each, against a local server:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' -X POST localhost:8765/api/approval/sign \
+  -H 'Content-Type: application/json' -d '{"role":"unit_production_manager"}'
+# 401 — nobody is signed in, and the gate is still shut
+
+curl -s localhost:8765/api/identity | python -m json.tool | head -40
+# the production directory, and this deployment's published demonstration codes
+```
+
+Then sign in as the location manager in the browser and try the UPM's signature:
+`403`, and the reason names the session rather than the plan.
+
+---
 
 ```bash
 python -m venv .venv && .venv/Scripts/activate      # or source .venv/bin/activate
@@ -72,12 +133,17 @@ priority order:
 4. **Approval workspace — and this is where the product stops.** Nothing has
    been executed when you arrive. The workflow scoped the disruption, built the
    plans, proved each feasible and had eleven experts assess the strongest, and
-   then it stopped inside the coordinator and is waiting for you. Choose a plan,
-   then sign for each authority the plan requires; the banner across the top
-   tracks what is outstanding. Decline instead and the disruption is abandoned
-   with nothing issued. Every approval records the channel it came through, so a
-   run signed here and a run signed by the unattended approver are told apart in
-   the log rather than by inference.
+   then it stopped inside the coordinator and is waiting for you. It is waiting
+   for a *person*: the first panel is a sign-in, and until you take an identity
+   there is no button on the screen that routes a plan. Sign in as one of the
+   named authorities, choose a plan, then sign for each authority the plan
+   requires; the banner across the top tracks what is outstanding. A plan
+   needing two signatures will ask you to sign in as the second person, because
+   a session holds exactly the authority its holder holds and there is no
+   request that widens it. Decline instead and the disruption is abandoned with
+   nothing issued. Every approval records the channel it came through, so a run
+   signed here, a run signed on the judging link and a run signed by the
+   unattended approver are told apart in the log rather than by inference.
 5. **Decision replay.** Rebuilds state at any sequence number and asserts it
    matches live.
 
@@ -104,9 +170,12 @@ curl -s localhost:8765/api/execution | python -c "import json,sys;print(json.loa
 # []  — no command has been issued
 curl -s localhost:8765/api/approval | python -c "import json,sys;d=json.load(sys.stdin);print(d['channel'], d['pending']['waiting_on'])"
 # human selection
+curl -s -o /dev/null -w '%{http_code}\n' -X POST localhost:8765/api/approval/select \
+  -H 'Content-Type: application/json' -d '{"plan_id":"anything"}'
+# 401 — and it is 401 rather than 409, because the caller is nobody
 ```
 
-Sign it off in the browser, then run both again: the commands appear and the
+Sign it off in the browser, then run all three again: the commands appear and the
 approvals name the people who signed. Or take the other channel and watch the
 difference show up in the data rather than in a sentence:
 
@@ -116,11 +185,13 @@ curl -s localhost:8766/api/approval | python -c "import json,sys;d=json.load(sys
 # [('unit_production_manager', 'STAND-IN/unit_production_manager'), ...]
 ```
 
-`pytest -q tests/test_human_approval.py` covers what the gate refuses: a plan
-that was never offered, an infeasible plan, an authority the plan does not
-require, signing before a plan is chosen, and a stand-in approval wearing a crew
-member's identifier — that last one is refused by the data contract, at the
-stream boundary, not by the caller.
+`pytest -q tests/test_human_approval.py tests/test_identity.py` covers what the
+gate refuses: a plan that was never offered, an infeasible plan, an authority the
+plan does not require, signing before a plan is chosen, a caller with no session
+at all, a session signing for an authority it does not hold, an edited session
+token, and a stand-in or evaluation approval wearing a crew member's identifier —
+those last two are refused by the data contract, at the stream boundary, not by
+the caller.
 
 ## Minute 8 — the benchmark
 

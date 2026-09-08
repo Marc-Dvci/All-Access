@@ -42,6 +42,11 @@ embarrassing. A crew briefed onto a location nobody secured is a safety incident
       └──────────┬───────────┘
                  │  plan + proof
       ┌──────────▼───────────┐
+      │  identity            │  ← directory / IAP / evaluation key; roles are
+      │  (identity.py)       │    read from the production, never from a body
+      └──────────┬───────────┘
+                 │  a principal, with the authorities it holds
+      ┌──────────▼───────────┐
       │  human approval      │  ← signed, hash-bound, single-use, expiring
       └──────────┬───────────┘
                  │  typed commands
@@ -97,10 +102,16 @@ Holding a valid signature does not make someone the right person to sign, and a
 change type absent from the matrix cannot be executed at all — the policy agent
 fails closed.
 
+And the role is now a claim rather than a parameter. The signing endpoint reads
+the authority off the session's principal, so the request that used to be able
+to name its own role and its own actor can name neither: see `IAM.md` §0 and T9
+below. This is the control that was missing when the four above were already
+sound, and it is the one they rested on.
+
 **Residual.** The signing key is per-process unless `AA_APPROVAL_KEY` is
 supplied. A deployment must supply it from Secret Manager or approvals stop
 verifying across a restart. `infra/terraform` provisions the secret; it does not
-populate it.
+populate it. The same is true of `AA_AUTH_KEY` and sessions.
 
 ### T3 — Command replay or reordering into a downstream system
 
@@ -168,6 +179,63 @@ command-acknowledgment-only system would have declared completion while a
 critical step was outstanding — is **0.124**. That is the number the reconciliation
 step exists to prevent.
 
+### T9 — Someone who is not an authority decides as one
+
+The threat the first version of this document could not answer, because the web
+application had no identities in it: anybody who could reach the approval
+workspace could post a role and an actor, and the system would record an
+approval attributed to a first assistant director who was never there. Nothing
+downstream was wrong; everything downstream was resting on a claim the client
+made about itself.
+
+**Controls.** Authority is established before it is exercised, in `identity.py`.
+
+- The three endpoints that change anything refuse a request with no session:
+  `401`, and the gate stays shut. Every read model stays open, because reading
+  this product is not a decision.
+- The role is read off the principal. A session holding the location manager
+  asking to sign as the UPM is `403` — not because the plan does not need a UPM,
+  but because this session is not one.
+- The actor is the principal's subject. `RoleSignature` has no `actor` field;
+  sending one changes nothing, which is asserted directly.
+- The session token is HMAC-signed over its own roles and expires. An edited
+  payload verifies as nothing at all, and every failure mode returns the same
+  answer — telling a forger which half of the token to fix is a control that
+  works backwards.
+- Routing is separated from approving, so the coordinator who takes a plan to
+  signature cannot sign it.
+
+**Measured.** `tests/test_identity.py` — 17 tests, each written against the
+failure rather than the feature: the anonymous caller at all three endpoints,
+the session that tries to widen itself, the edited token, the expired session,
+the client that names its own actor, the coordinator against every signing
+authority, and the proxy headers that are ignored outside `iap` mode.
+
+**Residual, and it is the honest one.** The public demonstration publishes its
+access codes, so it authenticates which authority a session is acting as rather
+than that the person is who they say. `AA_AUTH_MODE=iap` closes that and is what
+a real deployment runs; the hosted URL does not, because a URL behind IAP is one
+no judge can open. The evaluation identity holds every authority and is named
+`JUDGE/<role>` in the ledger for exactly that reason. And sign-in is not rate
+limited.
+
+### T10 — A judging link that leaks
+
+`?judge=<key>` is a bearer credential in a URL, and a bearer credential in a URL
+ends up in a screenshot, a bookmark, a referrer header and a chat log.
+
+**Controls.** The client exchanges it for a session on load and then strips it
+from the address bar with `history.replaceState`, so it survives in the address
+bar for no page views. What it becomes is `HttpOnly`, `SameSite=Lax`, `Secure`
+over TLS, and twelve hours long. The key itself is a Secret Manager secret, is
+never written into Terraform state, and never appears in the event log: the
+evaluation identity's subject is a hash prefix of the key, not the key.
+
+**Residual.** Anyone holding the link can decide, at the level of "sign for
+every authority on a demonstration production". Rotating it is one
+`gcloud secrets versions add` and one revision. The blast radius is a fictional
+shoot day.
+
 ---
 
 ## 4. Explicit decision boundaries
@@ -187,11 +255,14 @@ have no approving role:
 
 ## 5. Residual risk and deployment posture
 
-- **The demonstration deployment is deliberately open.** It serves a read-mostly
-  UI over authored fictional data, so `allow_unauthenticated` in
-  `infra/terraform` is `true`. Pointing this at a real production means setting
-  it to `false` and putting IAP or an equivalent in front — the variable exists
-  precisely so that is a one-line change rather than an architecture change.
+- **The demonstration deployment is deliberately open to read.** It serves a
+  read-mostly UI over authored fictional data, so `allow_unauthenticated` in
+  `infra/terraform` is `true`. It is *not* open to decide: the approval gate
+  needs a session either way. Pointing this at a real production means
+  `allow_unauthenticated = false`, `auth_mode = "iap"`, ingress restricted to
+  the load balancer, and the directory pointed at the production's own — the
+  variables exist precisely so that is configuration rather than an architecture
+  change.
 - **`POST /api/disruptions` runs a solve**, so a production deployment puts rate
   limiting in front of it. Every other endpoint is a read over a completed
   decision.

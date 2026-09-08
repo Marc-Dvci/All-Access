@@ -787,3 +787,41 @@ figure.figure figcaption { color: var(--ink-muted); font-size: 0.85rem; margin-t
 .signrow:last-child { border-bottom: 0; }
 .signwho { display: flex; flex-direction: column; }
 .signwho .note { color: var(--ink-muted); font-size: 0.82rem; }
+
+
+/* -- identity ------------------------------------------------------------
+ *
+ * The signed-in identity sits in the masthead because it qualifies everything
+ * below it: which authority may sign, and which reasoning plane a new
+ * disruption runs on. It is text before it is a badge - a chip alone would
+ * make the difference between an evaluation session and a production
+ * authority a colour.
+ */
+.whoami {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding-right: 0.85rem; margin-right: 0.15rem;
+  border-right: 1px solid var(--line);
+  font-size: 0.86rem; color: var(--ink-muted);
+  max-width: 26rem; flex-wrap: wrap;
+}
+.whoami .who-anon { font-style: italic; }
+.whoami .who-name strong { color: var(--ink); font-weight: 600; }
+.button.small { padding: 0.28rem 0.6rem; font-size: 0.8rem; }
+.panel.signin { border-left: 3px solid var(--accent); }
+.panel.signin .signrow { gap: 0.6rem; }
+.code-hint {
+  font-size: 0.82rem; letter-spacing: 0.08em; font-weight: 600;
+  color: var(--ink-muted);
+}
+.codepair { display: inline-flex; gap: 0.4rem; align-items: center; }
+.codefield {
+  font-family: "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+  text-transform: uppercase;
+  width: 7.5rem; padding: 0.3rem 0.45rem;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: var(--surface); color: var(--ink);
+}
+
+@media (max-width: 900px) {
+  .whoami { border-right: 0; padding-right: 0; width: 100%; }
+}

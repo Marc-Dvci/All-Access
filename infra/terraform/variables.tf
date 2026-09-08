@@ -79,3 +79,27 @@ variable "max_instances" {
   type        = number
   default     = 4
 }
+
+
+variable "auth_mode" {
+  description = <<-EOT
+    How the web application establishes who is signing.
+
+      demo    the production directory, with per-person access codes published
+              on the sign-in screen. The public demonstration runs this: the
+              codes are not the control, the server-side role binding is.
+      closed  the same directory, with codes supplied in AA_ACCESS_CODES and
+              published nowhere.
+      iap     no code sign-in at all. The subject comes from the Identity-Aware
+              Proxy assertion and the authority comes from the directory, which
+              is what a real production deployment runs.
+  EOT
+
+  type    = string
+  default = "demo"
+
+  validation {
+    condition     = contains(["demo", "closed", "iap"], var.auth_mode)
+    error_message = "auth_mode must be demo, closed or iap."
+  }
+}

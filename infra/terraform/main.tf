@@ -112,16 +112,39 @@ resource "google_secret_manager_secret_iam_member" "app_access" {
 # and both get shared. Populate with:
 #
 #   printf %s "$KEY" | gcloud secrets versions add allaccess-confluent-api-key --data-file=-
+#
+# Three of these are created unconditionally, because a deployment without them
+# is a deployment whose sessions and approvals stop verifying the moment a
+# second instance starts:
+#
+#   allaccess-auth-key      AA_AUTH_KEY      signs session tokens and derives the
+#                                            directory access codes
+#   allaccess-approval-key  AA_APPROVAL_KEY  signs approvals; per-process without it
+#   allaccess-judge-key     AA_JUDGE_KEY     the one bearer key behind ?judge=<key>
+#
+# Generate and populate each once:
+#
+#   for name in auth approval judge; do
+#     python -c "import secrets, sys; sys.stdout.write(secrets.token_urlsafe(32))" \
+#       | gcloud secrets versions add allaccess-$name-key --data-file=-
+#   done
 
 resource "google_secret_manager_secret" "runtime" {
-  for_each = toset(var.enable_confluent ? [
-    "confluent-bootstrap",
-    "confluent-api-key",
-    "confluent-api-secret",
-    "schema-registry-url",
-    "schema-registry-key",
-    "schema-registry-secret",
-  ] : [])
+  for_each = toset(concat(
+    [
+      "auth-key",
+      "approval-key",
+      "judge-key",
+    ],
+    var.enable_confluent ? [
+      "confluent-bootstrap",
+      "confluent-api-key",
+      "confluent-api-secret",
+      "schema-registry-url",
+      "schema-registry-key",
+      "schema-registry-secret",
+    ] : [],
+  ))
 
   secret_id = "${local.service_name}-${each.value}"
 
@@ -184,6 +207,25 @@ resource "google_cloud_run_v2_service" "app" {
       env {
         name  = "GOOGLE_CLOUD_PROJECT"
         value = var.project_id
+      }
+
+      # Where an identity comes from. `demo` uses the production directory and
+      # publishes its access codes on the sign-in screen so anyone can drive the
+      # product; `iap` refuses code sign-in entirely and takes the subject from
+      # the Identity-Aware Proxy assertion in front of this service. Pointing
+      # this at a real production means `iap` here, ingress restricted to the
+      # load balancer above, and `allow_unauthenticated = false`.
+      env {
+        name  = "AA_AUTH_MODE"
+        value = var.auth_mode
+      }
+
+      # The plane an evaluation session runs its disruptions on. Offline unless
+      # Vertex is switched on, because a session that claims Gemini and narrates
+      # from templates misreports itself.
+      env {
+        name  = "AA_JUDGE_PLANE"
+        value = var.enable_gemini ? "gemini" : "offline"
       }
 
       env {

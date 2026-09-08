@@ -179,10 +179,21 @@ def sign_off_at_the_gate(page: Any, failures: "Failures", shots: Path | None) ->
     buttons on the screen, that is the thing worth knowing, so this drives the
     buttons.
 
-    It also asserts the shape of the stop: the banner has to be up, and more
-    than one plan has to be on offer. A gate that presents a single option is a
-    rubber stamp with extra steps.
+    It also asserts the shape of the stop: the banner has to be up, more than
+    one plan has to be on offer, and the gate has to refuse a browser that has
+    not signed in as anybody. A gate that presents a single option is a rubber
+    stamp with extra steps, and a gate that accepts an anonymous click is not a
+    gate.
     """
+    # Start from no identity every time this runs, including on the second
+    # disruption. A session left over from the last decision would hide the
+    # thing worth asserting, which is that the gate is shut for a browser that
+    # has not signed in as anybody.
+    leftover = page.locator("#whoami button", has_text="Sign out")
+    if leftover.count():
+        leftover.first.click()
+        page.wait_for_timeout(500)
+
     page.click("#tab-approval")
     page.wait_for_function(
         "() => { const n = document.getElementById('approval-content');"
@@ -194,6 +205,24 @@ def sign_off_at_the_gate(page: Any, failures: "Failures", shots: Path | None) ->
         failures.add("approval gate", "the workflow did not stop to ask anybody")
         return
 
+    # Before anything else: the browser arrives with no session, and the gate
+    # has to say so rather than offering a decision it would then refuse.
+    if not page.locator("#approval-content .signin", has_text="Sign in to decide").count():
+        failures.add("approval gate", "offered the decision to a browser with no identity")
+    if page.locator("#approval-content button", has_text="Take this plan").count():
+        failures.add("approval gate", "a plan could be routed before anybody signed in")
+    if shots:
+        page.screenshot(path=str(shots / "approval-signin.png"), full_page=True)
+
+    entry = page.locator("#approval-content .signin button", has_text="Sign in as ")
+    if not entry.count():
+        failures.add("approval gate", "no way to establish an identity at the gate")
+        return
+    entry.first.click()
+    page.wait_for_selector(
+        "#approval-content .signin h2:text-matches('Signed in as')", timeout=20000,
+    )
+
     choices = page.locator("#approval-content button", has_text="Take this plan")
     offered = choices.count()
     if offered < 2:
@@ -204,16 +233,28 @@ def sign_off_at_the_gate(page: Any, failures: "Failures", shots: Path | None) ->
         page.screenshot(path=str(shots / "approval-gate.png"), full_page=True)
     choices.first.click()
 
+    # Two kinds of button now sit on a signature row, and the difference is the
+    # point: "Sign as" belongs to a session that holds the authority, and "Sign
+    # in as" is the hand-off to the person who does. A plan needing two
+    # authorities cannot be cleared without at least one of the second kind.
     signed = 0
-    for _ in range(16):
+    handovers = 0
+    for _ in range(24):
         page.wait_for_timeout(300)
-        pending = page.locator("#approval-content button", has_text="Sign as ")
-        if not pending.count():
+        pending = page.locator(
+            "#approval-content .signrow button:not([disabled])", has_text="Sign as ")
+        if pending.count():
+            if shots and not signed:
+                page.screenshot(path=str(shots / "approval-signing.png"), full_page=True)
+            pending.first.click()
+            signed += 1
+            continue
+        handover = page.locator(
+            "#approval-content .signrow button:not([disabled])", has_text="Sign in as ")
+        if not handover.count():
             break
-        if shots and not signed:
-            page.screenshot(path=str(shots / "approval-signing.png"), full_page=True)
-        pending.first.click()
-        signed += 1
+        handover.first.click()
+        handovers += 1
     else:
         failures.add("approval gate", "never ran out of signatures to collect")
 
@@ -232,7 +273,8 @@ def sign_off_at_the_gate(page: Any, failures: "Failures", shots: Path | None) ->
     text = page.locator("#approval-content").inner_text()
     if "Authorised by" not in text:
         failures.add("approval gate", f"signed, but the view does not say so: {text[:160]!r}")
-    print(f"  ok   approval gate       {offered} plans offered, {signed} signature(s) given")
+    print(f"  ok   approval gate       {offered} plans offered, {signed} signature(s) "
+          f"given across {handovers + 1} session(s)")
 
 
 def run(url: str, shots: Path | None, headed: bool) -> int:
