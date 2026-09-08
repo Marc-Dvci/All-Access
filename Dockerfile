@@ -24,7 +24,7 @@ COPY src ./src
 
 RUN python -m venv /opt/venv \
  && /opt/venv/bin/pip install --upgrade pip setuptools wheel \
- && /opt/venv/bin/pip install .
+ && /opt/venv/bin/pip install ".[cloud,confluent]"
 
 # ---- runtime --------------------------------------------------------------
 FROM python:3.12-slim AS runtime
@@ -36,6 +36,7 @@ ENV PYTHONUNBUFFERED=1 \
     # at deploy time; neither carries a credential.
     AA_REASONING_MODE=offline \
     AA_EVENT_BACKBONE=local \
+    AA_STREAM_MODE=local \
     PORT=8080
 
 COPY --from=build /opt/venv /opt/venv

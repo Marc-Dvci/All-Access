@@ -190,3 +190,39 @@ def test_the_system_instruction_forbids_deciding_and_inventing() -> None:
 def test_the_offline_plane_is_deterministic() -> None:
     a, b = OfflineReasoner(), OfflineReasoner()
     assert a.narrate("x", "p", FACTS, TEMPLATE) == b.narrate("x", "p", FACTS, TEMPLATE)
+
+
+def test_gemini_location_defaults_to_global(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("AA_GEMINI_LOCATION", raising=False)
+    monkeypatch.delenv("GOOGLE_CLOUD_LOCATION", raising=False)
+    reasoner = GeminiReasoner()
+    assert reasoner.location == "global"
+
+
+def test_gemini_location_honors_aa_gemini_location(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("AA_GEMINI_LOCATION", "custom-location")
+    monkeypatch.setenv("GOOGLE_CLOUD_LOCATION", "us-central1")
+    reasoner = GeminiReasoner()
+    assert reasoner.location == "custom-location"
+
+
+def test_gemini_location_protects_gemini_3_from_regional_google_cloud_location(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("AA_GEMINI_LOCATION", raising=False)
+    monkeypatch.setenv("GOOGLE_CLOUD_LOCATION", "us-central1")
+    reasoner = GeminiReasoner(model="gemini-3.7-flash")
+    assert reasoner.location == "global"
+
+    monkeypatch.setenv("GOOGLE_CLOUD_LOCATION", "global")
+    reasoner_global = GeminiReasoner(model="gemini-3.7-flash")
+    assert reasoner_global.location == "global"
+
+
+def test_gemini_location_explicit_parameter_takes_precedence(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("AA_GEMINI_LOCATION", "env-loc")
+    monkeypatch.setenv("GOOGLE_CLOUD_LOCATION", "us-central1")
+    reasoner = GeminiReasoner(location="explicit-loc")
+    assert reasoner.location == "explicit-loc"

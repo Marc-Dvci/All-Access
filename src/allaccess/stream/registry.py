@@ -269,11 +269,15 @@ class ConfluentSchemaRegistry:
 def build_registry() -> SchemaRegistry:
     """The registry named by the environment, or the local one.
 
-    `AA_STREAM_MODE=confluent` selects the hosted registry. Anything else, or a
-    missing URL, gets the local one — and the CLI prints which is in use, so a
-    judge always knows which they are looking at.
+    `AA_EVENT_BACKBONE=confluent` or `AA_STREAM_MODE=confluent` selects the hosted
+    registry. Anything else, or a missing URL, gets the local one — and the CLI
+    prints which is in use, so a judge always knows which they are looking at.
     """
-    mode = os.environ.get("AA_STREAM_MODE", "local").lower()
+    mode = (
+        os.environ.get("AA_EVENT_BACKBONE")
+        or os.environ.get("AA_STREAM_MODE")
+        or "local"
+    ).lower()
     if mode == "confluent" and os.environ.get("AA_SCHEMA_REGISTRY_URL"):
         registry = ConfluentSchemaRegistry()
         registry.register_all()

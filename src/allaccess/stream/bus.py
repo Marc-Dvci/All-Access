@@ -328,11 +328,26 @@ class ConfluentEventBus(EventBus):
         mirror_locally: bool = True,
     ) -> None:
         super().__init__(registry, production_id)
-        self.bootstrap = bootstrap or os.environ.get("AA_KAFKA_BOOTSTRAP", "")
-        self.api_key = api_key or os.environ.get("AA_KAFKA_API_KEY", "")
-        self.api_secret = api_secret or os.environ.get("AA_KAFKA_API_SECRET", "")
+        self.bootstrap = (
+            bootstrap
+            or os.environ.get("AA_CONFLUENT_BOOTSTRAP")
+            or os.environ.get("AA_KAFKA_BOOTSTRAP", "")
+        )
+        self.api_key = (
+            api_key
+            or os.environ.get("AA_CONFLUENT_API_KEY")
+            or os.environ.get("AA_KAFKA_API_KEY", "")
+        )
+        self.api_secret = (
+            api_secret
+            or os.environ.get("AA_CONFLUENT_API_SECRET")
+            or os.environ.get("AA_KAFKA_API_SECRET", "")
+        )
         if not self.bootstrap:
-            raise ValueError("AA_KAFKA_BOOTSTRAP is required for the Confluent event bus")
+            raise ValueError(
+                "AA_CONFLUENT_BOOTSTRAP (or AA_KAFKA_BOOTSTRAP) is required "
+                "for the Confluent event bus"
+            )
         from confluent_kafka import Producer
 
         config = {
@@ -477,13 +492,18 @@ class ConfluentEventBus(EventBus):
 def build_bus(production_id: str = "PROD") -> LocalEventBus | ConfluentEventBus:
     """The backbone named by the environment.
 
-    `AA_STREAM_MODE=confluent` plus `AA_KAFKA_BOOTSTRAP` selects Confluent Cloud.
+    `AA_EVENT_BACKBONE=confluent` or `AA_STREAM_MODE=confluent` plus
+    `AA_CONFLUENT_BOOTSTRAP` (or `AA_KAFKA_BOOTSTRAP`) selects Confluent Cloud.
     Anything else runs locally. If Confluent is requested and cannot be reached,
     this raises rather than silently falling back — being told the demo ran on
     Confluent when it did not is worse than being told it failed.
     """
     registry = build_registry()
-    mode = os.environ.get("AA_STREAM_MODE", "local").lower()
+    mode = (
+        os.environ.get("AA_EVENT_BACKBONE")
+        or os.environ.get("AA_STREAM_MODE")
+        or "local"
+    ).lower()
     if mode == "confluent":
         return ConfluentEventBus(registry, production_id)
     return LocalEventBus(registry, production_id)

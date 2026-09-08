@@ -254,7 +254,7 @@ class GeminiReasoner:
     #: Gemini 3.x publishes on the global endpoint. A regional location resolves
     #: to no such publisher model and the call fails with a 404 that reads like
     #: a quota problem, so the default is the endpoint the default model is
-    #: actually served from. `GOOGLE_CLOUD_LOCATION` still overrides it.
+    #: actually served from. `AA_GEMINI_LOCATION` or explicit `location` overrides it.
     DEFAULT_LOCATION = "global"
 
     #: Generous, and deliberately so. Gemini 3.x spends reasoning tokens before
@@ -273,9 +273,17 @@ class GeminiReasoner:
                  location: str | None = None) -> None:
         self.model = model
         self.project = project or os.environ.get("GOOGLE_CLOUD_PROJECT", "")
-        self.location = (
-            os.environ.get("GOOGLE_CLOUD_LOCATION") or location or self.DEFAULT_LOCATION
-        )
+        explicit_loc = location or os.environ.get("AA_GEMINI_LOCATION")
+        if explicit_loc:
+            self.location = explicit_loc
+        elif os.environ.get("GOOGLE_CLOUD_LOCATION"):
+            env_loc = os.environ["GOOGLE_CLOUD_LOCATION"]
+            if self.model.startswith("gemini-3") and env_loc != "global":
+                self.location = self.DEFAULT_LOCATION
+            else:
+                self.location = env_loc
+        else:
+            self.location = self.DEFAULT_LOCATION
         self._calls: list[ReasoningCall] = []
         self._fallback = OfflineReasoner()
         self._client = None

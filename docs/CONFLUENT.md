@@ -20,7 +20,7 @@ six domains.
 | Hash chain | same code | same code |
 | Idempotency | same code | same code |
 
-Selected by `AA_EVENT_BACKBONE`; `local` is the default.
+Selected by `AA_EVENT_BACKBONE` (or `AA_STREAM_MODE`); `local` is the default.
 
 The local bus is not a mock. It performs the same contract validation, the same
 compatibility enforcement, the same dead-lettering, the same idempotency
@@ -185,10 +185,10 @@ are invisible however true they turned out to be.
 ## 8. Running against Confluent Cloud
 
 ```bash
-export AA_EVENT_BACKBONE=confluent
-export AA_CONFLUENT_BOOTSTRAP=pkc-xxxxx.region.provider.confluent.cloud:9092
-export AA_CONFLUENT_API_KEY=...        # cluster key
-export AA_CONFLUENT_API_SECRET=...
+export AA_EVENT_BACKBONE=confluent     # or AA_STREAM_MODE=confluent
+export AA_CONFLUENT_BOOTSTRAP=pkc-xxxxx.region.provider.confluent.cloud:9092  # or AA_KAFKA_BOOTSTRAP
+export AA_CONFLUENT_API_KEY=...        # cluster key (or AA_KAFKA_API_KEY)
+export AA_CONFLUENT_API_SECRET=...     # cluster secret (or AA_KAFKA_API_SECRET)
 export AA_SCHEMA_REGISTRY_URL=https://psrc-xxxxx.region.provider.confluent.cloud
 export AA_SCHEMA_REGISTRY_KEY=...
 export AA_SCHEMA_REGISTRY_SECRET=...
@@ -204,7 +204,7 @@ looking at.
 
 ## 9. Which backbone is live
 
-`AA_EVENT_BACKBONE` selects it, and `GET /api/about` reports it, so a viewer
+`AA_EVENT_BACKBONE` (or `AA_STREAM_MODE`) selects it, and `GET /api/about` reports it, so a viewer
 never has to guess. The two implementations sit behind one interface and are
 exercised by the same tests: the local bus performs the same schema validation,
 the same hash chaining, the same idempotency suppression and the same

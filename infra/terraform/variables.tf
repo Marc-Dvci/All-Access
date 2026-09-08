@@ -4,9 +4,18 @@ variable "project_id" {
 }
 
 variable "region" {
-  description = "Region for Cloud Run, Artifact Registry and Vertex AI."
+  description = "Region for Cloud Run and Artifact Registry."
   type        = string
   default     = "us-central1"
+}
+
+variable "gemini_location" {
+  description = <<-EOT
+    Vertex AI location for Gemini calls. Gemini 3.x models on Vertex AI
+    require the global endpoint; regional endpoints resolve to 404.
+  EOT
+  type        = string
+  default     = "global"
 }
 
 variable "image_tag" {

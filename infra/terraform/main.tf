@@ -177,13 +177,23 @@ resource "google_cloud_run_v2_service" "app" {
       }
 
       env {
+        name  = "AA_STREAM_MODE"
+        value = var.enable_confluent ? "confluent" : "local"
+      }
+
+      env {
         name  = "GOOGLE_CLOUD_PROJECT"
         value = var.project_id
       }
 
       env {
         name  = "GOOGLE_CLOUD_LOCATION"
-        value = var.region
+        value = var.gemini_location
+      }
+
+      env {
+        name  = "AA_GEMINI_LOCATION"
+        value = var.gemini_location
       }
 
       dynamic "env" {

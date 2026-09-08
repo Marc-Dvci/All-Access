@@ -353,3 +353,75 @@ def test_declared_dependencies_are_parsed_without_extras_or_specifiers() -> None
     # Optional extras are not runtime dependencies and must not be required.
     assert "confluent-kafka" not in declared
     assert "google-adk" not in declared
+
+
+# ---------------------------------------------------------------------------
+# Backbone and registry selection and credential aliases
+# ---------------------------------------------------------------------------
+
+
+def test_build_bus_defaults_to_local(monkeypatch: pytest.MonkeyPatch) -> None:
+    from allaccess.stream.bus import LocalEventBus, build_bus
+
+    monkeypatch.delenv("AA_EVENT_BACKBONE", raising=False)
+    monkeypatch.delenv("AA_STREAM_MODE", raising=False)
+    bus = build_bus("TEST")
+    assert isinstance(bus, LocalEventBus)
+
+
+def test_build_bus_recognizes_aa_event_backbone_and_aa_stream_mode(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from unittest.mock import MagicMock, patch
+
+    from allaccess.stream.bus import build_bus
+
+    mock_kafka = MagicMock()
+    with patch.dict("sys.modules", {"confluent_kafka": mock_kafka}):
+        monkeypatch.setenv("AA_EVENT_BACKBONE", "confluent")
+        monkeypatch.delenv("AA_STREAM_MODE", raising=False)
+        monkeypatch.setenv("AA_CONFLUENT_BOOTSTRAP", "broker:9092")
+        bus1 = build_bus("TEST")
+        assert bus1.bootstrap == "broker:9092"
+        assert bus1.name == "confluent"
+
+        monkeypatch.delenv("AA_EVENT_BACKBONE", raising=False)
+        monkeypatch.setenv("AA_STREAM_MODE", "confluent")
+        monkeypatch.delenv("AA_CONFLUENT_BOOTSTRAP", raising=False)
+        monkeypatch.setenv("AA_KAFKA_BOOTSTRAP", "broker-kafka:9092")
+        bus2 = build_bus("TEST")
+        assert bus2.bootstrap == "broker-kafka:9092"
+        assert bus2.name == "confluent"
+
+
+def test_confluent_event_bus_accepts_confluent_and_kafka_credentials(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from unittest.mock import MagicMock, patch
+
+    from allaccess.stream.bus import ConfluentEventBus
+
+    mock_kafka = MagicMock()
+    with patch.dict("sys.modules", {"confluent_kafka": mock_kafka}):
+        monkeypatch.setenv("AA_CONFLUENT_BOOTSTRAP", "boot.confluent.cloud:9092")
+        monkeypatch.setenv("AA_CONFLUENT_API_KEY", "key123")
+        monkeypatch.setenv("AA_CONFLUENT_API_SECRET", "secret456")
+        bus = ConfluentEventBus(mirror_locally=False)
+        assert bus.bootstrap == "boot.confluent.cloud:9092"
+        assert bus.api_key == "key123"
+        assert bus.api_secret == "secret456"
+
+
+def test_build_registry_recognizes_both_selection_vars(monkeypatch: pytest.MonkeyPatch) -> None:
+    from allaccess.stream.registry import build_registry
+
+    monkeypatch.delenv("AA_SCHEMA_REGISTRY_URL", raising=False)
+    monkeypatch.setenv("AA_EVENT_BACKBONE", "local")
+    monkeypatch.delenv("AA_STREAM_MODE", raising=False)
+    reg1 = build_registry()
+    assert reg1.name == "local"
+
+    monkeypatch.delenv("AA_EVENT_BACKBONE", raising=False)
+    monkeypatch.setenv("AA_STREAM_MODE", "local")
+    reg2 = build_registry()
+    assert reg2.name == "local"
