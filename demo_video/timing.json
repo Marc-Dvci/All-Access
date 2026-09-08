@@ -1,20 +1,20 @@
 {
-  "total": 97.302,
+  "total": 101.526,
   "voice": "en-US-AndrewMultilingualNeural",
   "rate": "+9%",
   "beats": 11,
   "durations_ms": [
-    7978,
-    12950,
-    9230,
-    6278,
-    8030,
-    11774,
-    10070,
-    9566,
-    5630,
-    7382,
-    8414
+    7834,
+    13070,
+    9494,
+    6566,
+    8270,
+    11870,
+    10286,
+    9734,
+    8678,
+    7286,
+    8438
   ],
   "timeline": [
     {
@@ -22,88 +22,88 @@
       "at": 0.0,
       "chapter": "",
       "say": "Every film and television set runs on a fragile promise \u2014 that everyone who is called can actually do their job that day.",
-      "dur": 7.978,
-      "speech": 7.128
+      "dur": 7.834,
+      "speech": 6.984
     },
     {
       "i": 1,
-      "at": 7.978,
+      "at": 7.834,
       "chapter": "",
       "say": "But sets change by the hour \u2014 weather, a delay, a location lost at short notice. And the fastest fix is often the one that quietly leaves someone behind. All-Access is built so that can't happen.",
-      "dur": 12.95,
-      "speech": 12.6
+      "dur": 13.07,
+      "speech": 12.72
     },
     {
       "i": 2,
-      "at": 20.928,
+      "at": 20.904,
       "chapter": "The day",
       "say": "Here is a real shoot day. Salt and Light \u2014 five scenes, three locations, and every access arrangement in place. Everyone can work.",
-      "dur": 9.23,
-      "speech": 8.88
+      "dur": 9.494,
+      "speech": 9.144
     },
     {
       "i": 3,
-      "at": 30.158,
+      "at": 30.398,
       "chapter": "The disruption",
       "say": "Then a storm rolls in and closes the harbour. Watch what All-Access does \u2014 live, in under a second.",
-      "dur": 6.278,
-      "speech": 5.928
+      "dur": 6.566,
+      "speech": 6.216
     },
     {
       "i": 4,
-      "at": 36.436,
+      "at": 36.964,
       "chapter": "The ripple",
       "say": "Instantly, it sees everything the storm touches \u2014 every scene, every department, and every person's access needs.",
-      "dur": 8.03,
-      "speech": 7.68
+      "dur": 8.27,
+      "speech": 7.92
     },
     {
       "i": 5,
-      "at": 44.466,
+      "at": 45.234,
       "chapter": "The refusal",
       "say": "The obvious fix is to move to the boatshed. It is free, and a scheduling tool would just take it. But there is no step-free way in \u2014 and someone on this crew depends on one. So All-Access refuses it.",
-      "dur": 11.774,
-      "speech": 11.424
+      "dur": 11.87,
+      "speech": 11.52
     },
     {
       "i": 6,
-      "at": 56.24,
+      "at": 57.104,
       "chapter": "A reason you can act on",
       "say": "And it does not just say no. It shows exactly why \u2014 the only route in has a step at the door \u2014 so a location manager can fix it. Not a vague note nobody can act on.",
-      "dur": 10.07,
-      "speech": 9.72
+      "dur": 10.286,
+      "speech": 9.936
     },
     {
       "i": 7,
-      "at": 66.31,
+      "at": 67.39,
       "chapter": "The options",
       "say": "Instead, it offers plans that all keep every access arrangement intact \u2014 because an access need is never something to trade away for a faster day.",
-      "dur": 9.566,
-      "speech": 9.216
+      "dur": 9.734,
+      "speech": 9.384
     },
     {
       "i": 8,
-      "at": 75.876,
+      "at": 77.124,
       "chapter": "The judgment stays human",
-      "say": "All-Access never decides on its own. It proposes; the people responsible approve.",
-      "dur": 5.63,
-      "speech": 5.28
+      "say": "All-Access never decides on its own. It stops here, with nothing issued, and stays stopped until the people responsible sign for it by name.",
+      "dur": 8.678,
+      "speech": 8.328
     },
     {
       "i": 9,
-      "at": 81.506,
+      "at": 85.802,
       "chapter": "Everyone, or no one",
       "say": "Then it makes sure the new plan actually reaches every department \u2014 and it will not call the day ready until everyone has it.",
-      "dur": 7.382,
-      "speech": 7.032
+      "dur": 7.286,
+      "speech": 6.936
     },
     {
       "i": 10,
-      "at": 88.888,
+      "at": 93.088,
       "chapter": "",
       "say": "All-Access. Recover any disruption \u2014 without ever leaving someone behind. For every production, and every person on it.",
-      "dur": 8.414,
-      "speech": 8.064
+      "dur": 8.438,
+      "speech": 8.088
     }
   ]
 }

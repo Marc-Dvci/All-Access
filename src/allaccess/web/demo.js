@@ -348,9 +348,10 @@
 
     {
       chapter: "The judgment stays human",
-      say: "All-Access never decides on its own. It stops here, and stays " +
-           "stopped until the people responsible sign for it.",
-      ms: 10000,
+      say: "All-Access never decides on its own. It stops here, with nothing " +
+           "issued, and stays stopped until the people responsible sign for it " +
+           "by name.",
+      ms: 11000,
       // This beat does the thing it narrates. The workflow really is stopped
       // inside the coordinator when the demonstration arrives, and it is these
       // clicks that release it: choose a plan, then sign for each authority the
@@ -361,7 +362,7 @@
       run: async function () {
         await goto("approval");
         await spot(panel("approval") + ".headline");
-        await wait(1400);
+        await wait(700);
 
         var choose = pick(panel("approval") + ".plancard .button.primary");
         if (choose) {
@@ -377,7 +378,7 @@
           if (!sign) break;
           await spot(sign, 14);
           await click(sign);
-          await wait(500);
+          await wait(260);
         }
         await spot(first([panel("approval") + ".headline",
                           panel("approval") + ".table-scroll"]));
