@@ -19,6 +19,7 @@ Two boundaries are enforced here rather than in the browser:
 
 from __future__ import annotations
 
+import os
 import threading
 from collections import Counter
 from dataclasses import dataclass
@@ -37,6 +38,11 @@ from .constraints.registry import CONSTRAINTS, active_constraints, constraint_se
 from .contracts import Role, TargetSystem
 from .disruptions import STORM_SCENARIO, Scenario, build_source_event, generate, scenario_problem
 from .execution import privacy, verification
+from .execution.approvals import (
+    ApprovalError,
+    HumanApprovalGateway,
+    StandInApprover,
+)
 from .production import script as scr
 from .production import spatial as sp
 from .production import world as w
@@ -124,10 +130,35 @@ def _record_shift(session: "Session") -> None:
     ))
 
 
-class Session:
-    """One disruption, run once, held for the views to read."""
+def approval_mode() -> str:
+    """`human` or `stand_in`. The web application defaults to `human`.
 
-    def __init__(self, scenario: Scenario = STORM_SCENARIO, *, scenarios: int = 200) -> None:
+    The default is the whole point. A judge who opens this application is not
+    shown a decision that has already been taken on their behalf; the workflow
+    runs as far as it can on its own, and then stops and asks. `stand_in` is
+    there for the benchmark, the smoke tools and anything running unattended,
+    and it labels every approval it produces as unattended.
+    """
+    mode = os.environ.get("AA_APPROVAL_MODE", "human").strip().lower()
+    return "stand_in" if mode == "stand_in" else "human"
+
+
+class Session:
+    """One disruption, run once, held for the views to read.
+
+    The run happens on its own thread because in `human` mode it does not run to
+    completion: it stops inside the coordinator at the approval gate and waits
+    there. Everything the system decided before that point is already in the
+    read model, so the twelve views draw a real, half-finished shoot day —
+    which is exactly the state a first AD is in when the plans are on the table
+    and nobody has said yes yet.
+
+    The constructor returns as soon as the run either reaches the gate or
+    finishes, so a request never sees a session with nothing in it.
+    """
+
+    def __init__(self, scenario: Scenario = STORM_SCENARIO, *, scenarios: int = 200,
+                 approval: str | None = None) -> None:
         self.scenario = scenario
         self.twin = build_twin()
         self.baseline = certify_baseline(self.twin)
@@ -138,14 +169,68 @@ class Session:
         self.coordinator = ProductionCoordinator(
             self.bus, self.systems, reasoner=build_reasoner()
         )
-        self.outcome: DisruptionOutcome = self.coordinator.handle(
-            self.problem, self.source,
-            title=scenario.title, scenario_id=scenario.scenario_id,
-            scenarios=scenarios,
-        )
         self.blast = problem_blast(self.problem, self.source)
-        self.events = self.bus.all_events()
         self.started_at = datetime.now()
+
+        self.approval_channel = (approval or approval_mode())
+        self._settled = threading.Event()
+        self.gateway: Any = (
+            StandInApprover() if self.approval_channel == "stand_in"
+            else HumanApprovalGateway(on_pause=self._settled.set)
+        )
+        self._final: DisruptionOutcome | None = None
+        self.failure: str | None = None
+        self._finished = threading.Event()
+        self._thread = threading.Thread(
+            target=lambda: self._run(scenarios), name="disruption", daemon=True,
+        )
+        self._thread.start()
+        # Bounded, and the bound is not a fallback: if the run has not reached
+        # the gate by now something is wrong with the run, and the views will
+        # say so rather than invent a state.
+        self._settled.wait(timeout=180)
+
+    def _run(self, scenarios: int) -> None:
+        try:
+            self._final = self.coordinator.handle(
+                self.problem, self.source,
+                title=self.scenario.title, scenario_id=self.scenario.scenario_id,
+                scenarios=scenarios, gateway=self.gateway,
+            )
+        except Exception as exc:  # pragma: no cover - surfaced through the API
+            self.failure = f"{type(exc).__name__}: {exc}"
+        finally:
+            self._finished.set()
+            self._settled.set()
+            if self._final is not None:
+                _record_shift(self)
+
+    @property
+    def outcome(self) -> DisruptionOutcome:
+        """The finished run, or the run so far."""
+        current = self._final or self.coordinator.current
+        if current is None:  # pragma: no cover - only before the thread starts
+            raise HTTPException(503, "the disruption has not started yet")
+        return current
+
+    @property
+    def awaiting(self) -> bool:
+        """Is the workflow stopped at the approval gate, waiting for a person?"""
+        return not self._finished.is_set()
+
+    @property
+    def waiting_on(self) -> str | None:
+        return getattr(self.gateway, "waiting_on", None)
+
+    @property
+    def events(self) -> list[Any]:
+        return self.bus.all_events()
+
+    def release(self) -> None:
+        """Let go of a workflow still waiting on a session nobody is looking at."""
+        cancel = getattr(self.gateway, "cancel", None)
+        if cancel is not None and self.awaiting:
+            cancel()
 
 
 _lock = threading.Lock()
@@ -157,7 +242,6 @@ def session() -> Session:
     with _lock:
         if _session is None:
             _session = Session()
-            _record_shift(_session)
         return _session
 
 
@@ -166,8 +250,9 @@ def reset(scenario_id: str | None = None) -> Session:
     global _session
     scenario = LIBRARY.get(scenario_id or "", STORM_SCENARIO)
     with _lock:
+        if _session is not None:
+            _session.release()
         _session = Session(scenario)
-        _record_shift(_session)
         return _session
 
 
@@ -220,7 +305,7 @@ def _plan_row(plan: Any, outcome: DisruptionOutcome) -> dict[str, Any]:
                 "constraint_violation_risk": report.constraint_violation_risk,
                 "overtime_risk": report.overtime_risk,
                 # Reported for completeness and explicitly not a ranking signal;
-                # see robust.compare() and docs/BENCHMARK.md §7.
+                # see robust.compare() and docs/BENCHMARK.md §8.
                 "on_time_probability": report.on_time_probability,
                 "sensitive_assumptions": list(report.sensitive_assumptions),
                 "sensitivity": report.sensitivity,
@@ -537,14 +622,97 @@ def spatial(location_id: str) -> dict[str, Any]:
     }
 
 
+class PlanChoice(BaseModel):
+    plan_id: str
+
+
+class RoleSignature(BaseModel):
+    role: str
+    #: Who is signing. Defaults to the crew member who holds the role on this
+    #: production; a deployment behind an identity provider passes the
+    #: authenticated subject instead. See docs/IAM.md.
+    actor: str | None = None
+    rationale: str | None = None
+
+
+class Refusal(BaseModel):
+    reason: str = "declined at the approval workspace"
+
+
+def _authority_for(role: Role) -> dict[str, str]:
+    """The named person who holds a role on this production."""
+    for crew in w.CREW:
+        if crew.authority_role is role:
+            return {"person_id": crew.crew_id, "name": crew.name, "title": crew.role_title}
+    return {
+        "person_id": "CREW-UPM", "name": "Unit Production Manager",
+        "title": "Unit Production Manager",
+    }
+
+
+def _gate(s: "Session") -> HumanApprovalGateway:
+    gateway = s.gateway
+    if not isinstance(gateway, HumanApprovalGateway):
+        raise HTTPException(
+            409,
+            "this session runs unattended (AA_APPROVAL_MODE=stand_in); there is no "
+            "human approval gate to act on",
+        )
+    return gateway
+
+
 @app.get("/api/approval")
 def approval() -> dict[str, Any]:
-    """§14.7 — the approval workspace."""
+    """§14.7 — the approval workspace, and the gate the workflow waits at.
+
+    Two shapes, one endpoint. While the workflow is stopped it returns what it
+    is waiting for and who has to answer; once it has run on it returns the
+    signatures that let it. `channel` says which of the two kinds of approval
+    this run got, and it is read off the gateway rather than assumed.
+    """
     s = session()
+    gateway = s.gateway
     selected = s.outcome.selected
+    pending: dict[str, Any] | None = None
+    if s.awaiting and isinstance(gateway, HumanApprovalGateway):
+        request = gateway.request
+        signed = {r.value for r in gateway.signed_roles}
+        pending = {
+            "waiting_on": gateway.waiting_on,
+            "refused": gateway.refusal,
+            "offered": [
+                _plan_row(p, s.outcome)
+                for p in sorted(
+                    gateway.offered,
+                    key=lambda p: (p.plan_id not in gateway.pareto, p.plan_id),
+                )
+            ],
+            "pareto_front": list(gateway.pareto),
+            "chosen_plan_id": request.plan_id if request else None,
+            "plan_hash": request.plan_hash if request else None,
+            "constraint_hash": request.constraint_hash if request else None,
+            "expires_at": _dt(request.expires_at) if request else None,
+            "roles": [
+                {
+                    "role": role.value,
+                    "signed": role.value in signed,
+                    "authority": _authority_for(role),
+                }
+                for role in (request.required_roles if request else ())
+            ],
+        }
     if selected is None:
-        return {"selected": None, "approvals": []}
+        return {
+            "selected": None,
+            "approvals": [],
+            "channel": gateway.channel,
+            "awaiting": s.awaiting,
+            "pending": pending,
+        }
     return {
+        "channel": gateway.channel,
+        "awaiting": s.awaiting,
+        "pending": pending,
         "selected": _plan_row(selected, s.outcome),
         "constraint_hash": constraint_set_hash(active_constraints()),
         "approvals": [
@@ -563,6 +731,69 @@ def approval() -> dict[str, Any]:
         ],
         "required_roles": [r.value for r in selected.required_approvals],
     }
+
+
+# The three endpoints below are the only ones in this API that change anything,
+# and what they change is one thing: whether a person has authorised this plan.
+# They cannot approve an infeasible plan, cannot sign for a role the plan does
+# not require, and cannot sign twice for the same role — the ledger and the
+# gateway refuse all three. Everything downstream of them is the workflow's own
+# work, unchanged and unreachable until they are used.
+
+
+@app.post("/api/approval/select")
+def approval_select(choice: PlanChoice) -> dict[str, Any]:
+    """Choose the plan to route for signature."""
+    s = session()
+    gateway = _gate(s)
+    try:
+        plan = gateway.choose(choice.plan_id)
+    except ApprovalError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    return {
+        "selected_plan_id": plan.plan_id,
+        "plan_hash": plan.content_hash(),
+        "required_roles": [r.value for r in plan.required_approvals],
+    }
+
+
+@app.post("/api/approval/sign")
+def approval_sign(signature: RoleSignature) -> dict[str, Any]:
+    """Put one authority's name to the selected plan."""
+    s = session()
+    gateway = _gate(s)
+    try:
+        role = Role(signature.role)
+    except ValueError as exc:
+        raise HTTPException(400, f"unknown role {signature.role!r}") from exc
+    authority = _authority_for(role)
+    actor = signature.actor or authority["person_id"]
+    rationale = signature.rationale or (
+        f"Reviewed at the approval workspace as {authority['title']} and approved "
+        f"for execution."
+    )
+    try:
+        gateway.endorse(role, actor, rationale)
+    except ApprovalError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    return {
+        "role": role.value,
+        "actor": actor,
+        "signed": [r.value for r in gateway.signed_roles],
+        "outstanding": [
+            r.value for r in (gateway.request.required_roles if gateway.request else ())
+            if r not in gateway.signed_roles
+        ],
+    }
+
+
+@app.post("/api/approval/refuse")
+def approval_refuse(refusal: Refusal) -> dict[str, Any]:
+    """Decline. The disruption is abandoned and nothing is executed."""
+    s = session()
+    gateway = _gate(s)
+    gateway.refuse(refusal.reason)
+    return {"refused": refusal.reason}
 
 
 @app.get("/api/execution")
@@ -911,6 +1142,10 @@ def new_disruption(request: NewDisruption) -> dict[str, Any]:
         "feasible_plans": len(s.outcome.plans),
         "rejected_plans": len(s.outcome.rejected),
         "events": len(s.events),
+        # A new disruption stops at the same gate the first one did. The client
+        # says so in the status line rather than reporting a run that finished.
+        "awaiting_approval": s.awaiting,
+        "approval_channel": s.gateway.channel,
     }
 
 

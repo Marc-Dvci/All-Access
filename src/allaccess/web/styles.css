@@ -759,3 +759,31 @@ figure.figure figcaption { color: var(--ink-muted); font-size: 0.85rem; margin-t
   [role="tabpanel"][hidden] { display: block !important; }
   .card, .panel, .diagram, details, .table-scroll { box-shadow: none; }
 }
+
+/* The approval gate. Warn-toned rather than error-toned: a day waiting for a
+   signature is the system working, not the system failing. */
+.gate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.7rem 1.1rem;
+  background: var(--warn-bg);
+  border-bottom: 1px solid var(--warn);
+  color: var(--warn);
+}
+.gate p { margin: 0; font-weight: 600; font-size: 0.92rem; }
+
+.signrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.signrow:last-child { border-bottom: 0; }
+.signwho { display: flex; flex-direction: column; }
+.signwho .note { color: var(--ink-muted); font-size: 0.82rem; }

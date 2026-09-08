@@ -28,7 +28,9 @@ from __future__ import annotations
 
 import os
 import re
+import threading
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
@@ -56,10 +58,36 @@ class ReasoningCall:
     model: str | None = None
     tokens_in: int | None = None
     tokens_out: int | None = None
+    #: Reasoning tokens the model spent before answering. They are billed and
+    #: they count against the output budget, so a plane that does not record
+    #: them cannot explain why a generous-looking budget truncated a sentence.
+    tokens_thought: int | None = None
     error: str | None = None
     #: Identifiers or quantities the response carried that the facts did not
     #: support. Non-empty means the response was discarded.
     rejected_claims: tuple[str, ...] = ()
+
+
+def _restore_call_order(
+    calls: list[ReasoningCall], mark: int, order: Sequence[str],
+) -> None:
+    """Sort the calls recorded since `mark` back into the declared agent order.
+
+    Expert assessment runs the agents concurrently, so the plane records their
+    narration calls in arrival order — an order that depends on which network
+    round trip returned first and therefore changes from run to run. The
+    reasoning ledger that `/api/findings` publishes is evidence, and evidence
+    that reshuffles between two runs of the same disruption is not evidence.
+
+    The sort is stable and keyed only on the producing agent, so an agent that
+    narrated twice keeps its own calls in the order it made them, and the
+    recorded latencies still overlap — which is the observable fact that the
+    agents ran at the same time.
+    """
+    rank = {name: i for i, name in enumerate(order)}
+    tail = calls[mark:]
+    tail.sort(key=lambda call: rank.get(call.agent, len(rank)))
+    calls[mark:] = tail
 
 
 class Reasoner(Protocol):
@@ -68,6 +96,11 @@ class Reasoner(Protocol):
     def narrate(self, agent: str, purpose: str, facts: dict[str, Any],
                 template: str) -> str: ...
     def calls(self) -> list[ReasoningCall]: ...
+
+    #: Record where the ledger stands, so a concurrent round can be put back
+    #: into a declared order once it completes. See `_restore_call_order`.
+    def mark(self) -> tuple[int, ...]: ...
+    def restore_order(self, mark: tuple[int, ...], order: Sequence[str]) -> None: ...
 
 
 class OfflineReasoner:
@@ -100,6 +133,12 @@ class OfflineReasoner:
 
     def calls(self) -> list[ReasoningCall]:
         return list(self._calls)
+
+    def mark(self) -> tuple[int, ...]:
+        return (len(self._calls),)
+
+    def restore_order(self, mark: tuple[int, ...], order: Sequence[str]) -> None:
+        _restore_call_order(self._calls, mark[0], order)
 
 
 #: Identifier shapes this system uses. Anything matching one of these in a
@@ -161,6 +200,15 @@ def ungrounded_claims(text: str, facts: dict[str, Any]) -> tuple[str, ...]:
     return tuple(dict.fromkeys(unsupported))
 
 
+def _truncated(response: Any) -> bool:
+    """Did the model stop because it ran out of output budget?"""
+    for candidate in getattr(response, "candidates", None) or ():
+        reason = getattr(candidate, "finish_reason", None)
+        if reason is not None and "MAX_TOKEN" in str(reason).upper():
+            return True
+    return False
+
+
 class GeminiReasoner:
     """Gemini on Vertex AI, for interpretation and explanation only.
 
@@ -203,26 +251,52 @@ class GeminiReasoner:
         "were given; anything else will be rejected automatically and discarded."
     )
 
+    #: Gemini 3.x publishes on the global endpoint. A regional location resolves
+    #: to no such publisher model and the call fails with a 404 that reads like
+    #: a quota problem, so the default is the endpoint the default model is
+    #: actually served from. `GOOGLE_CLOUD_LOCATION` still overrides it.
+    DEFAULT_LOCATION = "global"
+
+    #: Generous, and deliberately so. Gemini 3.x spends reasoning tokens before
+    #: it answers and they are drawn from this same budget: a two-sentence
+    #: headline costs a couple of hundred thought tokens, so a budget sized for
+    #: the sentence alone returns a sentence cut off mid-clause, or nothing at
+    #: all. The narration is short because the system instruction says so, not
+    #: because the budget forces it.
+    MAX_OUTPUT_TOKENS = 1024
+
+    #: The narration summarises facts that are already computed; there is no
+    #: problem here for the model to think its way through.
+    THINKING_LEVEL = "low"
+
     def __init__(self, model: str = "gemini-3.7-flash", project: str | None = None,
-                 location: str = "us-central1") -> None:
+                 location: str | None = None) -> None:
         self.model = model
         self.project = project or os.environ.get("GOOGLE_CLOUD_PROJECT", "")
-        self.location = os.environ.get("GOOGLE_CLOUD_LOCATION", location)
+        self.location = (
+            os.environ.get("GOOGLE_CLOUD_LOCATION") or location or self.DEFAULT_LOCATION
+        )
         self._calls: list[ReasoningCall] = []
         self._fallback = OfflineReasoner()
         self._client = None
         self.degraded = False
         #: Responses discarded for carrying an unsupported claim.
         self.rejected = 0
+        #: Expert assessment narrates from several threads at once. Appending a
+        #: call to a list is safe on its own; building the client once and
+        #: incrementing the rejection count are not, and a rejection this plane
+        #: failed to count is a rejection nobody audits.
+        self._lock = threading.Lock()
 
     def _ensure_client(self):
-        if self._client is None:
-            from google import genai
+        with self._lock:
+            if self._client is None:
+                from google import genai
 
-            self._client = genai.Client(
-                vertexai=True, project=self.project, location=self.location
-            )
-        return self._client
+                self._client = genai.Client(
+                    vertexai=True, project=self.project, location=self.location
+                )
+            return self._client
 
     def narrate(self, agent: str, purpose: str, facts: dict[str, Any],
                 template: str) -> str:
@@ -244,7 +318,8 @@ class GeminiReasoner:
                 config={
                     "system_instruction": self.SYSTEM_INSTRUCTION,
                     "temperature": 0.2,
-                    "max_output_tokens": 300,
+                    "max_output_tokens": self.MAX_OUTPUT_TOKENS,
+                    "thinking_config": {"thinking_level": self.THINKING_LEVEL},
                 },
             )
             text = (response.text or "").strip()
@@ -252,6 +327,12 @@ class GeminiReasoner:
             elapsed = (time.perf_counter() - started) * 1000.0
             if not text:
                 raise RuntimeError("empty response")
+            # A response that ran out of budget is a half sentence, and a half
+            # sentence about a safety finding is worse than the template it
+            # would have replaced. Truncation is treated as a failed call, not
+            # as a short one.
+            if _truncated(response):
+                raise RuntimeError("response truncated at the output budget")
 
             # The control that matters. Anything checkable in the response has
             # to have come from the facts; if it did not, the response is not
@@ -265,11 +346,15 @@ class GeminiReasoner:
                 latency_ms=elapsed, model=self.model,
                 tokens_in=getattr(usage, "prompt_token_count", None) if usage else None,
                 tokens_out=getattr(usage, "candidates_token_count", None) if usage else None,
+                tokens_thought=(
+                    getattr(usage, "thoughts_token_count", None) if usage else None
+                ),
                 rejected_claims=rejected,
             ))
             if rejected:
-                self.degraded = True
-                self.rejected += 1
+                with self._lock:
+                    self.degraded = True
+                    self.rejected += 1
                 return self._fallback.narrate(agent, purpose, facts, template)
             return text
         except Exception as exc:
@@ -284,6 +369,13 @@ class GeminiReasoner:
 
     def calls(self) -> list[ReasoningCall]:
         return list(self._calls) + self._fallback.calls()
+
+    def mark(self) -> tuple[int, ...]:
+        return (len(self._calls), *self._fallback.mark())
+
+    def restore_order(self, mark: tuple[int, ...], order: Sequence[str]) -> None:
+        _restore_call_order(self._calls, mark[0], order)
+        self._fallback.restore_order(mark[1:], order)
 
 
 def build_reasoner(mode: str | None = None) -> Reasoner:

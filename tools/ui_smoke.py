@@ -157,9 +157,82 @@ def drive_demo(page: Any, failures: "Failures", shots: Path | None) -> None:
     if silent:
         failures.add("demo", f"beats that drew no caption: {silent}")
 
+    # The demonstration restarts the hero disruption on its first frame, so it
+    # meets the same shut gate a person does, and its approval beat is what
+    # opens it. If that beat ever stopped signing, the banner would still be up
+    # here and the two beats after it would have been narrated over an empty
+    # execution view — which is the one failure a caption check cannot see.
+    if page.locator("#gate-banner").get_attribute("hidden") is None:
+        failures.add("demo", "finished with the approval gate still open")
+
     if shots:
         page.screenshot(path=str(shots / "demo.png"))
     print(f"  ok   guided demo         {len(seen)}/{beats} beats, {declared:.0f} s at 1x")
+
+
+def sign_off_at_the_gate(page: Any, failures: "Failures", shots: Path | None) -> None:
+    """Take the day past the approval gate by clicking, the way a person does.
+
+    The application stops before it executes anything and waits for a named
+    authority. There is no test hook past it and no environment variable this
+    tool sets to skip it — if the gate can be opened by anything other than the
+    buttons on the screen, that is the thing worth knowing, so this drives the
+    buttons.
+
+    It also asserts the shape of the stop: the banner has to be up, and more
+    than one plan has to be on offer. A gate that presents a single option is a
+    rubber stamp with extra steps.
+    """
+    page.click("#tab-approval")
+    page.wait_for_function(
+        "() => { const n = document.getElementById('approval-content');"
+        " return n && !n.classList.contains('loading'); }",
+        timeout=20000,
+    )
+
+    if page.locator("#gate-banner").get_attribute("hidden") is not None:
+        failures.add("approval gate", "the workflow did not stop to ask anybody")
+        return
+
+    choices = page.locator("#approval-content button", has_text="Take this plan")
+    offered = choices.count()
+    if offered < 2:
+        failures.add("approval gate", f"offered {offered} plan(s) to choose between")
+    if not offered:
+        return
+    if shots:
+        page.screenshot(path=str(shots / "approval-gate.png"), full_page=True)
+    choices.first.click()
+
+    signed = 0
+    for _ in range(16):
+        page.wait_for_timeout(300)
+        pending = page.locator("#approval-content button", has_text="Sign as ")
+        if not pending.count():
+            break
+        if shots and not signed:
+            page.screenshot(path=str(shots / "approval-signing.png"), full_page=True)
+        pending.first.click()
+        signed += 1
+    else:
+        failures.add("approval gate", "never ran out of signatures to collect")
+
+    if not signed:
+        failures.add("approval gate", "no authority was ever asked to sign")
+
+    try:
+        page.wait_for_function(
+            "() => document.getElementById('gate-banner').hidden", timeout=30000,
+        )
+    except Exception:
+        failures.add("approval gate", "stayed open after every authority had signed")
+        return
+
+    page.wait_for_timeout(400)
+    text = page.locator("#approval-content").inner_text()
+    if "Authorised by" not in text:
+        failures.add("approval gate", f"signed, but the view does not say so: {text[:160]!r}")
+    print(f"  ok   approval gate       {offered} plans offered, {signed} signature(s) given")
 
 
 def run(url: str, shots: Path | None, headed: bool) -> int:
@@ -205,6 +278,10 @@ def run(url: str, shots: Path | None, headed: bool) -> int:
         )
         if scenarios < 2:
             failures.add("scenario-select", f"only {scenarios} option(s) populated")
+
+        # Nothing downstream of the gate exists until somebody opens it, so this
+        # comes before the views that read what execution produced.
+        sign_off_at_the_gate(page, failures, shots)
 
         for tab, container, name in VIEWS:
             page.click(f"#tab-{tab}")
@@ -331,6 +408,10 @@ def run(url: str, shots: Path | None, headed: bool) -> int:
 
         if shots:
             page.screenshot(path=str(shots / "board-after-rerun.png"), full_page=True)
+
+        # The second disruption stops at the same gate. It has to be signed off
+        # too, or the guided demonstration below plays over a day that never ran.
+        sign_off_at_the_gate(page, failures, shots=None)
 
         drive_demo(page, failures, shots)
 

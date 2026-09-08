@@ -79,6 +79,22 @@
     });
   }
 
+  /** The only writes this client makes are the three approval decisions.
+   *  Errors come back as {"error": "..."} and are surfaced verbatim: a refused
+   *  approval is a thing the person needs the exact words for. */
+  function post(path, body) {
+    return fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body || {})
+    }).then(function (r) {
+      return r.json().then(function (d) {
+        if (!r.ok) throw new Error(d.error || (path + " returned " + r.status));
+        return d;
+      });
+    });
+  }
+
   function num(value, digits) {
     if (value === null || value === undefined) return "—";
     var n = Number(value);
@@ -689,24 +705,42 @@
       var counts = d.counts_by_relevance || {};
       var primary = d.primary || {};
 
+      // What this screen leads with is a count of things somebody does
+      // something about — departments to ring, arrangements to protect, scenes
+      // to re-plan — and not the size of the traversal. The traversal is
+      // evidence for the short list, and a headline that opens with "117
+      // things this change reaches" hands the reader a number they cannot act
+      // on and asks them to find the ones they can. That is the overload this
+      // product exists to remove, reproduced on the screen that diagnoses it.
+      var calls = (primary.departments || []).length;
+      var arrangements = (primary.access_requirements || []).length;
+      var scenes = (primary.scenes || []).length;
+      var todo = calls + arrangements + scenes;
+
       root.appendChild(headline(
         "warn",
-        d.nodes.length + " things this change reaches, " + (counts.primary || 0) + " of them directly.",
-        "Traversal is complete by design and then ranked, so nothing is discarded and " +
-        "the screen still opens on the short list. Depth runs to " + d.max_depth +
-        " — the far edge is reached through " + (d.max_depth - 1) + " intermediaries."
+        todo + " things to act on: " + calls + " department(s) to call, " +
+        arrangements + " access arrangement(s) to protect, " + scenes +
+        " scene(s) to re-plan.",
+        "The traversal behind this is deliberately complete — " + d.nodes.length +
+        " entities to depth " + d.max_depth + ", because a department missed off " +
+        "the list is a scene nobody re-dressed. It is then ranked rather than " +
+        "trimmed, so everything reached is still here, one band down."
       ));
 
       root.appendChild(el("div", { class: "cards" }, [
-        card("Act on these", num(counts.primary || 0),
-             "of " + num(d.nodes.length) + " reached, across " + d.max_depth + " levels",
+        card("Departments to call", String(calls),
+             (primary.departments || []).map(words).join(", ") || "none directly affected",
              "emphatic"),
-        card("Departments", String((primary.departments || []).length),
-             (primary.departments || []).join(", ") || "none directly affected"),
-        card("Access arrangements",
-             String((primary.access_requirements || []).length),
-             (primary.access_requirements || []).join(", ") || "none reached directly"),
-        card("Scenes", String((primary.scenes || []).length), "on the shooting day")
+        card("Arrangements to protect", String(arrangements),
+             (primary.access_requirements || []).join(", ") || "none reached directly",
+             "emphatic"),
+        card("Scenes to re-plan", String(scenes),
+             (primary.scenes || []).join(", ") || "none on the shooting day",
+             "emphatic"),
+        card("Reached in total", num(d.nodes.length),
+             num(counts.primary || 0) + " in the lead band, across " + d.max_depth +
+             " levels — the evidence, below")
       ]));
 
       root.appendChild(figure(impactDiagram(d),
@@ -722,9 +756,9 @@
         ["Source of the disruption", "var(--bad)"]
       ]));
 
-      // The named things somebody has to do something about, before the
-      // exhaustive lists. Forty-two rows of identifiers is the evidence for this
-      // panel, not a substitute for it.
+      // The same short list again, named rather than counted, with the two
+      // things that belong beside it: which documents have to be reissued, and
+      // the fact that the people are deliberately not here.
       root.appendChild(el("h2", { text: "What to act on" }));
       root.appendChild(el("div", { class: "panel" }, [
         pairs([
@@ -1160,28 +1194,235 @@
     });
   };
 
+  // -- the approval workspace ---------------------------------------------
+  //
+  // The one place in this client that changes anything. Everything else is a
+  // read model over a decision that has already been taken; here the decision
+  // is taken, and until it is the workflow is stopped inside the coordinator
+  // waiting for these three buttons. Nothing on this screen can approve an
+  // infeasible plan or sign for an authority the plan does not require — the
+  // server refuses both — but the screen does not offer them either, because a
+  // control you have to be told not to press is a control that will be pressed.
+
+  /** Poll the gate until the workflow has moved past `was`, then redraw.
+   *
+   *  A signature releases a thread inside the coordinator, and that thread
+   *  takes a few milliseconds to reach the next authority. Redrawing
+   *  immediately would show the state we just left. */
+  function afterDecision(was, message) {
+    var tries = 200;
+    function again() {
+      return get("/api/approval").then(function (d) {
+        // Three states, not two. The gate can be shut on the next authority, or
+        // open with the run finished — and in between it is open with nobody to
+        // ask, because the last signature released the workflow and execution,
+        // reconciliation and verification are still running. Redrawing in that
+        // gap shows a gate with no question on it, which is what "the banner
+        // never came down" looked like when the browser smoke test found it.
+        var asking = d.pending && d.pending.waiting_on;
+        var settled = !d.awaiting || (d.pending && d.pending.refused);
+        var moved = settled || (asking && d.pending.waiting_on !== was);
+        if (!moved && tries-- > 0) {
+          return new Promise(function (done) { setTimeout(done, 60); }).then(again);
+        }
+        // Every view downstream of the gate has just become a different view.
+        state.loaded = {};
+        state.notice = message;
+        show("approval");
+        return d;
+      });
+    }
+    return again();
+  }
+
+  function gateAction(label, tone, onClick) {
+    var button = el("button", {
+      type: "button", class: "button" + (tone ? " " + tone : ""), text: label
+    });
+    button.addEventListener("click", function () {
+      button.disabled = true;
+      announce(label + "…");
+      onClick().catch(function (err) {
+        button.disabled = false;
+        announce("That decision was refused: " + err.message);
+        var box = document.getElementById("approval-content");
+        if (box) box.appendChild(el("p", null, [chip("refused", "bad"), " ", err.message]));
+      });
+    });
+    return button;
+  }
+
+  /** One plan, offered for signature rather than reported after it. */
+  function offerCard(plan, onFront) {
+    var kept = plan.access.filter(function (a) { return a.satisfied; }).length;
+    return el("div", { class: "plancard" }, [
+      el("div", { class: "p-head" }, [
+        el("span", { class: "p-title", text: plan.label }),
+        onFront ? chip("on the front", "ok") : chip("feasible", "quiet")
+      ]),
+      el("p", { class: "p-why", text: plan.rationale }),
+      pairs([
+        ["Delay", num(plan.objectives.delay_minutes) + " min"],
+        ["Incremental cost", num(plan.objectives.cost_delta)],
+        ["Overtime", num(plan.objectives.overtime_minutes) + " min"],
+        ["Access arrangements", kept + " of " + plan.access.length + " preserved"],
+        ["Needs", plan.required_approvals.map(words).join(" and ") || "no approval"]
+      ]),
+      gateAction("Take this plan to signature", "primary", function () {
+        return post("/api/approval/select", { plan_id: plan.plan_id }).then(function () {
+          return afterDecision("selection", plan.label + " selected. It now needs signing.");
+        });
+      })
+    ]);
+  }
+
+  /** The gate, while it is still shut. */
+  function renderGate(root, d) {
+    var g = d.pending;
+    var choosing = g.waiting_on === "selection";
+
+    root.appendChild(headline(
+      "warn",
+      choosing
+        ? "Nothing has been executed. " + g.offered.length +
+          " feasible plans are waiting for a decision."
+        : "Nothing has been executed. This plan is waiting for " +
+          words(g.waiting_on) + ".",
+      "The system has finished everything it can finish on its own: it scoped the " +
+      "disruption, built the plans, proved each one feasible and had every expert " +
+      "assess the strongest. It stops here. No command is issued and no crew member " +
+      "is contacted until a named authority signs, and the signature is recorded with " +
+      "the channel it came through."
+    ));
+
+    if (g.refused) {
+      root.appendChild(headline("bad", "Declined.", g.refused));
+    }
+
+    if (choosing) {
+      root.appendChild(el("h2", { text: "Choose the plan to authorise" }));
+      root.appendChild(el("p", { class: "evidence", text:
+        "Plans marked “on the front” are Pareto-optimal: no other plan is " +
+        "better on every objective at once. A plan not on the front is beaten " +
+        "outright by one that is, and choosing it is a decision you would have to " +
+        "justify. Every plan here is already proved feasible — the infeasible " +
+        "ones are in the next view with the rules that stopped them."
+      }));
+      root.appendChild(el("div", { class: "plangrid" }, g.offered.map(function (p) {
+        return offerCard(p, g.pareto_front.indexOf(p.plan_id) >= 0);
+      })));
+      root.appendChild(el("div", { class: "panel" }, [
+        el("h3", { text: "Or take none of them" }),
+        el("p", { class: "evidence", text:
+          "Declining abandons the disruption. The plans, the findings and the " +
+          "conflict sets stay in the log; nothing is issued."
+        }),
+        gateAction("Decline all", "", function () {
+          return post("/api/approval/refuse", {
+            reason: "declined at the approval workspace"
+          }).then(function () {
+            return afterDecision("selection", "Declined. The disruption is abandoned.");
+          });
+        })
+      ]));
+      return;
+    }
+
+    var chosen = null;
+    g.offered.forEach(function (p) {
+      if (p.plan_id === g.chosen_plan_id) chosen = p;
+    });
+
+    root.appendChild(el("div", { class: "panel" }, [
+      el("h2", { text: chosen ? chosen.label : g.chosen_plan_id }),
+      chosen ? el("p", { text: chosen.rationale }) : null,
+      pairs([
+        ["Plan hash", el("code", { text: g.plan_hash || "—" })],
+        ["Constraint set hash", el("code", { text: g.constraint_hash || "—" })],
+        ["Signature window closes", clock(g.expires_at)]
+      ]),
+      el("p", { class: "evidence", text:
+        "Each signature covers both hashes. If the plan changes, or if a constraint " +
+        "is activated or lifted after you sign, the signature stops matching and " +
+        "execution stops with it."
+      })
+    ]));
+
+    root.appendChild(el("h2", { text: "Required authorities" }));
+    root.appendChild(el("div", { class: "panel" }, [
+      el("ul", { class: "plain" }, g.roles.map(function (row) {
+        var due = row.role === g.waiting_on;
+        return el("li", { class: "signrow" }, [
+          el("span", { class: "signwho" }, [
+            el("strong", { text: row.authority.name }),
+            el("span", { class: "note", text: " " + row.authority.title +
+                         " · " + row.authority.person_id })
+          ]),
+          row.signed ? chip("signed", "ok")
+            : (due ? gateAction("Sign as " + row.authority.name, "primary", function () {
+                return post("/api/approval/sign", { role: row.role }).then(function () {
+                  return afterDecision(row.role,
+                    row.authority.name + " signed as " + words(row.role) + ".");
+                });
+              })
+            : chip("queued", "quiet"))
+        ]);
+      }))
+    ]));
+
+    root.appendChild(el("div", { class: "panel" }, [
+      el("h3", { text: "Or decline" }),
+      el("p", { class: "evidence", text:
+        "An authority who will not sign ends the day here. There is no override, " +
+        "and no path that executes a plan somebody declined."
+      }),
+      gateAction("Decline this plan", "", function () {
+        return post("/api/approval/refuse", {
+          reason: words(g.waiting_on) + " declined the plan"
+        }).then(function () {
+          return afterDecision(g.waiting_on, "Declined. The disruption is abandoned.");
+        });
+      })
+    ]));
+  }
+
   renderers.approval = function (root) {
     return get("/api/approval").then(function (d) {
       clear(root);
+      if (d.awaiting && d.pending && d.pending.waiting_on) {
+        return renderGate(root, d);
+      }
+
       if (!d.selected) {
         root.appendChild(headline("warn", "No plan reached approval for this disruption.",
-          "Nothing was published, so there was nothing to authorise."));
+          d.pending && d.pending.refused
+            ? "It was declined at this workspace, so nothing was issued."
+            : "Nothing was published, so there was nothing to authorise."));
         return;
       }
       var p = d.selected;
+      var human = d.channel === "human";
       root.appendChild(headline(
-        "ok",
-        "Authorised by " + d.approvals.length + " named " +
-        (d.approvals.length === 1 ? "person" : "people") + ", not by the system.",
-        "Each signature is bound to this plan's hash and to the constraint-set hash in " +
-        "force when it was given. It is single use and it expires. Change either hash and " +
-        "the approval no longer applies, and execution stops."
+        human ? "ok" : "warn",
+        human
+          ? "Authorised by " + d.approvals.length + " named " +
+            (d.approvals.length === 1 ? "person" : "people") + ", not by the system."
+          : "Approved by the stand-in, with nobody present.",
+        human
+          ? "Each signature is bound to this plan's hash and to the constraint-set hash " +
+            "in force when it was given. It is single use and it expires. Change either " +
+            "hash and the approval no longer applies, and execution stops."
+          : "This run was unattended, so the workflow signed for itself under a name " +
+            "that belongs to no one on this production. The signatures are bound and " +
+            "single-use exactly as a person's would be, and every event carries the " +
+            "channel, so nothing downstream can mistake this for a human decision."
       ));
 
       root.appendChild(el("div", { class: "panel" }, [
         el("h2", { text: p.label }),
         el("p", { text: p.rationale }),
         pairs([
+          ["Approval channel", human ? chip("human", "ok") : chip("stand-in", "warn")],
           ["Plan hash", el("code", { text: p.plan_hash })],
           ["Constraint set hash", el("code", { text: d.constraint_hash })],
           ["Delay", num(p.objectives.delay_minutes) + " min"],
@@ -1191,7 +1432,6 @@
           ["Required authorities", d.required_roles.map(words).join(", ")]
         ])
       ]));
-
       root.appendChild(el("h2", { text: "Signed approvals" }));
       root.appendChild(table(
         "Approvals granted",
@@ -1677,8 +1917,32 @@
   var TABS = ["board", "intake", "impact", "plans", "rejected", "spatial", "approval",
               "execution", "departments", "crew", "executive", "replay", "streams"];
 
+  /** The gate, on every screen, until it is answered.
+   *
+   *  A person who lands on the control board and never opens the approval view
+   *  would otherwise see a shoot day that looks finished and is not. */
+  function refreshGateBanner() {
+    var bar = document.getElementById("gate-banner");
+    var line = document.getElementById("gate-line");
+    if (!bar || !line) return Promise.resolve();
+    return get("/api/approval").then(function (d) {
+      // Up only while somebody is actually being asked something. A run that is
+      // mid-execution is not waiting for anybody, and a banner that says it is
+      // would be the one piece of this interface that lies.
+      var open = !!(d.awaiting && d.pending && d.pending.waiting_on);
+      bar.hidden = !open;
+      if (!open) return;
+      line.textContent = d.pending.waiting_on === "selection"
+        ? "Stopped at the approval gate. " + d.pending.offered.length +
+          " feasible plans, none authorised — nothing has been executed."
+        : "Stopped at the approval gate, waiting for " + words(d.pending.waiting_on) +
+          " to sign — nothing has been executed.";
+    }).catch(function () { bar.hidden = true; });
+  }
+
   function show(name) {
     state.view = name;
+    refreshGateBanner();
     TABS.forEach(function (key) {
       var tab = document.getElementById("tab-" + key);
       var panel = document.getElementById("panel-" + key);
@@ -1737,6 +2001,9 @@
     var select = document.getElementById("scenario-select");
     var run = document.getElementById("run-scenario");
     var size = document.getElementById("text-size");
+    var gate = document.getElementById("gate-goto");
+
+    if (gate) gate.addEventListener("click", function () { show("approval"); });
 
     size.addEventListener("click", function () {
       var on = size.getAttribute("aria-pressed") === "true";
@@ -1758,7 +2025,8 @@
         state.crewPerson = null;
         state.spatialLocation = null;
         state.notice = d.title + " — " + d.feasible_plans + " feasible plan(s), " +
-                       d.rejected_plans + " rejected, " + d.events + " events.";
+                       d.rejected_plans + " rejected, " + d.events + " events." +
+                       (d.awaiting_approval ? " Waiting for your approval." : "");
         announce(state.notice);
         show(state.view);
       }).catch(function (err) {

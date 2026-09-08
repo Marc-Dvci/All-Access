@@ -72,6 +72,14 @@ INT = {"type": "integer"}
 BOOL = {"type": "boolean"}
 TS = {"type": "string", "format": "date-time"}
 
+#: How a plan approval was obtained. `human` means a named person chose the
+#: plan and signed for their role at the approval workspace; `stand_in` means
+#: nobody was there and the unattended approver signed under a name that is not
+#: a person's. The contracts below make this a required field on an approval,
+#: so the distinction is enforced at the stream boundary rather than described
+#: in a document.
+APPROVAL_CHANNELS: tuple[str, ...] = ("human", "stand_in")
+
 
 def _envelope_schema() -> dict[str, Any]:
     return _obj(
@@ -342,13 +350,23 @@ CONTRACTS: tuple[DataContract, ...] = (
                 "rationale": STR,
                 "expires_at": TS,
                 "signature": STR,
+                "approval_channel": {"type": "string", "enum": list(APPROVAL_CHANNELS)},
             },
             ["approval_id", "plan_id", "plan_hash", "constraint_hash", "actor", "role",
-             "signature", "expires_at"],
+             "signature", "expires_at", "approval_channel"],
         ),
         rules=(
             ("signature_present", "len(payload['signature']) >= 32"),
             ("rationale_present", "len(payload.get('rationale') or '') > 0"),
+            # The one thing a signature cannot prove about itself. An approval
+            # that does not say how it was obtained never reaches the topic, so
+            # no consumer of this stream has to guess whether a person was
+            # there — including the interface, the audit export and the replay.
+            ("channel_declared",
+             "payload.get('approval_channel') in ('human', 'stand_in')"),
+            ("stand_in_does_not_wear_a_name",
+             "payload.get('approval_channel') != 'stand_in' "
+             "or payload['actor'].startswith('STAND-IN/')"),
         ),
         tags=("decision", "audit"),
     ),
@@ -613,6 +631,11 @@ CONTRACTS: tuple[DataContract, ...] = (
                 "constraint_hash": {"type": ["string", "null"]},
                 "expires_at": {"type": ["string", "null"], "format": "date-time"},
                 "summary": {"type": ["string", "null"]},
+                # How the signatures on this request will be obtained. Declared
+                # when the request is routed, so the record of who was asked
+                # exists before anybody answers.
+                "approval_channel": {"type": ["string", "null"],
+                                     "enum": [*APPROVAL_CHANNELS, None]},
                 "conflicts": {"type": "array"},
             },
             ["disruption_id", "stage"],
@@ -621,6 +644,9 @@ CONTRACTS: tuple[DataContract, ...] = (
             ("decline_needs_reason",
              "payload['stage'] not in ('declined','rejected') "
              "or len(payload.get('reason') or '') > 0"),
+            ("routing_declares_its_channel",
+             "payload['stage'] != 'approval_requested' "
+             "or payload.get('approval_channel') in ('human', 'stand_in')"),
         ),
         tags=("decision",),
     ),

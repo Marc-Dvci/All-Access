@@ -35,7 +35,7 @@ Expect `11/11 assertions passed | 131 events` in under a second.
 ## Minute 3 — the tests
 
 ```bash
-pytest -q                        # 233 passed
+pytest -q                        # 265 passed
 ruff check src bench tools tests # clean
 python tools/a11y_audit.py       # 78/78
 ```
@@ -69,8 +69,15 @@ priority order:
    cost, continuity risk, access impact, robustness and required approvals side
    by side. Plans are ranked on expected delay, then worst credible delay, then
    recovery margin.
-4. **Approval workspace.** The conflict set sits above the approve control on
-   purpose.
+4. **Approval workspace — and this is where the product stops.** Nothing has
+   been executed when you arrive. The workflow scoped the disruption, built the
+   plans, proved each feasible and had eleven experts assess the strongest, and
+   then it stopped inside the coordinator and is waiting for you. Choose a plan,
+   then sign for each authority the plan requires; the banner across the top
+   tracks what is outstanding. Decline instead and the disruption is abandoned
+   with nothing issued. Every approval records the channel it came through, so a
+   run signed here and a run signed by the unattended approver are told apart in
+   the log rather than by inference.
 5. **Decision replay.** Rebuilds state at any sequence number and asserts it
    matches live.
 
@@ -87,7 +94,35 @@ Every view and every demonstration beat is driven in Chromium on each CI run and
 every render is asserted, so what you open is what the pipeline last proved
 renders.
 
-## Minute 7 — the benchmark
+## Minute 6–7 — check that the gate is real
+
+The claim is that nothing executes without a signature. It is worth a minute
+because it is the one claim a reader is entitled to disbelieve.
+
+```bash
+curl -s localhost:8765/api/execution | python -c "import json,sys;print(json.load(sys.stdin)['commands'])"
+# []  — no command has been issued
+curl -s localhost:8765/api/approval | python -c "import json,sys;d=json.load(sys.stdin);print(d['channel'], d['pending']['waiting_on'])"
+# human selection
+```
+
+Sign it off in the browser, then run both again: the commands appear and the
+approvals name the people who signed. Or take the other channel and watch the
+difference show up in the data rather than in a sentence:
+
+```bash
+AA_APPROVAL_MODE=stand_in uvicorn allaccess.api:app --port 8766
+curl -s localhost:8766/api/approval | python -c "import json,sys;d=json.load(sys.stdin);print([(a['role'],a['actor']) for a in d['approvals']])"
+# [('unit_production_manager', 'STAND-IN/unit_production_manager'), ...]
+```
+
+`pytest -q tests/test_human_approval.py` covers what the gate refuses: a plan
+that was never offered, an infeasible plan, an authority the plan does not
+require, signing before a plan is chosen, and a stand-in approval wearing a crew
+member's identifier — that last one is refused by the data contract, at the
+stream boundary, not by the caller.
+
+## Minute 8 — the benchmark
 
 ```bash
 python -m bench.run_benchmark --smoke        # 48 scenarios, ~20 s
@@ -110,7 +145,7 @@ full=[r for r in rows if r['config']=='full']
 print(len(full),'scenarios;',sum(r['hard_violations_published'] for r in full),'hard violations')"
 ```
 
-## Minute 8 — the ablation
+## Minute 9 — the ablation
 
 The single strongest claim in the project, and the fastest one to check:
 
@@ -200,3 +235,23 @@ and benchmark worker databases, and it is gitignored. Nothing else is stateful.
 
 `bench/results/` is **committed on purpose** — it is the evidence for the
 documented numbers, not a build artifact.
+
+
+## Minute 10 — Gemini, if you have a Vertex project
+
+Everything above runs offline. This is the one part that does not, and it is the
+answer to the fair question about a benchmark that runs on the offline plane:
+
+```bash
+gcloud services enable aiplatform.googleapis.com --project $GOOGLE_CLOUD_PROJECT
+pip install -e '.[cloud]'
+GOOGLE_CLOUD_PROJECT=... python -m bench.reasoning_plane --count 8
+```
+
+It runs the same disruptions on both planes and diffs them. The decisions have
+to be byte-identical — plan, hash, published set, conflict sets, access
+preservation, verification, every finding's status — and the headlines have to
+differ, because a run where the model changed nothing at all is a run that
+quietly fell back. It exits non-zero on either failure. The committed result is
+`bench/results/reasoning_plane.json` and `docs/BENCHMARK.md` §7 is generated
+from it.

@@ -57,6 +57,14 @@
   <div class="phases" id="phase-rail"></div>
 </div>
 
+<!-- Shown on every view while the workflow is stopped waiting for a person, so
+     the gate is never something you have to go and look for. Hidden the moment
+     the plan is signed or declined. -->
+<div class="gate" id="gate-banner" hidden>
+  <p id="gate-line"></p>
+  <button type="button" id="gate-goto" class="button primary">Open the approval workspace</button>
+</div>
+
 <div class="shell">
   <nav class="tabs" aria-label="Product views">
     <ul role="tablist" id="tablist">

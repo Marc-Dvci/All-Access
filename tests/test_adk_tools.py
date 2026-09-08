@@ -24,6 +24,36 @@ from allaccess.agents import adk_tools
 _REAL_GET = adk_tools._get  # noqa: SLF001
 
 
+def approve_through_the_workspace(client) -> None:
+    """Take the run past the approval gate the way a person does.
+
+    The application stops and waits for a human, so a suite that wants to read
+    an executed day has to be that human: choose a plan, then sign for every
+    authority the plan requires, over the same endpoints the browser posts to.
+    There is no test-only shortcut past the gate, which is the point of the
+    gate.
+    """
+    import time
+
+    for _ in range(200):
+        state = client.get("/api/approval").json()
+        if not state["awaiting"]:
+            return
+        pending = state.get("pending") or {}
+        waiting = pending.get("waiting_on")
+        if waiting == "selection":
+            front = [
+                p for p in pending["offered"]
+                if p["plan_id"] in pending["pareto_front"]
+            ] or pending["offered"]
+            client.post("/api/approval/select", json={"plan_id": front[0]["plan_id"]})
+        elif waiting:
+            client.post("/api/approval/sign", json={"role": waiting})
+        else:
+            time.sleep(0.02)
+    raise AssertionError("the approval gate never opened")
+
+
 @pytest.fixture(scope="module")
 def live_tools():
     """Point the tools at the real app instead of a network address."""
@@ -32,6 +62,7 @@ def live_tools():
     from allaccess.api import app
 
     client = TestClient(app)
+    approve_through_the_workspace(client)
     original = adk_tools._get  # noqa: SLF001
 
     def routed(path: str) -> dict:

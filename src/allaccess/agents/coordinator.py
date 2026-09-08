@@ -26,9 +26,11 @@ replayable and every step is attributable.
 
 from __future__ import annotations
 
+import os
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 from ..constraints.registry import active_constraints, constraint_set_hash, evaluate
 from ..contracts import (
@@ -51,7 +53,7 @@ from ..contracts import (
 )
 from ..execution import commands as command_builder
 from ..execution import verification
-from ..execution.approvals import ApprovalLedger
+from ..execution.approvals import ApprovalGateway, ApprovalLedger, StandInApprover
 from ..production import world as w
 from ..simulation import robust
 from ..solver import engine, objectives
@@ -63,6 +65,21 @@ from ..stream.views import MaterializedViews
 from . import communication
 from .core import AgentContext, Reasoner, build_reasoner
 from .experts import EXPERT_AGENTS, REQUIRED_ASSESSMENTS
+
+
+def _worker_count() -> int:
+    """How many expert agents may assess at once.
+
+    Eleven is the whole roster, so the default runs the round in one wave. The
+    work is dominated by waiting on the reasoning plane rather than by CPU, so
+    the pool is sized to the roster and not to the core count. Setting
+    `AA_ASSESSMENT_WORKERS=1` serialises the round without changing a single
+    byte of its output, which is how the equivalence is tested.
+    """
+    try:
+        return max(1, int(os.environ.get("AA_ASSESSMENT_WORKERS", "11")))
+    except ValueError:
+        return 11
 
 
 class WorkflowError(RuntimeError):
@@ -121,6 +138,14 @@ class ProductionCoordinator:
         #: Last published readiness per department, so `READINESS_CHANGED` is
         #: emitted only when it changed. See `_emit_department_readiness`.
         self._department_readiness: dict[str, tuple[str, int, int]] = {}
+        #: The disruption being handled right now, filled in as the workflow
+        #: fills it. A run that stops at the approval gate stops in the middle
+        #: of `handle`, and the interface still has to draw the twelve views of
+        #: the work already done — the traversal, the plans, the conflict sets,
+        #: every expert finding. Reading it is safe from another thread: the
+        #: workflow only ever appends, and a reader that arrives mid-append sees
+        #: the previous state rather than a broken one.
+        self.current: DisruptionOutcome | None = None
         bus.subscribe("*", self._on_event)
 
     def _on_event(self, event: Event) -> None:
@@ -172,7 +197,7 @@ class ProductionCoordinator:
         *,
         title: str,
         scenario_id: str | None = None,
-        approver: Callable[[list[Plan], list[str]], Plan | None] | None = None,
+        gateway: ApprovalGateway | None = None,
         auto_resolve_blocking: bool = True,
         scenarios: int = 200,
         with_robustness: bool = True,
@@ -191,6 +216,7 @@ class ProductionCoordinator:
             scenario_id=scenario_id,
         )
         outcome = DisruptionOutcome(disruption=disruption)
+        self.current = outcome
         self._root_event_id = source_event.envelope.event_id
         cause = source_event.envelope.event_id
 
@@ -300,9 +326,17 @@ class ProductionCoordinator:
             return outcome
 
         # 7. Human decision --------------------------------------------------
-        self._transition(disruption, DisruptionState.AWAITING_APPROVAL,
-                         "routing to the required authorities", outcome, started)
-        selected = (approver or _default_approver)(solved.plans, solved.pareto_front)
+        # Everything above this line is the system's work and the system can
+        # finish it alone. Nothing below it happens without a signature, and the
+        # gateway is the only thing that can produce one. A gateway backed by a
+        # browser blocks here until somebody chooses; the stand-in answers
+        # immediately and stamps `stand_in` on what it produces.
+        gateway = gateway or StandInApprover()
+        self._transition(
+            disruption, DisruptionState.AWAITING_APPROVAL,
+            f"routing to the required authorities ({gateway.channel})", outcome, started,
+        )
+        selected = gateway.select(solved.plans, solved.pareto_front)
         if selected is None:
             self._transition(disruption, DisruptionState.ABANDONED,
                              "no plan was approved", outcome, started)
@@ -322,6 +356,7 @@ class ProductionCoordinator:
                 "required_roles": [r.value for r in request.required_roles],
                 "plan_hash": request.plan_hash, "constraint_hash": constraint_hash,
                 "expires_at": request.expires_at.isoformat(), "summary": request.summary,
+                "approval_channel": gateway.channel,
                 "conflicts": [],
             },
             producer="production_coordinator", disruption_id=disruption_id,
@@ -330,14 +365,20 @@ class ProductionCoordinator:
 
         granted: list[Approval] = []
         for role in selected.required_approvals:
-            actor = _actor_for(role)
+            signature = gateway.sign(request, role)
+            if signature is None:
+                # A refusal is a decision, and it ends the disruption here. There
+                # is no path that executes a plan an authority declined to sign.
+                self._transition(
+                    disruption, DisruptionState.ABANDONED,
+                    f"{role.value} declined to approve {selected.plan_id}",
+                    outcome, started,
+                )
+                return outcome
+            actor = signature.actor
             approval = self.approvals.grant(
                 request.request_id, actor, role,
-                rationale=(
-                    f"{selected.label}: preserves every approved access arrangement and "
-                    f"stays within configured limits at {selected.objectives.cost_delta:,.0f} "
-                    f"incremental cost."
-                ),
+                rationale=signature.rationale,
                 production_id=problem.production_id,
             )
             granted.append(approval)
@@ -353,9 +394,17 @@ class ProductionCoordinator:
                     "rationale": approval.rationale,
                     "expires_at": approval.expires_at.isoformat(),
                     "signature": approval.signature,
+                    # How the signature was obtained, carried on the event
+                    # itself so it survives into the replay, the audit export
+                    # and anything downstream that reads the log rather than
+                    # the screen.
+                    "approval_channel": gateway.channel,
                 },
                 producer="production_coordinator", actor=actor,
-                authority=Authority.AUTHORITATIVE,
+                authority=(
+                    Authority.AUTHORITATIVE if gateway.channel == "human"
+                    else Authority.INFERRED
+                ),
                 disruption_id=disruption_id, plan_id=selected.plan_id, causation_id=cause,
             )
 
@@ -566,9 +615,31 @@ class ProductionCoordinator:
                 "robustness": robustness.get(plan.plan_id) if plan else None,
             },
         )
+        # The agents run at the same time, not one after another. They share no
+        # mutable state: each reads the same finished `AgentContext` and returns
+        # its findings, so the fan-out changes how long the round takes and
+        # nothing else. On the Gemini plane it changes it by a lot — eleven
+        # narration calls at several seconds each is a minute of a first AD's
+        # evening if they are taken in turn.
+        #
+        # Determinism is preserved on both sides of the concurrency. `map`
+        # yields results in the order the agents were declared, the events are
+        # emitted from this thread in that same order, and `restore_order` puts
+        # the reasoning ledger back into it too — so the event log of a
+        # concurrent run is byte-identical to a serial one, and
+        # `AA_ASSESSMENT_WORKERS=1` is a performance switch rather than a
+        # different system.
+        mark = self.reasoner.mark()
+        with ThreadPoolExecutor(
+            max_workers=min(_worker_count(), len(EXPERT_AGENTS)),
+            thread_name_prefix="assess",
+        ) as pool:
+            rounds = list(pool.map(lambda agent: agent.run(context), EXPERT_AGENTS))
+        self.reasoner.restore_order(mark, [agent.name for agent in EXPERT_AGENTS])
+
         findings: list[Finding] = []
-        for agent in EXPERT_AGENTS:
-            for finding in agent.run(context):
+        for produced in rounds:
+            for finding in produced:
                 findings.append(finding)
                 self._emit(
                     _finding_event_type(finding),
@@ -609,7 +680,18 @@ class ProductionCoordinator:
                 "objectives": plan.objectives.model_dump(mode="json"),
                 "scene_count": len(plan.scenes),
                 "required_approvals": [r.value for r in plan.required_approvals],
-                "proof": plan.proof.model_dump(mode="json") if plan.proof else None,
+                # How long the solve took is a fact about this machine on this
+                # evening, not about the plan. Carrying it in the event would
+                # give the same disruption a different payload hash on every
+                # run, which is the one thing a hash-chained log must not do:
+                # "replay the shoot day and diff it" has to be an instruction a
+                # judge can follow. The measurement is kept and reported, in
+                # `outcome.timings` and on the plan detail, where nothing hashes
+                # it.
+                "proof": (
+                    plan.proof.model_dump(mode="json", exclude={"solve_ms"})
+                    if plan.proof else None
+                ),
                 "conflicts": [c.model_dump(mode="json") for c in plan.conflicts],
                 "plan_hash": plan.content_hash(),
             },
@@ -753,17 +835,6 @@ def _actor_for(role: Role) -> str:
         if crew.authority_role == role:
             return crew.crew_id
     return "CREW-UPM"
-
-
-def _default_approver(plans: list[Plan], pareto: list[str]) -> Plan | None:
-    """Choose the strongest plan on the Pareto front.
-
-    Stands in for a human at the approval workspace. It picks from the *front*
-    only — it never selects a dominated plan — and the CLI prints the whole
-    comparison so the choice is visible rather than implied.
-    """
-    front = [p for p in plans if p.plan_id in pareto] or plans
-    return front[0] if front else None
 
 
 def problem_blast(problem: SchedulingProblem, source_event: Event):

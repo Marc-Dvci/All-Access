@@ -221,6 +221,10 @@
 
   function panel(view) { return "#panel-" + view + " "; }
 
+  /** The first element matching one selector, or null. `first` takes a list of
+   *  alternatives; this is for a control that may or may not be on screen yet. */
+  function pick(selector) { return $(selector); }
+
   // -- the script -----------------------------------------------------------
   //
   // `say` is the narration, word for word. It is displayed as a caption while it
@@ -344,12 +348,39 @@
 
     {
       chapter: "The judgment stays human",
-      say: "All-Access never decides on its own. It proposes; the people " +
-           "responsible approve.",
-      ms: 7000,
+      say: "All-Access never decides on its own. It stops here, and stays " +
+           "stopped until the people responsible sign for it.",
+      ms: 10000,
+      // This beat does the thing it narrates. The workflow really is stopped
+      // inside the coordinator when the demonstration arrives, and it is these
+      // clicks that release it: choose a plan, then sign for each authority the
+      // plan requires. Nothing here talks to the API directly. If the gate ever
+      // stopped holding, this beat would sail through an empty screen and the
+      // execution beat after it would have nothing to show, which is the
+      // failure the browser smoke test looks for.
       run: async function () {
         await goto("approval");
-        await spot(first([panel("approval") + ".headline", panel("approval") + ".table-scroll"]));
+        await spot(panel("approval") + ".headline");
+        await wait(1400);
+
+        var choose = pick(panel("approval") + ".plancard .button.primary");
+        if (choose) {
+          await click(choose);
+          await until(function () {
+            return pick(panel("approval") + ".signrow .button.primary")
+                || pick(panel("approval") + ".table-scroll");
+          }, 20000);
+        }
+
+        for (var attempt = 0; attempt < 6; attempt++) {
+          var sign = pick(panel("approval") + ".signrow .button.primary");
+          if (!sign) break;
+          await spot(sign, 14);
+          await click(sign);
+          await wait(500);
+        }
+        await spot(first([panel("approval") + ".headline",
+                          panel("approval") + ".table-scroll"]));
       }
     },
 

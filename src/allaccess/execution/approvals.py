@@ -23,8 +23,11 @@ from __future__ import annotations
 import hashlib
 import hmac
 import os
+import threading
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from typing import Protocol
 
 from ..contracts import (
     DEFAULT_APPROVAL_TTL,
@@ -188,3 +191,200 @@ class ApprovalLedger:
         signed = {a.role for a in granted if a.plan_id == plan.plan_id}
         missing = [r for r in plan.required_approvals if r not in signed]
         return (not missing), missing
+
+
+# ---------------------------------------------------------------------------
+# Who is signing
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Signature:
+    """One named person putting their authority behind one role on one plan."""
+
+    actor: str
+    rationale: str
+
+
+class ApprovalGateway(Protocol):
+    """Where the coordinator goes to find out what a human decided.
+
+    The workflow can prove a great deal about an approval — that it is bound to
+    this plan and this constraint set, that it has not been used before, that it
+    has not expired, that every required authority is present. It cannot prove
+    that a person was at the other end of it. That is not a property of a
+    signature; it is a property of how the signature was obtained.
+
+    So the workflow stops asserting it and records it instead. Every gateway
+    declares a `channel`, the channel is written onto the approval-requested and
+    approval-granted events, and the interface prints it next to the signature.
+    A run signed at a browser says `human`. A run signed by the stand-in says
+    `stand_in`, in the log, in the API and on the screen.
+    """
+
+    #: How these signatures were obtained. Written onto every approval event.
+    channel: str
+
+    def select(self, plans: list[Plan], pareto: list[str]) -> Plan | None:
+        """Which plan to route for approval, or `None` to abandon."""
+        ...
+
+    def sign(self, request: ApprovalRequest, role: Role) -> Signature | None:
+        """The signature for one required role, or `None` if it is refused."""
+        ...
+
+
+class StandInApprover:
+    """The unattended path: no human is present, and the log says so.
+
+    This is what runs the thousand-scenario benchmark, the test suite and any
+    CLI invocation that nobody is watching. It exists because a workflow that
+    could only complete with somebody clicking could not be measured a thousand
+    times, and a system whose recovery numbers cannot be measured is a demo.
+
+    Two things it deliberately does not do. It does not choose a dominated plan
+    — the selection comes off the Pareto front, so an unattended run is never
+    quietly worse than the front it was offered. And it does not sign in a crew
+    member's name: the actor on a stand-in approval is `STAND-IN/<role>`, which
+    is not the identifier of any person in the production and cannot be mistaken
+    for one when someone reads the ledger back.
+    """
+
+    channel = "stand_in"
+
+    def select(self, plans: list[Plan], pareto: list[str]) -> Plan | None:
+        front = [p for p in plans if p.plan_id in pareto] or plans
+        return front[0] if front else None
+
+    def sign(self, request: ApprovalRequest, role: Role) -> Signature | None:
+        return Signature(
+            actor=f"STAND-IN/{role.value}",
+            rationale=(
+                f"Unattended run: {request.summary}. No person reviewed this plan. "
+                f"The plan is on the Pareto front, preserves every approved access "
+                f"arrangement and satisfies every active constraint."
+            ),
+        )
+
+
+class ApprovalRefused(RuntimeError):
+    """A person declined. Not an error in the system; an answer from outside it."""
+
+
+class HumanApprovalGateway:
+    """The workflow stops here until a person decides, and blocks if none does.
+
+    The gateway is deliberately the dullest object in the system: two waits and
+    a handful of state. Its whole value is that it cannot be satisfied from
+    inside the process. `select` returns when somebody has chosen a plan;
+    `sign` returns when somebody has put their name to one role. Nothing here
+    supplies a default, and nothing here times out into one — a wait that runs
+    out abandons the disruption, because a plan nobody approved is a plan that
+    does not execute.
+
+    That is the entire difference between this and `StandInApprover`, and it is
+    the difference the headline claim rests on. The signature integrity is the
+    same either way: hash-bound, single-use, expiring. What changes is who was
+    at the other end, and the channel written onto every event is how a reader
+    of the log tells the two apart.
+
+    One gateway serves one disruption. `cancel` releases a workflow still
+    waiting on a session that has been replaced.
+    """
+
+    channel = "human"
+
+    def __init__(self, *, timeout: float = 1800.0,
+                 on_pause: Callable[[], None] | None = None) -> None:
+        self.timeout = timeout
+        self._on_pause = on_pause
+        self._state = threading.Condition()
+        self._selected: Plan | None = None
+        self._signatures: dict[Role, Signature] = {}
+        self._refusal: str | None = None
+        self._cancelled = False
+
+        #: What the workflow is waiting for right now, for the interface to
+        #: render: `None`, `"selection"`, or the role whose signature is due.
+        self.waiting_on: str | None = None
+        #: The plans offered for selection, and the front among them.
+        self.offered: list[Plan] = []
+        self.pareto: list[str] = []
+        #: The approval request under signature, once a plan has been chosen.
+        self.request: ApprovalRequest | None = None
+
+    # -- the workflow side -------------------------------------------------
+
+    def select(self, plans: list[Plan], pareto: list[str]) -> Plan | None:
+        with self._state:
+            self.offered = list(plans)
+            self.pareto = list(pareto)
+            self._wait_for("selection", lambda: self._selected is not None)
+            return self._selected
+
+    def sign(self, request: ApprovalRequest, role: Role) -> Signature | None:
+        with self._state:
+            self.request = request
+            self._wait_for(role.value, lambda: role in self._signatures)
+            return self._signatures.get(role)
+
+    def _wait_for(self, what: str, done: Callable[[], bool]) -> None:
+        """Hold the workflow until `done`, a refusal, a cancellation or the clock."""
+        self.waiting_on = what
+        if self._on_pause is not None:
+            self._on_pause()
+        try:
+            self._state.wait_for(
+                lambda: done() or self._refusal is not None or self._cancelled,
+                timeout=self.timeout,
+            )
+        finally:
+            self.waiting_on = None
+
+    # -- the person's side -------------------------------------------------
+
+    def choose(self, plan_id: str) -> Plan:
+        with self._state:
+            plan = next((p for p in self.offered if p.plan_id == plan_id), None)
+            if plan is None:
+                raise ApprovalError(f"{plan_id} was not offered for approval")
+            if not plan.feasible:
+                raise ApprovalError(f"{plan_id} is not feasible and cannot be approved")
+            self._selected = plan
+            self._state.notify_all()
+            return plan
+
+    def endorse(self, role: Role, actor: str, rationale: str) -> Signature:
+        with self._state:
+            if self.request is None:
+                raise ApprovalError("no plan has been selected for approval yet")
+            if role not in self.request.required_roles:
+                raise ApprovalError(
+                    f"{role.value} is not a required authority for this plan"
+                )
+            if not rationale.strip():
+                raise ApprovalError("an approval requires a rationale")
+            signature = Signature(actor=actor, rationale=rationale)
+            self._signatures[role] = signature
+            self._state.notify_all()
+            return signature
+
+    def refuse(self, reason: str) -> None:
+        with self._state:
+            self._refusal = reason or "declined"
+            self._state.notify_all()
+
+    def cancel(self) -> None:
+        with self._state:
+            self._cancelled = True
+            self._state.notify_all()
+
+    # -- what the interface reads ------------------------------------------
+
+    @property
+    def signed_roles(self) -> tuple[Role, ...]:
+        return tuple(self._signatures)
+
+    @property
+    def refusal(self) -> str | None:
+        return self._refusal

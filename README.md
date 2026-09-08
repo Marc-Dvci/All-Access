@@ -105,12 +105,19 @@ python tools/a11y_audit.py                # 78 WCAG 2.2 AA checks
 uvicorn allaccess.api:app --port 8765     # then open http://127.0.0.1:8765
 ```
 
+The application stops at the approval gate and executes nothing until you choose
+a plan and sign for each required authority. That is the product, not a
+demonstration mode: `AA_APPROVAL_MODE=stand_in` is the unattended path the
+benchmark and the tests use, and every approval it produces is labelled
+`stand_in` in the event log, in the API and on the screen.
+
 **Watch it instead of reading about it:** <http://127.0.0.1:8765/?demo=1>
 
 A guided demonstration that plays itself — the storm arriving, everything it
 touches, the refusal of the free-but-inaccessible location and the reason a
 location manager can act on, the plans that keep every access arrangement, the
-human approval, and the verification that will not call the day ready. It is not
+approval the workflow stops and waits for, and the verification that will not
+call the day ready. It is not
 a recording: it drives this client through this API over a workflow run that
 starts when you open the page, using the same controls a person uses. Escape
 stops it. The narration is burned in as captions, and
@@ -153,10 +160,10 @@ arrangements were preserved, and that a full replay reproduces live state.
         └─────────────────────┬─────────────────────┘
                               │
         ┌─────────────────────▼─────────────────────┐
-        │  Expert agents  ·  Gemini or offline      │
-        │  typed findings with evidence.            │
-        │  every claim checked against the facts.   │
-        │  CANNOT decide feasibility.               │
+        │  11 expert agents, concurrently            │
+        │  Gemini or offline · typed findings        │
+        │  every claim checked against the facts.    │
+        │  CANNOT decide feasibility.                │
         └─────────────────────┬─────────────────────┘
                               │
         ┌─────────────────────▼─────────────────────┐
@@ -167,7 +174,7 @@ arrangements were preserved, and that a full replay reproduces live state.
         └─────────────────────┬─────────────────────┘
                               │  plan + feasibility proof
         ┌─────────────────────▼─────────────────────┐
-        │  Human approval                           │
+        │  Human approval  ·  THE WORKFLOW STOPS    │
         │  signed · hash-bound · single-use · expiring
         └─────────────────────┬─────────────────────┘
                               │  typed commands, saga-coordinated
@@ -194,7 +201,7 @@ reaches it. The ablation table above is what that boundary is worth.
 | Partner | Where it is called | How to see it |
 |---|---|---|
 | **Confluent** | `src/allaccess/stream/` — `ConfluentEventBus` and `ConfluentSchemaRegistry` register 23 subjects, validate every payload before append, enforce BACKWARD compatibility, dead-letter failures | `AA_EVENT_BACKBONE=confluent`; `GET /api/streams`; [`docs/CONFLUENT.md`](docs/CONFLUENT.md) |
-| **Gemini / Vertex AI** | `agents/core.py::GeminiReasoner` — narration for 15 expert agents, with a system instruction that forbids feasibility judgements and a grounding gate that discards any response carrying an identifier or measurement the facts did not support | `AA_REASONING_MODE=gemini`; `GET /api/findings` reports the live plane and everything it rejected |
+| **Gemini / Vertex AI** | `agents/core.py::GeminiReasoner` — narration for the eleven expert agents, with a system instruction that forbids feasibility judgements and a grounding gate that discards any response carrying an identifier or measurement the facts did not support. Measured against the offline plane over the same corpus in [`docs/BENCHMARK.md`](docs/BENCHMARK.md) §7 | `AA_REASONING_MODE=gemini`; `GET /api/findings` reports the live plane and everything it rejected |
 | **Google ADK** | `agents/adk_tools.py` — seven read-only function tools over the product's own read model, and the `google.adk.agents.Agent` that holds them. The agent is built from that list and nowhere else; the deployment refuses to run if the implemented surface and the approved allowlist differ | `pip install -e ".[cloud]"; pytest -q tests/test_adk_tools.py` |
 | **Google Cloud** | Cloud Run, Artifact Registry, Secret Manager, Vertex AI Agent Engine | `infra/terraform/`, `tools/deploy_agent_engine.py --dry-run` |
 | **IBM Bob** | 7 custom modes with scoped file permissions, committed rules, 2 working MCP servers | `.bob/`, `tools/mcp_*.py`, `bob-evidence/` |

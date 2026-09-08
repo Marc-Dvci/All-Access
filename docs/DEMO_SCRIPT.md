@@ -52,7 +52,7 @@ Generated from `src/allaccess/web/demo.js` by `tools/demo_script.py`.
 Editing this table by hand will be overwritten; change the beat instead.
 
 
-Runs **1:52** over 11 beats.
+Runs **1:55** over 11 beats.
 
 | # | Cue | Chapter | Narration |
 |---|---|---|---|
@@ -64,9 +64,9 @@ Runs **1:52** over 11 beats.
 | 6 | 0:50 | The refusal | The obvious fix is to move to the boatshed. It is free, and a scheduling tool would just take it. But there is no step-free way in — and someone on this crew depends on one. So All-Access refuses it. |
 | 7 | 1:03 | A reason you can act on | And it does not just say no. It shows exactly why — the only route in has a step at the door — so a location manager can fix it. Not a vague note nobody can act on. |
 | 8 | 1:15 | The options | Instead, it offers plans that all keep every access arrangement intact — because an access need is never something to trade away for a faster day. |
-| 9 | 1:25 | The judgment stays human | All-Access never decides on its own. It proposes; the people responsible approve. |
-| 10 | 1:32 | Everyone, or no one | Then it makes sure the new plan actually reaches every department — and it will not call the day ready until everyone has it. |
-| 11 | 1:42 | — | All-Access. Recover any disruption — without ever leaving someone behind. For every production, and every person on it. |
+| 9 | 1:25 | The judgment stays human | All-Access never decides on its own. It stops here, and stays stopped until the people responsible sign for it. |
+| 10 | 1:35 | Everyone, or no one | Then it makes sure the new plan actually reaches every department — and it will not call the day ready until everyone has it. |
+| 11 | 1:45 | — | All-Access. Recover any disruption — without ever leaving someone behind. For every production, and every person on it. |
 
 ---
 

@@ -17,9 +17,27 @@ Each closed by a specific property:
 | Replayed after the rules changed | HMAC covers `constraint_hash` |
 | Replayed at all | `consume()` marks it spent |
 | Used hours later | bounded TTL |
+| Taken by nobody, and read later as if by somebody | `approval_channel` on the event |
 
 Authority is checked separately, in the policy path against `APPROVAL_MATRIX`.
 Holding a valid signature does not make someone the right person to sign.
+
+The fifth row is the one that took a second pass. The first four are properties
+of the signature and can be checked from it. Whether a *person* produced it
+cannot: an HMAC computed by a workflow with nobody watching verifies exactly as
+well as one computed when somebody pressed a button. So the workflow stopped
+implying an answer and started recording one.
+
+`ApprovalGateway` has two implementations and each declares a `channel`.
+`HumanApprovalGateway` blocks the workflow until somebody chooses a plan and
+signs for every required authority at `/api/approval/*`; nothing supplies a
+default and a wait that runs out abandons the disruption. `StandInApprover` is
+the unattended path that the benchmark, the tests and any CLI run use — it picks
+off the Pareto front and signs as `STAND-IN/<role>`, an identifier belonging to
+no one on the production. The channel is written onto the approval-requested and
+approval-granted events, and the data contract for `production.plan.approved`
+**requires** it and refuses a `stand_in` approval that carries a crew member's
+identifier. The web application defaults to `human`.
 
 ## Rejected
 
@@ -39,3 +57,8 @@ constraint-set hash closes that.
 - **Inconvenient:** an approval cannot be reused after a legitimate minor plan
   edit. Re-approval is required, which is friction on a running day — and it is
   the right friction.
+- **The product does not finish by itself.** Opening the web application gets a
+  scoped, planned, assessed disruption and a stop. Somebody has to decide. That
+  is the intended behaviour and it is what the headline claim means, but it does
+  mean an unattended deployment shows a half-finished day until a person arrives
+  — which is the honest depiction of a system that will not act without one.
