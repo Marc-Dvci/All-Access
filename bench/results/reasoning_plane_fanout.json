@@ -1,0 +1,101 @@
+{
+  "generated_at": "2026-09-08T07:24:32+00:00",
+  "platform": "Windows 10",
+  "scenarios": 8,
+  "seed": 20260314,
+  "assessment": "parallel",
+  "model": "gemini-3.7-flash",
+  "decisions_identical": 8,
+  "decisions_identical_rate": 1.0,
+  "headlines_compared": 88,
+  "headlines_reworded": 23,
+  "headlines_reworded_rate": 0.2614,
+  "gemini": {
+    "calls": 33,
+    "failed": 0,
+    "errors": [],
+    "responses_rejected_as_ungrounded": 0,
+    "rejected_claims": [],
+    "tokens_in": 8273,
+    "tokens_out": 1812,
+    "tokens_thought": 10176,
+    "mean_latency_ms": 4574.3,
+    "p95_latency_ms": 6268.1,
+    "mean_response_chars": 171.8
+  },
+  "offline": {
+    "calls": 33,
+    "failed": 0,
+    "errors": [],
+    "responses_rejected_as_ungrounded": 0,
+    "rejected_claims": [],
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "tokens_thought": 0,
+    "mean_latency_ms": 0.0,
+    "p95_latency_ms": 0.0,
+    "mean_response_chars": 132.0
+  },
+  "mean_wall_ms": {
+    "offline": 343.6,
+    "gemini": 9938.7
+  },
+  "rows": [
+    {
+      "scenario_id": "SC-STORM-001",
+      "family": "weather",
+      "decisions_identical": true,
+      "headlines_compared": 11,
+      "headlines_reworded": 4
+    },
+    {
+      "scenario_id": "SC-CAST-0001",
+      "family": "cast_crew",
+      "decisions_identical": true,
+      "headlines_compared": 11,
+      "headlines_reworded": 4
+    },
+    {
+      "scenario_id": "SC-CREW-0002",
+      "family": "cast_crew",
+      "decisions_identical": true,
+      "headlines_compared": 11,
+      "headlines_reworded": 1
+    },
+    {
+      "scenario_id": "SC-LOC-0003",
+      "family": "location",
+      "decisions_identical": true,
+      "headlines_compared": 11,
+      "headlines_reworded": 4
+    },
+    {
+      "scenario_id": "SC-EQP-0004",
+      "family": "equipment",
+      "decisions_identical": true,
+      "headlines_compared": 11,
+      "headlines_reworded": 1
+    },
+    {
+      "scenario_id": "SC-ACC-0005",
+      "family": "access_communication",
+      "decisions_identical": true,
+      "headlines_compared": 11,
+      "headlines_reworded": 1
+    },
+    {
+      "scenario_id": "SC-CON-0006",
+      "family": "continuity",
+      "decisions_identical": true,
+      "headlines_compared": 11,
+      "headlines_reworded": 4
+    },
+    {
+      "scenario_id": "SC-SYS-0007",
+      "family": "operational_systems",
+      "decisions_identical": true,
+      "headlines_compared": 11,
+      "headlines_reworded": 4
+    }
+  ]
+}
